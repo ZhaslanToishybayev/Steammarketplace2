@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="h-100">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    {% include 'layout/header-links.html' %}
+    <title>{{ page_title }}</title>
+</head>
+
+<body class="d-flex flex-column h-100">
+    {% include 'layout/nav.html' %}
+    <main>
+        {% if active_page != "skin" %}
+        <div class="container-fluid container-md">
+            <div class="bg-dark p-3 mt-2 mb-2 d-inline-block">
+            {% block pagetitle %}
+            {% endblock %}
+            </div>
+            <button id="btt" class="btn btn-orange position-fixed bottom-0 p-4 end-0 me-2 mb-5 border" style="z-index: 1"><i class="fas fa-angle-up fs-3"></i></button>
+        </div>
+        {% endif %}
+        <div class="container-fluid mt-3 container-md">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    {% include 'layout/footer.html' %}
+    {% include 'layout/scripts.html' %}
+</body>
+
+</html>

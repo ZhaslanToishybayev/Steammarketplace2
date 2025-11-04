@@ -1,0 +1,318 @@
+version: '3.8'
+
+services:
+  # ===========================================
+  # APPLICATION SERVICES
+  # ===========================================
+
+  # Main Application (Node.js + TypeScript)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-app
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/steam_marketplace
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - STEAM_API_KEY=${STEAM_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+    depends_on:
+      - mongo
+      - redis
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ===========================================
+  # DATABASE SERVICES
+  # ===========================================
+
+  # MongoDB (Primary Database)
+  mongo:
+    image: mongo:7.0
+    container_name: steam-marketplace-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+      - MONGO_INITDB_DATABASE=steam_marketplace
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: mongod --replSet rs0
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # MongoDB Secondary (Replica Set)
+  mongo-secondary:
+    image: mongo:7.0
+    container_name: steam-marketplace-mongo-secondary
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+    volumes:
+      - mongo-secondary-data:/data/db
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    command: mongod --replSet rs0
+    depends_on:
+      - mongo
+
+  # MongoDB Arbiter
+  mongo-arbiter:
+    image: mongo:7.0
+    container_name: steam-marketplace-mongo-arbiter
+    ports:
+      - "27019:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password123
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    command: mongod --replSet rs0
+
+  # Redis (Cache + Sessions + Queues)
+  redis:
+    image: redis:7.2-alpine
+    container_name: steam-marketplace-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispass123}
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================
+  # WORKER SERVICES
+  # ===========================================
+
+  # Background Job Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-worker
+    command: npm run worker
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/steam_marketplace
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongo
+      - redis
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # Steam Bot Worker
+  steam-bot-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-steam-bot
+    command: npm run steam-bot
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/steam_marketplace
+      - REDIS_URL=redis://redis:6379
+      - STEAM_BOT_1_USERNAME=${STEAM_BOT_1_USERNAME}
+      - STEAM_BOT_1_PASSWORD=${STEAM_BOT_1_PASSWORD}
+      - STEAM_BOT_1_SHARED_SECRET=${STEAM_BOT_1_SHARED_SECRET}
+      - STEAM_BOT_1_IDENTITY_SECRET=${STEAM_BOT_1_IDENTITY_SECRET}
+    depends_on:
+      - mongo
+      - redis
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Price Monitor Worker
+  price-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-price-worker
+    command: npm run price-monitor
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/steam_marketplace
+      - REDIS_URL=redis://redis:6379
+      - STEAM_API_KEY=${STEAM_API_KEY}
+    depends_on:
+      - mongo
+      - redis
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ===========================================
+  # MONITORING SERVICES
+  # ===========================================
+
+  # Nginx (Load Balancer + Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: steam-marketplace-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs:/var/log/nginx
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Prometheus (Metrics)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: steam-marketplace-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+
+  # Grafana (Dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: steam-marketplace-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    restart: unless-stopped
+    networks:
+      - marketplace-network
+    depends_on:
+      - prometheus
+
+  # ===========================================
+  # VOLUMES
+  # ===========================================
+
+volumes:
+  mongo-data:
+    driver: local
+  mongo-secondary-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+  # ===========================================
+  # NETWORKS
+  # ===========================================
+
+networks:
+  marketplace-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ===========================================
+# SCALING COMMANDS
+# ===========================================
+
+# Scale application instances:
+# docker-compose up -d --scale app=3
+
+# Scale workers:
+# docker-compose up -d --scale worker=2

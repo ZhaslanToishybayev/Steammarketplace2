@@ -1,0 +1,45 @@
+{% extends 'layout/dashboard-base.html' %}
+{% set active_page = "addstickers" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h2 class="h2">{{ page_title }}</h2>
+</div>
+<div id="add-case" aria-labelledby="add-case">
+    <form id="sticker-form" class="container-fluid" method="post" action="{{ url_for('insert_skin', skin_type='sticker') }}" validate>
+    <div class="row">
+        <div class="col-md-9 col-sm-12">
+            <label for="name" class="label">Sticker Name</label>
+            <input type="text" placeholder="Sticker Name" class="form-control bg-dark text-white rounded-0 mb-3"
+                name="name" minlength="10" maxlength="35" required>
+            <label for="sticker_description" class="label">Sticker Description</label>
+            <input type="text" placeholder="Sticker Description" class="form-control bg-dark text-white rounded-0 mb-3"
+                name="sticker_description" minlength="20" maxlength="100" required>
+            <label for="rarity" class="label">Sticker Rarity</label>
+            <select placeholder="Rarity" class="form-select bg-dark text-white rounded-0 mb-3" name="rarity" required>
+                {% for rarity in stickerRarities %}
+                    <option value="{{ rarity }}">{{ rarity }}</option>
+                {% endfor %}
+            </select>
+            <div class="d-flex mb-3">
+                <span class="input-group-text w-50 overflow-auto"
+                id="steamimageurl">https://community.cloudflare.steamstatic.com/economy/image/</span>
+              <input class="form-control bg-dark text-white"
+                placeholder="Image Url" name="image" id="image" type="text"
+                aria-describedby="steamimageurl" required>
+            </div>
+            <label for="release-date" class="label">Case Release Date (Click)</label>
+            <div class="input-group flex-nowrap">
+                <span class="input-group-text" id="addon-wrapping"><i class="fas fa-calendar-alt"></i></span>
+                <input class="form-select" role="button" id="release-date" placeholder="Pick A Date"
+                    name="release-date" required>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-12 text-center">
+            <button type="submit" class="btn btn-orange p-5 h-75 mt-4">
+                <i class="far fa-plus-square fs-4 align-middle"></i> Add Case
+            </button>
+        </div>
+    </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{{ page_title }}</title>
+    {% include 'layout/header-links.html' %}
+</head>
+<body>
+    {% include 'layout/dashboard-header.html' %}
+    <div class="container-fluid">
+        <div class="row h-100">
+            {% include 'layout/dashboard-nav.html' %}
+            <div class="col-lg-9 col-md-9 bg-dark mx-sm-auto mt-5">
+            {% block content %}
+            {% endblock %}
+            </div>
+        </div>
+    </div>
+    {% include 'layout/scripts.html' %}
+</body>
+
+</html>

@@ -1,360 +1,357 @@
-# Claude Code Infrastructure Showcase
+# CSGO Skinfo Marketplace
 
-**A curated reference library of production-tested Claude Code infrastructure.**
+A modern marketplace for CS2/CSGO skins with Steam integration, automated trading bots, and Stripe payments.
 
-Born from 6 months of real-world use managing a complex TypeScript microservices project, this showcase provides the patterns and systems that solved the "skills don't activate automatically" problem and scaled Claude Code for enterprise development.
+## Features
 
-> **This is NOT a working application** - it's a reference library. Copy what you need into your own projects.
+### Core Marketplace
+- **Steam Authentication**: Login with Steam account
+- **Inventory Integration**: Automatic inventory sync from Steam
+- **Listing Management**: Create, edit, and manage skin listings
+- **Advanced Search**: Filter by price, rarity, condition, weapon type
+- **Real-time Updates**: Live notifications for trades and purchases
 
----
+### Trading System
+- **Automated Steam Bots**: Handle trade offers automatically
+- **Trade Queue**: Efficient processing of multiple trades
+- **Trade Validation**: Verify items and prevent fraud
+- **Trade History**: Complete transaction records
 
-## What's Inside
+### Payment System
+- **Stripe Integration**: Secure payment processing
+- **Wallet System**: Internal balance management
+- **Deposit/Withdrawal**: Add funds via card, withdraw to PayPal/bank
+- **Transaction History**: Complete financial records
 
-**Production-tested infrastructure for:**
-- ✅ **Auto-activating skills** via hooks
-- ✅ **Modular skill pattern** (500-line rule with progressive disclosure)
-- ✅ **Specialized agents** for complex tasks
-- ✅ **Dev docs system** that survives context resets
-- ✅ **Comprehensive examples** using generic blog domain
+### Security & Safety
+- **JWT Authentication**: Secure API access
+- **Rate Limiting**: Prevent abuse and spam
+- **Input Validation**: Comprehensive data validation
+- **Audit Logging**: Track all important actions
 
-**Time investment to build:** 6 months of iteration
-**Time to integrate into your project:** 15-30 minutes
+## Tech Stack
 
----
+### Backend
+- **Node.js** with Express.js
+- **MongoDB** with Mongoose ODM
+- **Socket.io** for real-time communication
+- **Passport.js** for Steam authentication
+- **Stripe** for payment processing
 
-## Quick Start - Pick Your Path
+### Steam Integration
+- **steam-user**: Bot account management
+- **steam-community**: Community features
+- **steam-tradeoffer-manager**: Trade offer handling
 
-### 🤖 Using Claude Code to Integrate?
+### Security
+- **Helmet.js**: Security headers
+- **bcryptjs**: Password hashing
+- **jsonwebtoken**: JWT tokens
+- **express-rate-limit**: Rate limiting
 
-**Claude:** Read [`CLAUDE_INTEGRATION_GUIDE.md`](CLAUDE_INTEGRATION_GUIDE.md) for step-by-step integration instructions tailored for AI-assisted setup.
+## Installation
 
-### 🎯 I want skill auto-activation
+### Prerequisites
+- Node.js 16+ 
+- MongoDB
+- Steam API key
+- Stripe account
+- Steam bot accounts
 
-**The breakthrough feature:** Skills that actually activate when you need them.
+### Setup
 
-**What you need:**
-1. The skill-activation hooks (2 files)
-2. A skill or two relevant to your work
-3. 15 minutes
-
-**👉 [Setup Guide: .claude/hooks/README.md](.claude/hooks/README.md)**
-
-### 📚 I want to add ONE skill
-
-Browse the [skills catalog](.claude/skills/) and copy what you need.
-
-**Available:**
-- **backend-dev-guidelines** - Node.js/Express/TypeScript patterns
-- **frontend-dev-guidelines** - React/TypeScript/MUI v7 patterns
-- **skill-developer** - Meta-skill for creating skills
-- **route-tester** - Test authenticated API routes
-- **error-tracking** - Sentry integration patterns
-
-**👉 [Skills Guide: .claude/skills/README.md](.claude/skills/README.md)**
-
-### 🤖 I want specialized agents
-
-10 production-tested agents for complex tasks:
-- Code architecture review
-- Refactoring assistance
-- Documentation generation
-- Error debugging
-- And more...
-
-**👉 [Agents Guide: .claude/agents/README.md](.claude/agents/README.md)**
-
----
-
-## What Makes This Different?
-
-### The Auto-Activation Breakthrough
-
-**Problem:** Claude Code skills just sit there. You have to remember to use them.
-
-**Solution:** UserPromptSubmit hook that:
-- Analyzes your prompts
-- Checks file context
-- Automatically suggests relevant skills
-- Works via `skill-rules.json` configuration
-
-**Result:** Skills activate when you need them, not when you remember them.
-
-### Production-Tested Patterns
-
-These aren't theoretical examples - they're extracted from:
-- ✅ 6 microservices in production
-- ✅ 50,000+ lines of TypeScript
-- ✅ React frontend with complex data grids
-- ✅ Sophisticated workflow engine
-- ✅ 6 months of daily Claude Code use
-
-The patterns work because they solved real problems.
-
-### Modular Skills (500-Line Rule)
-
-Large skills hit context limits. The solution:
-
-```
-skill-name/
-  SKILL.md                  # <500 lines, high-level guide
-  resources/
-    topic-1.md              # <500 lines each
-    topic-2.md
-    topic-3.md
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd csgo-marketplace
 ```
 
-**Progressive disclosure:** Claude loads main skill first, loads resources only when needed.
-
----
-
-## Repository Structure
-
-```
-.claude/
-├── skills/                 # 5 production skills
-│   ├── backend-dev-guidelines/  (12 resource files)
-│   ├── frontend-dev-guidelines/ (11 resource files)
-│   ├── skill-developer/         (7 resource files)
-│   ├── route-tester/
-│   ├── error-tracking/
-│   └── skill-rules.json    # Skill activation configuration
-├── hooks/                  # 6 hooks for automation
-│   ├── skill-activation-prompt.*  (ESSENTIAL)
-│   ├── post-tool-use-tracker.sh   (ESSENTIAL)
-│   ├── tsc-check.sh        (optional, needs customization)
-│   └── trigger-build-resolver.sh  (optional)
-├── agents/                 # 10 specialized agents
-│   ├── code-architecture-reviewer.md
-│   ├── refactor-planner.md
-│   ├── frontend-error-fixer.md
-│   └── ... 7 more
-└── commands/               # 3 slash commands
-    ├── dev-docs.md
-    └── ...
-
-dev/
-└── active/                 # Dev docs pattern examples
-    └── public-infrastructure-repo/
+2. **Install dependencies**
+```bash
+npm install
 ```
 
----
+3. **Environment Configuration**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-## Component Catalog
+4. **Required Environment Variables**
+```env
+# Steam API Key (get from https://steamcommunity.com/dev/apikey)
+STEAM_API_KEY=your-steam-api-key
 
-### 🎨 Skills (5)
+# Steam Bot Credentials
+STEAM_BOT_1_USERNAME=bot-username
+STEAM_BOT_1_PASSWORD=bot-password
+STEAM_BOT_1_SHARED_SECRET=shared-secret
+STEAM_BOT_1_IDENTITY_SECRET=identity-secret
 
-| Skill | Lines | Purpose | Best For |
-|-------|-------|---------|----------|
-| [**skill-developer**](.claude/skills/skill-developer/) | 426 | Creating and managing skills | Meta-development |
-| [**backend-dev-guidelines**](.claude/skills/backend-dev-guidelines/) | 304 | Express/Prisma/Sentry patterns | Backend APIs |
-| [**frontend-dev-guidelines**](.claude/skills/frontend-dev-guidelines/) | 398 | React/MUI v7/TypeScript | React frontends |
-| [**route-tester**](.claude/skills/route-tester/) | 389 | Testing authenticated routes | API testing |
-| [**error-tracking**](.claude/skills/error-tracking/) | ~250 | Sentry integration | Error monitoring |
+# Stripe Keys (get from https://dashboard.stripe.com/apikeys)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 
-**All skills follow the modular pattern** - main file + resource files for progressive disclosure.
+# Database
+MONGODB_URI=mongodb://localhost:27017/csgo-marketplace
 
-**👉 [How to integrate skills →](.claude/skills/README.md)**
+# JWT Secrets
+JWT_SECRET=your-jwt-secret
+SESSION_SECRET=your-session-secret
+```
 
-### 🪝 Hooks (6)
+5. **Start the server**
+```bash
+# Development
+npm run dev
 
-| Hook | Type | Essential? | Customization |
-|------|------|-----------|---------------|
-| skill-activation-prompt | UserPromptSubmit | ✅ YES | ✅ None needed |
-| post-tool-use-tracker | PostToolUse | ✅ YES | ✅ None needed |
-| tsc-check | Stop | ⚠️ Optional | ⚠️ Heavy - monorepo only |
-| trigger-build-resolver | Stop | ⚠️ Optional | ⚠️ Heavy - monorepo only |
-| error-handling-reminder | Stop | ⚠️ Optional | ⚠️ Moderate |
-| stop-build-check-enhanced | Stop | ⚠️ Optional | ⚠️ Moderate |
+# Production
+npm start
+```
 
-**Start with the two essential hooks** - they enable skill auto-activation and work out of the box.
+## Steam Bot Setup
 
-**👉 [Hook setup guide →](.claude/hooks/README.md)**
+### Creating Bot Accounts
 
-### 🤖 Agents (10)
+1. **Create Steam Account**
+   - Create new Steam account for bot
+   - Add CS2 to library (free to play)
+   - Enable Steam Guard mobile authenticator
 
-**Standalone - just copy and use!**
+2. **Get Bot Credentials**
+   - Username and password
+   - Shared secret from mobile authenticator
+   - Identity secret from mobile authenticator
 
-| Agent | Purpose |
-|-------|---------|
-| code-architecture-reviewer | Review code for architectural consistency |
-| code-refactor-master | Plan and execute refactoring |
-| documentation-architect | Generate comprehensive documentation |
-| frontend-error-fixer | Debug frontend errors |
-| plan-reviewer | Review development plans |
-| refactor-planner | Create refactoring strategies |
-| web-research-specialist | Research technical issues online |
-| auth-route-tester | Test authenticated endpoints |
-| auth-route-debugger | Debug auth issues |
-| auto-error-resolver | Auto-fix TypeScript errors |
+3. **Configure Bot**
+   - Add credentials to `.env` file
+   - Ensure bot account has CS2 in library
+   - Set bot profile to public
 
-**👉 [How agents work →](.claude/agents/README.md)**
+### Bot Security
+- Use dedicated accounts only for trading
+- Enable all Steam Guard features
+- Regularly monitor bot activity
+- Keep credentials secure
 
-### 💬 Slash Commands (3)
+## API Endpoints
 
-| Command | Purpose |
-|---------|---------|
-| /dev-docs | Create structured dev documentation |
-| /dev-docs-update | Update docs before context reset |
-| /route-research-for-testing | Research route patterns for testing |
+### Authentication
+```
+GET  /api/auth/steam          - Initiate Steam login
+GET  /api/auth/steam/return   - Steam login callback
+GET  /api/auth/me             - Get current user
+POST /api/auth/logout         - Logout
+```
 
----
+### Marketplace
+```
+GET    /api/marketplace/listings           - Get all listings
+GET    /api/marketplace/listings/:id       - Get single listing
+POST   /api/marketplace/listings           - Create listing
+PUT    /api/marketplace/listings/:id       - Update listing
+DELETE /api/marketplace/listings/:id       - Cancel listing
+POST   /api/marketplace/listings/:id/purchase - Purchase item
+GET    /api/marketplace/my-listings        - Get user's listings
+```
 
-## Key Concepts
+### Payments
+```
+POST /api/payments/create-payment-intent   - Create Stripe payment
+POST /api/payments/webhook                 - Stripe webhook
+GET  /api/payments/transactions            - Get transaction history
+POST /api/payments/withdraw                - Request withdrawal
+```
 
-### Hooks + skill-rules.json = Auto-Activation
+### Steam Integration
+```
+GET  /api/steam/inventory        - Get user inventory
+POST /api/steam/trade-url        - Set trade URL
+GET  /api/steam/trade-history    - Get trade history
+```
 
-**The system:**
-1. **skill-activation-prompt hook** runs on every user prompt
-2. Checks **skill-rules.json** for trigger patterns
-3. Suggests relevant skills automatically
-4. Skills load only when needed
+## Database Schema
 
-**This solves the #1 problem** with Claude Code skills: they don't activate on their own.
+### User Model
+```javascript
+{
+  steamId: String,
+  username: String,
+  displayName: String,
+  avatar: String,
+  tradeUrl: String,
+  wallet: {
+    balance: Number,
+    pendingBalance: Number
+  },
+  steamInventory: [InventoryItem],
+  reputation: {
+    positive: Number,
+    negative: Number,
+    total: Number
+  }
+}
+```
 
-### Progressive Disclosure (500-Line Rule)
+### Market Listing Model
+```javascript
+{
+  seller: ObjectId,
+  buyer: ObjectId,
+  item: {
+    assetId: String,
+    name: String,
+    marketName: String,
+    iconUrl: String,
+    rarity: String,
+    exterior: String
+  },
+  price: Number,
+  status: String, // active, sold, cancelled, pending_trade
+  tradeOfferId: String
+}
+```
 
-**Problem:** Large skills hit context limits
+### Transaction Model
+```javascript
+{
+  type: String, // deposit, withdrawal, purchase, sale, fee
+  user: ObjectId,
+  amount: Number,
+  status: String, // pending, completed, failed
+  stripePaymentIntentId: String,
+  marketListing: ObjectId
+}
+```
 
-**Solution:** Modular structure
-- Main SKILL.md <500 lines (overview + navigation)
-- Resource files <500 lines each (deep dives)
-- Claude loads incrementally as needed
+## Trading Flow
 
-**Example:** backend-dev-guidelines has 12 resource files covering routing, controllers, services, repositories, testing, etc.
+1. **User Lists Item**
+   - Item verified in Steam inventory
+   - Listing created in database
+   - Item marked as "listed" (not tradable to others)
 
-### Dev Docs Pattern
+2. **Buyer Purchases**
+   - Funds deducted from buyer wallet
+   - Listing status changed to "pending_trade"
+   - Trade queued for bot processing
 
-**Problem:** Context resets lose project context
+3. **Bot Processes Trade**
+   - Bot sends trade offer to buyer
+   - Trade offer includes seller's item
+   - Buyer accepts trade offer
 
-**Solution:** Three-file structure
-- `[task]-plan.md` - Strategic plan
-- `[task]-context.md` - Key decisions and files
-- `[task]-tasks.md` - Checklist format
+4. **Trade Completion**
+   - Bot receives confirmation
+   - Funds transferred to seller (minus fees)
+   - Listing marked as "sold"
+   - Transaction records created
 
-**Works with:** `/dev-docs` slash command to generate these automatically
+## Payment Flow
 
----
+1. **Deposit Funds**
+   - User initiates deposit via Stripe
+   - Payment intent created
+   - User completes payment
+   - Webhook confirms payment
+   - Funds added to user wallet
 
-## ⚠️ Important: What Won't Work As-Is
+2. **Purchase Item**
+   - Funds deducted from wallet
+   - Held in pending balance during trade
+   - Released to seller on completion
+   - Refunded on trade failure
 
-### settings.json
-The included `settings.json` is an **example only**:
-- Stop hooks reference specific monorepo structure
-- Service names (blog-api, etc.) are examples
-- MCP servers may not exist in your setup
+3. **Withdrawal**
+   - User requests withdrawal
+   - Funds deducted from wallet
+   - Manual processing (PayPal/bank transfer)
+   - Transaction recorded
 
-**To use it:**
-1. Extract ONLY UserPromptSubmit and PostToolUse hooks
-2. Customize or skip Stop hooks
-3. Update MCP server list for your setup
+## Security Considerations
 
-### Blog Domain Examples
-Skills use generic blog examples (Post/Comment/User):
-- These are **teaching examples**, not requirements
-- Patterns work for any domain (e-commerce, SaaS, etc.)
-- Adapt the patterns to your business logic
+### API Security
+- JWT tokens for authentication
+- Rate limiting on all endpoints
+- Input validation and sanitization
+- CORS configuration
+- Helmet.js security headers
 
-### Hook Directory Structures
-Some hooks expect specific structures:
-- `tsc-check.sh` expects service directories
-- Customize based on YOUR project layout
+### Trading Security
+- Verify item ownership before listing
+- Validate trade offers match expectations
+- Monitor for suspicious activity
+- Automatic trade offer validation
+- Bot account isolation
 
----
+### Payment Security
+- Stripe handles all card processing
+- No card data stored locally
+- Webhook signature verification
+- Transaction amount validation
+- Fraud detection integration
 
-## Integration Workflow
+## Monitoring & Logging
 
-**Recommended approach:**
+### Application Logs
+- Winston logger with multiple transports
+- Error tracking and alerting
+- Performance monitoring
+- Trade activity logging
 
-### Phase 1: Skill Activation (15 min)
-1. Copy skill-activation-prompt hook
-2. Copy post-tool-use-tracker hook
-3. Update settings.json
-4. Install hook dependencies
+### Key Metrics
+- Active listings count
+- Trade success rate
+- Payment processing times
+- User activity metrics
+- Bot performance stats
 
-### Phase 2: Add First Skill (10 min)
-1. Pick ONE relevant skill
-2. Copy skill directory
-3. Create/update skill-rules.json
-4. Customize path patterns
+## Deployment
 
-### Phase 3: Test & Iterate (5 min)
-1. Edit a file - skill should activate
-2. Ask a question - skill should be suggested
-3. Add more skills as needed
+### Production Setup
+1. **Environment**
+   - Use production MongoDB cluster
+   - Configure Redis for caching
+   - Set up SSL certificates
+   - Configure reverse proxy (nginx)
 
-### Phase 4: Optional Enhancements
-- Add agents you find useful
-- Add slash commands
-- Customize Stop hooks (advanced)
+2. **Steam Bots**
+   - Deploy bots on separate servers
+   - Monitor bot connectivity
+   - Implement bot failover
+   - Regular bot maintenance
 
----
+3. **Monitoring**
+   - Application performance monitoring
+   - Database monitoring
+   - Payment processing alerts
+   - Trade failure notifications
 
-## Getting Help
-
-### For Users
-**Issues with integration?**
-1. Check [CLAUDE_INTEGRATION_GUIDE.md](CLAUDE_INTEGRATION_GUIDE.md)
-2. Ask Claude: "Why isn't [skill] activating?"
-3. Open an issue with your project structure
-
-### For Claude Code
-When helping users integrate:
-1. **Read CLAUDE_INTEGRATION_GUIDE.md FIRST**
-2. Ask about their project structure
-3. Customize, don't blindly copy
-4. Verify after integration
-
----
-
-## What This Solves
-
-### Before This Infrastructure
-
-❌ Skills don't activate automatically
-❌ Have to remember which skill to use
-❌ Large skills hit context limits
-❌ Context resets lose project knowledge
-❌ No consistency across development
-❌ Manual agent invocation every time
-
-### After This Infrastructure
-
-✅ Skills suggest themselves based on context
-✅ Hooks trigger skills at the right time
-✅ Modular skills stay under context limits
-✅ Dev docs preserve knowledge across resets
-✅ Consistent patterns via guardrails
-✅ Agents streamline complex tasks
-
----
-
-## Community
-
-**Found this useful?**
-
-- ⭐ Star this repo
-- 🐛 Report issues or suggest improvements
-- 💬 Share your own skills/hooks/agents
-- 📝 Contribute examples from your domain
-
-**Background:**
-This infrastructure was detailed in a post I made to Reddit ["Claude Code is a Beast – Tips from 6 Months of Hardcore Use"](https://www.reddit.com/r/ClaudeAI/comments/1oivjvm/claude_code_is_a_beast_tips_from_6_months_of/). After hundreds of requests, this showcase was created to help the community implement these patterns.
-
-
----
+### Scaling Considerations
+- Horizontal scaling with load balancer
+- Database sharding for large datasets
+- Redis cluster for session storage
+- Multiple bot instances for high volume
+- CDN for static assets
 
 ## License
 
-MIT License - Use freely in your projects, commercial or personal.
+This project is licensed under the MIT License.
 
----
+## Support
 
-## Quick Links
+For support and questions:
+- Create GitHub issue
+- Check documentation
+- Review API examples
 
-- 📖 [Claude Integration Guide](CLAUDE_INTEGRATION_GUIDE.md) - For AI-assisted setup
-- 🎨 [Skills Documentation](.claude/skills/README.md)
-- 🪝 [Hooks Setup](.claude/hooks/README.md)
-- 🤖 [Agents Guide](.claude/agents/README.md)
-- 📝 [Dev Docs Pattern](dev/README.md)
+## Disclaimer
 
-**Start here:** Copy the two essential hooks, add one skill, and see the auto-activation magic happen.
+This software is for educational purposes. Ensure compliance with:
+- Steam Terms of Service
+- Local gambling regulations
+- Payment processing requirements
+- Data protection laws
+
+Always implement proper security measures and conduct thorough testing before production deployment.

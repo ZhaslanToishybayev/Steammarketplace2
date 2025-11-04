@@ -1,6 +1,6 @@
 {
     "version": "1.0",
-    "description": "Skill activation triggers for Claude Code. Controls when skills automatically suggest or block actions.",
+    "description": "Steam Marketplace Claude Code - Skill activation triggers for Steam Marketplace project",
     "skills": {
         "skill-developer": {
             "type": "domain",
@@ -25,19 +25,14 @@
                 ]
             }
         },
-        "backend-dev-guidelines": {
+        "steam-marketplace-backend": {
             "type": "domain",
             "enforcement": "suggest",
             "priority": "high",
-            "description": "Backend development patterns for Node.js/Express/TypeScript",
+            "description": "Steam Marketplace backend development patterns for Node.js/Express/JavaScript with MongoDB/Mongoose",
             "promptTriggers": {
                 "keywords": [
                     "backend",
-                    "backend development",
-                    "microservice",
-                    "controller",
-                    "service",
-                    "repository",
                     "route",
                     "routing",
                     "express",
@@ -45,114 +40,242 @@
                     "endpoint",
                     "middleware",
                     "validation",
-                    "Zod",
-                    "Prisma",
-                    "database access",
-                    "BaseController",
-                    "dependency injection",
-                    "unifiedConfig",
-                    "configuration"
+                    "mongoose",
+                    "MongoDB",
+                    "steam",
+                    "steam integration",
+                    "steam bot",
+                    "trade offer",
+                    "marketplace",
+                    "SteamUser",
+                    "TradeOfferManager",
+                    "SteamStrategy",
+                    "passport-steam",
+                    "socket.io"
                 ],
                 "intentPatterns": [
-                    "(create|add|implement|build).*?(route|endpoint|API|controller|service|repository)",
-                    "(fix|handle|debug).*?(error|exception|backend)",
-                    "(add|implement).*?(middleware|validation|error.*?handling)",
+                    "(create|add|implement|build).*?(route|endpoint|API|service)",
+                    "(fix|handle|debug).*?(steam|trade|bot|error)",
+                    "(add|implement).*?(middleware|validation|steam.*?auth)",
                     "(organize|structure|refactor).*?(backend|service|API)",
-                    "(how to|best practice).*?(backend|route|controller|service)"
+                    "(how to|best practice).*?(steam|trade|marketplace|mongoose)",
+                    "(implement|add|setup).*?(steam|bot|trade.*?offer)"
                 ]
             },
             "fileTriggers": {
                 "pathPatterns": [
-                    "blog-api/src/**/*.ts",
-                    "auth-service/src/**/*.ts",
-                    "notifications-service/src/**/*.ts",
-                    "backend/**/*.ts",
-                    "api/**/*.ts",
-                    "server/**/*.ts",
-                    "services/**/*.ts"
+                    "routes/**/*.js",
+                    "models/**/*.js",
+                    "services/**/*.js",
+                    "middleware/**/*.js",
+                    "app.js",
+                    "server.js"
                 ],
                 "pathExclusions": [
-                    "**/*.test.ts",
-                    "**/*.spec.ts"
+                    "**/*.test.js",
+                    "**/*.spec.js",
+                    "node_modules/**/*",
+                    ".claude/**/*"
                 ],
                 "contentPatterns": [
                     "router\\.",
                     "app\\.(get|post|put|delete|patch)",
-                    "export.*Controller",
-                    "export.*Service",
-                    "prisma\\."
+                    "require.*mongoose",
+                    "module\\.exports",
+                    "SteamUser",
+                    "TradeOfferManager",
+                    "SteamStrategy",
+                    "passport\\.use",
+                    "steam-bot",
+                    "steam-tradeoffer",
+                    "socket\\.io"
                 ]
             }
         },
-        "frontend-dev-guidelines": {
-            "type": "guardrail",
-            "enforcement": "block",
-            "priority": "high",
-            "description": "React/TypeScript best practices including MUI v7 compatibility",
+        "steam-marketplace-frontend": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Frontend development for Steam Marketplace interface",
             "promptTriggers": {
                 "keywords": [
-                    "component",
-                    "react component",
+                    "frontend",
                     "UI",
                     "interface",
-                    "page",
-                    "modal",
-                    "dialog",
-                    "form",
-                    "MUI",
-                    "Material-UI",
-                    "Grid",
-                    "styling",
-                    "frontend",
-                    "React"
+                    "html",
+                    "bootstrap",
+                    "socket.io client",
+                    "static files",
+                    "public",
+                    "templates",
+                    "express.static",
+                    "marketplace UI"
                 ],
                 "intentPatterns": [
-                    "(create|add|make|build|update|modify|edit).*?(component|UI|page|modal|dialog|form)",
-                    "(how to|best practice).*?(component|react|MUI)",
-                    "(style|design|layout).*?(component|UI)"
+                    "(create|add|build).*?(HTML|UI|frontend|interface)",
+                    "(update|modify).*?(public|static|templates)",
+                    "(add|implement).*?(socket.*?client|WebSocket)"
                 ]
             },
             "fileTriggers": {
                 "pathPatterns": [
-                    "frontend/src/**/*.tsx",
-                    "frontend/src/**/*.ts",
-                    "client/src/**/*.tsx",
-                    "client/src/**/*.ts",
-                    "src/**/*.tsx"
+                    "public/**/*.html",
+                    "templates/**/*.ejs",
+                    "templates/**/*.html",
+                    "static/**/*"
                 ],
                 "pathExclusions": [
-                    "**/*.test.tsx",
-                    "**/*.test.ts",
-                    "**/*.spec.tsx",
-                    "**/*.spec.ts",
-                    "**/*.styles.ts",
-                    "**/vite.config.ts",
-                    "**/tsconfig.json"
+                    "node_modules/**/*"
                 ],
                 "contentPatterns": [
-                    "from '@mui/material';",
-                    "import.*Grid.*from.*@mui",
-                    "<Grid ",
-                    "Grid2",
-                    "Unstable_Grid",
-                    "makeStyles",
-                    "@material-ui/core"
+                    "<!DOCTYPE",
+                    "bootstrap",
+                    "socket\\.io",
+                    "express\\.static"
+                ]
+            }
+        },
+        "steam-integration": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "critical",
+            "description": "Steam API integration, bot management, and trade offer handling",
+            "promptTriggers": {
+                "keywords": [
+                    "steam bot",
+                    "steam integration",
+                    "steam API",
+                    "trade offer",
+                    "trade validation",
+                    "steam auth",
+                    "steam inventory",
+                    "SteamUser",
+                    "TradeOfferManager",
+                    "steam guard",
+                    "steamcommunity"
+                ],
+                "intentPatterns": [
+                    "(create|add|setup).*?(steam.*?bot|steam.*?integration)",
+                    "(fix|debug|handle).*?(steam|trade.*?offer|bot)",
+                    "(implement|add).*?(steam.*?auth|steam.*?trade)",
+                    "(validate|verify).*?(trade|steam.*?item|steam.*?offer)",
+                    "(how to|best practice).*?(steam.*?API|steam.*?bot|trade)"
                 ]
             },
-            "blockMessage": "⚠️ BLOCKED - Frontend Best Practices Required\n\n📋 REQUIRED ACTION:\n1. Use Skill tool: 'frontend-dev-guidelines'\n2. Review MUI v7 patterns (Grid uses size={{}} prop, NOT xs/sm props)\n3. Check React/TypeScript best practices\n4. Use proper styling patterns\n5. Then retry this edit\n\nReason: Enforce MUI v7 compatibility and React best practices\nFile: {file_path}\n\n💡 TIP: Add '// @skip-validation' comment to skip future checks",
-            "skipConditions": {
-                "sessionSkillUsed": true,
-                "fileMarkers": [
-                    "@skip-validation"
+            "fileTriggers": {
+                "pathPatterns": [
+                    "routes/steam.js",
+                    "services/*steam*.js",
+                    "**/*bot*.js"
                 ],
-                "envOverride": "SKIP_FRONTEND_GUIDELINES"
+                "pathExclusions": [
+                    "node_modules/**/*"
+                ],
+                "contentPatterns": [
+                    "SteamUser",
+                    "TradeOfferManager",
+                    "steam-user",
+                    "steam-tradeoffer",
+                    "steamcommunity",
+                    "steamGuard",
+                    "sharedSecret",
+                    "identitySecret"
+                ]
+            }
+        },
+        "marketplace-commerce": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Marketplace commerce features: listings, payments, transactions",
+            "promptTriggers": {
+                "keywords": [
+                    "marketplace",
+                    "listing",
+                    "purchase",
+                    "sale",
+                    "payment",
+                    "stripe",
+                    "wallet",
+                    "balance",
+                    "transaction",
+                    "currency",
+                    "price",
+                    "seller",
+                    "buyer"
+                ],
+                "intentPatterns": [
+                    "(create|add).*?(listing|market.*?listing)",
+                    "(implement|add).*?(purchase|sale|payment)",
+                    "(fix|handle).*?(transaction|payment|wallet)",
+                    "(validate|verify).*?(listing|price|transaction)",
+                    "(how to|best practice).*?(marketplace|commerce|payment)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "routes/marketplace.js",
+                    "routes/payments.js",
+                    "models/MarketListing.js",
+                    "models/Transaction.js",
+                    "services/*marketplace*.js"
+                ],
+                "contentPatterns": [
+                    "MarketListing",
+                    "Transaction",
+                    "marketplace.*listing",
+                    "stripe",
+                    "wallet.*balance",
+                    "pendingBalance"
+                ]
+            }
+        },
+        "mongoose-patterns": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Mongoose ODM patterns for MongoDB",
+            "promptTriggers": {
+                "keywords": [
+                    "mongoose",
+                    "MongoDB",
+                    "schema",
+                    "model",
+                    "database",
+                    "collection",
+                    "findOne",
+                    "findById",
+                    "save",
+                    "populate",
+                    "aggregate"
+                ],
+                "intentPatterns": [
+                    "(create|define).*?(schema|model)",
+                    "(query|fetch).*?(database|MongoDB|mongoose)",
+                    "(add|implement).*?(mongoose|model.*?method)",
+                    "(optimize|fix).*?(mongoose|query|database)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "models/**/*.js"
+                ],
+                "contentPatterns": [
+                    "require.*mongoose",
+                    "mongoose\\.Schema",
+                    "\\.model\\(",
+                    "findOne",
+                    "findById",
+                    "\\.populate\\(",
+                    "new mongoose\\.Schema"
+                ]
             }
         },
         "route-tester": {
             "type": "domain",
             "enforcement": "suggest",
             "priority": "high",
-            "description": "Testing authenticated API routes with JWT cookie-based auth",
+            "description": "Testing authenticated API routes with Steam/JWT auth",
             "promptTriggers": {
                 "keywords": [
                     "test route",
@@ -162,60 +285,25 @@
                     "API testing",
                     "authenticated route",
                     "JWT testing",
-                    "cookie auth",
+                    "steam auth testing",
                     "test with auth"
                 ],
                 "intentPatterns": [
                     "(test|debug|verify).*?(route|endpoint|API)",
                     "(how to|how do I).*?test.*?(route|endpoint|API)",
-                    "test.*?(authenticated|auth|JWT|cookie)"
+                    "test.*?(authenticated|auth|JWT|steam)"
                 ]
             },
             "fileTriggers": {
                 "pathPatterns": [
-                    "**/routes/**/*.ts",
-                    "**/test-*.js",
-                    "**/test-*.ts"
+                    "routes/**/*.js",
+                    "test-*.js"
                 ],
                 "contentPatterns": [
                     "router\\.(get|post|put|delete|patch)",
-                    "app\\.(get|post|put|delete|patch)"
-                ]
-            }
-        },
-        "error-tracking": {
-            "type": "domain",
-            "enforcement": "suggest",
-            "priority": "high",
-            "description": "Sentry error tracking and performance monitoring patterns",
-            "promptTriggers": {
-                "keywords": [
-                    "error handling",
-                    "exception",
-                    "sentry",
-                    "error tracking",
-                    "captureException",
-                    "monitoring",
-                    "performance tracking"
-                ],
-                "intentPatterns": [
-                    "(add|create|implement|setup).*?(error handling|sentry|error tracking)",
-                    "(fix|handle|catch).*?(error|exception)",
-                    "(how to|best practice).*?(error|sentry|monitoring)"
-                ]
-            },
-            "fileTriggers": {
-                "pathPatterns": [
-                    "**/instrument.ts",
-                    "**/sentry*.ts",
-                    "**/*Controller.ts",
-                    "**/*Service.ts"
-                ],
-                "contentPatterns": [
-                    "@sentry",
-                    "Sentry\\.",
-                    "captureException",
-                    "captureMessage"
+                    "app\\.(get|post|put|delete|patch)",
+                    "SteamStrategy",
+                    "passport.*authenticate"
                 ]
             }
         }
@@ -232,10 +320,12 @@
             "medium": "Moderate - Trigger for clear matches",
             "low": "Optional - Trigger only for explicit matches"
         },
-        "customization": {
-            "pathPatterns": "Adjust to match your project structure (blog-api, auth-service, etc.)",
-            "keywords": "Add domain-specific terms relevant to your project",
-            "intentPatterns": "Use regex for flexible user intent matching"
+        "steam_marketplace_config": {
+            "project_structure": "Express.js + MongoDB + Steam API",
+            "database": "MongoDB with Mongoose ODM",
+            "auth": "Steam OAuth via Passport.js + JWT",
+            "steam_libraries": "steam-user, steam-tradeoffer-manager, steamcommunity",
+            "real_time": "Socket.io"
         }
     }
 }

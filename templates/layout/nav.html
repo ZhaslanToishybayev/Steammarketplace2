@@ -1,0 +1,85 @@
+<header class="sticky-top w-100">
+    <nav class="navbar d-none d-lg-block p-0">
+        <div class="container-fluid px-4 bg-dark p-1">
+            <a href="{{ url_for('index') }}" class="navbar-brand bg-dark">CSGO:Skinfo</a>
+            <form class="d-flex w-50" action="/get/skin" method="GET">
+                <input class="form-control me-2" type="search" name="searchallskins" placeholder="Search a skin" aria-label="Search" required>
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+            <ul class="list-group list-group-horizontal justify-content-center">
+                <li class="list-group p-3"><a href="{{ url_for('about') }}" {% if active_page == "about" %} class="active"{% endif %}>About</a></li>
+                <li class="list-group p-3"><a href="{{ url_for('contact') }}" {% if active_page == "contact" %} class="active"{% endif %}>Contact</a></li>
+                {% if session.user %}
+                <li class="list-group p-3"><a href="{{ url_for('account', username=session['user'].username) }}" {% if active_page == "account" %} class="active" {% endif %}>Account</a></li>
+                {% if session.user["is_admin"] %}
+                <li class="list-group p-3"><a href="{{ url_for('admin', username=session['user'].username) }}">Admin</a></li>
+                {% endif %}
+                <li class="list-group p-3"><a href="{{ url_for('logout') }}">Log Out</a></li>
+                {% else %}
+                <li class="list-group p-3"><a href="{{ url_for('login') }}" >Sign In</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        <ul class="list-group list-group-horizontal justify-content-center flex-wrap">
+            <li class="list-group-item p-3"><a href="{{ url_for('index') }}" {% if active_page == "index" %} class="active"{% endif %}>HOME</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('pistols') }}" {% if active_page == "pistols" %} class="active"{% endif %}>PISTOLS</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('rifles') }}" {% if active_page == "rifles" %} class="active"{% endif %}>RIFLES</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('sniper_rifles') }}" {% if active_page == "snipers" %} class="active"{% endif %}>SNIPERS</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('smgs') }}" {% if active_page == "smgs" %} class="active"{% endif %}>SMGs</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('shotguns') }}" {% if active_page == "shotguns" %} class="active"{% endif %}>SHOTGUNS</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('heavies') }}" {% if active_page == "heavies" %} class="active"{% endif %}>HEAVY</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('knives') }}" {% if active_page == "knives" %} class="active"{% endif %}>KNIVES</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('gloves') }}" {% if active_page == "gloves" %} class="active"{% endif %}>GLOVES</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('cases') }}" {% if active_page == "cases" %} class="active"{% endif %}>CASES</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('stickers') }}" {% if active_page == "stickers" %} class="active"{% endif %}>STICKERS</a></li>
+        </ul>
+    </nav>
+    <nav class="navbar d-lg-none d-md-block bg-dark mobile-nav">
+        <div class="container-fluid px-2 text-center">
+            <div class="col-3">
+                <button type="button" class="btn" data-bs-toggle="collapse" data-bs-target="#mobile-nav"
+                    aria-expanded="false" aria-controls="mobile-nav"><i class="fas fa-bars fs-1 text-white"></i></button>
+            </div>
+            <div class="col-6">
+                <a href="{{ url_for('index') }}" class="navbar-brand mx-auto">CSGO:Skinfo</a>
+            </div>
+            <div class="col-3">
+                {% if session.user %}
+                <button type="button" class="btn" data-bs-toggle="collapse" data-bs-target="#mobile-nav-account"
+                    aria-expanded="false" aria-controls="mobile-nav-account"><i class="fas fa-user-alt fs-1 text-white"></i></button>
+                {% else %}
+                <a href="{{ url_for('login' )}}" class="btn"><i class="fas fa-user-alt fs-1 text-white"></i></a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <div id="mobile-nav" class="mobile-nav collapse position-absolute w-100 bg-dark">
+        <ul class="list-unstyled list-group text-center">
+            <li class="list-group-item p-3"><a href="{{ url_for('index') }}" {% if active_page == "index" %} class="active"{% endif %}>HOME</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('pistols') }}" {% if active_page == "pistols" %} class="active"{% endif %}>PISTOLS</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('rifles') }}" {% if active_page == "rifles" %} class="active"{% endif %}>RIFLES</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('sniper_rifles') }}" {% if active_page == "snipers" %} class="active"{% endif %}>SNIPERS</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('smgs') }}" {% if active_page == "smgs" %} class="active"{% endif %}>SMGs</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('shotguns') }}" {% if active_page == "shotguns" %} class="active"{% endif %}>SHOTGUNS</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('heavies') }}" {% if active_page == "heavies" %} class="active"{% endif %}>HEAVY</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('knives') }}" {% if active_page == "knives" %} class="active"{% endif %}>KNIVES</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('cases') }}" {% if active_page == "cases" %} class="active"{% endif %}>CASES</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('stickers') }}" {% if active_page == "stickers" %} class="active"{% endif %}>STICKERS</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('about') }}" {% if active_page == "about" %} class="active"{% endif %}>About</a></li>
+            <li class="list-group-item p-3"><a href="{{ url_for('contact') }}" {% if active_page == "contact" %} class="active"{% endif %}>Contact</a></li>
+        </ul>
+    </div>
+    {% if session.user %}
+    <div id="mobile-nav-account" class="mobile-nav collapse position-absolute w-100 bg-dark">
+        <ul class="list-unstyled list-group text-center">
+            {% if session.user %}
+            <li class="list-group-item p-3"><a href="{{ url_for('account', username=session['user'].username) }}" {% if active_page == "account" %} class="active" {% endif %}><i class="fas fa-user-alt fs-5 mx-1"></i>Account</a></li>
+            {% if session.user["is_admin"] %}
+            <li class="list-group-item p-3"><a href="{{ url_for('admin', username=session['user'].username) }}"><i class="fas fa-users-cog fs-5 mx-1"></i>Admin Dashboard</a></li>
+            {% endif %}
+            <li class="list-group-item p-3"><a href="{{ url_for('logout') }}">Log Out</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</header>
