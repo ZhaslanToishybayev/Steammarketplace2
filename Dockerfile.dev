@@ -1,0 +1,39 @@
+# Development Dockerfile with hot reload
+FROM node:18-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init curl
+
+# Create non-root user for development
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
+
+# Copy package files
+COPY package*.json ./
+COPY frontend/package*.json ./frontend/
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+RUN cd frontend && npm install
+
+# Copy source code
+COPY . .
+
+# Fix ownership of the app directory
+RUN chown -R nodejs:nodejs /app
+RUN chown -R nodejs:nodejs /app/frontend
+
+# Switch to non-root user
+USER nodejs
+
+# Expose ports
+EXPOSE 3001 9229
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application with hot reload
+CMD ["npm", "run", "dev"]

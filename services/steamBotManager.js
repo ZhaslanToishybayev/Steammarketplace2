@@ -1,7 +1,22 @@
-const SteamUser = require('steam-user');
-const TradeOfferManager = require('steam-tradeoffer-manager');
+/**
+ * Steam Bot Manager - Production Version
+ * Управление множественными Steam ботами для автоматизации trade offers
+ */
+
+const SteamBot = require('./steamBot');
+const MarketListing = require('../models/MarketListing');
+const User = require('../models/User');
 const logger = require('../utils/logger');
-const readline = require('readline');
+
+// Константы для настройки Steam Bot Manager
+const BOT_MANAGER_CONFIG = {
+  MAX_QUEUE_SIZE: 100,
+  RETRY_ATTEMPTS: 3,
+  INITIALIZATION_DELAY: 30000, // 30 seconds
+  RECONNECTION_DELAY: 30000, // 30 seconds
+  TRADE_POLL_INTERVAL: 5000, // 5 seconds
+  TRADE_BACKOFF_BASE: 1000 // 1 second
+};
 
 class SteamBotManager {
   constructor() {
@@ -9,455 +24,401 @@ class SteamBotManager {
     this.activeBots = [];
     this.tradeQueue = [];
     this.isProcessingTrades = false;
+    this.maxQueueSize = BOT_MANAGER_CONFIG.MAX_QUEUE_SIZE;
+    this.retryAttempts = BOT_MANAGER_CONFIG.RETRY_ATTEMPTS;
   }
 
-  initialize() {
-    logger.info('SteamBotManager.initialize() called');
+  /**
+   * Initialize all configured bots
+   */
+  async initialize() {
+    logger.info('Initializing Steam Bot Manager...');
+
     const botConfigs = this.getBotConfigs();
-    logger.info(`Got ${botConfigs.length} bot configurations`);
 
-    botConfigs.forEach((config, index) => {
-      logger.info(`Creating bot ${index} with username: ${config.username}`);
-      this.createBot(config, index);
-    });
+    if (botConfigs.length === 0) {
+      logger.warn('No Steam bot configurations found');
+      return;
+    }
 
-    // Start trade processing
-    logger.info('Starting trade processor...');
+    logger.info(`Found ${botConfigs.length} bot configurations`);
+
+    // Initial delay before starting bot initialization (avoid Steam rate limiting)
+    logger.info(`Waiting ${BOT_MANAGER_CONFIG.INITIALIZATION_DELAY / 1000} seconds before initializing bots to avoid Steam rate limiting...`);
+    await this.sleep(BOT_MANAGER_CONFIG.INITIALIZATION_DELAY);
+
+    // Initialize bots with delays to avoid Steam rate limiting
+    for (let i = 0; i < botConfigs.length; i++) {
+      try {
+        const bot = new SteamBot(botConfigs[i], i);
+        await bot.initialize();
+
+        this.bots.set(bot.id, bot);
+        this.activeBots.push(bot);
+
+        logger.info(`[${bot.id}] Bot initialized successfully`);
+
+        // Delay between bot initializations (30 seconds to avoid rate limiting)
+        if (i < botConfigs.length - 1) {
+          logger.info(`Waiting ${BOT_MANAGER_CONFIG.INITIALIZATION_DELAY / 1000} seconds before initializing next bot...`);
+          await this.sleep(BOT_MANAGER_CONFIG.INITIALIZATION_DELAY);
+        }
+      } catch (error) {
+        logger.error(`[Bot ${i}] Failed to initialize:`, error.message);
+        continue;
+      }
+    }
+
+    logger.info(`Steam Bot Manager initialized with ${this.bots.size} bots`);
+
+    // Start trade queue processor
     this.startTradeProcessor();
-    logger.info('SteamBotManager.initialize() complete');
+
+    return this.bots.size;
   }
 
+  /**
+   * Get bot configurations from environment
+   */
   getBotConfigs() {
-    // In production, these would come from environment variables or database
-    return [
-      {
-        username: process.env.STEAM_BOT_1_USERNAME,
-        password: process.env.STEAM_BOT_1_PASSWORD,
-        sharedSecret: process.env.STEAM_BOT_1_SHARED_SECRET,
-        identitySecret: process.env.STEAM_BOT_1_IDENTITY_SECRET
-      }
-      // Add more bots as needed
-    ].filter(config => config.username && config.password);
-  }
+    const configs = [];
+    let index = 1;
 
-  createBot(config, index) {
-    logger.info(`createBot() called for bot ${index}`);
-    const botId = `bot_${index}`;
-    logger.info(`Creating bot with ID: ${botId}`);
+    while (process.env[`STEAM_BOT_${index}_USERNAME`]) {
+      const config = {
+        username: process.env[`STEAM_BOT_${index}_USERNAME`],
+        password: process.env[`STEAM_BOT_${index}_PASSWORD`],
+        sharedSecret: process.env[`STEAM_BOT_${index}_SHARED_SECRET`],
+        identitySecret: process.env[`STEAM_BOT_${index}_IDENTITY_SECRET`]
+      };
 
-    logger.info('Creating SteamUser client...');
-    const client = new SteamUser();
-    logger.info('SteamUser client created');
-
-    logger.info('Creating TradeOfferManager...');
-    const manager = new TradeOfferManager({
-      steam: client,
-      language: 'en'
-    });
-    logger.info('TradeOfferManager created');
-
-    const bot = {
-      id: botId,
-      client,
-      manager,
-      config,
-      isOnline: false,
-      isAvailable: true,
-      currentTrades: 0,
-      maxTrades: 5
-    };
-    logger.info('Bot object created');
-
-    // Set up event handlers
-    logger.info('Setting up event handlers...');
-    this.setupBotEventHandlers(bot);
-    logger.info('Event handlers set up');
-
-    // Store bot
-    logger.info('Storing bot in Map...');
-    this.bots.set(botId, bot);
-    logger.info('Bot stored in Map');
-
-    // Login
-    logger.info('Calling loginBot()...');
-    this.loginBot(bot);
-    logger.info('loginBot() called');
-  }
-
-  setupBotEventHandlers(bot) {
-    const { client, manager } = bot;
-
-    // Store callback globally to prevent it from being lost
-    global.steamGuardCallback = null;
-
-    client.on('steamGuard', (...args) => {
-      // Log all arguments to understand the order
-      logger.info(`Debug: steamGuard called with ${args.length} arguments`);
-      args.forEach((arg, i) => {
-        logger.info(`  arg[${i}] type: ${typeof arg}, value: ${arg}`);
-      });
-
-      // Find the callback (it should be a function)
-      const callback = args.find(arg => typeof arg === 'function');
-      if (!callback) {
-        logger.error('No callback function found in arguments!');
-        process.exit(1);
-      }
-
-      global.steamGuardCallback = callback;
-
-      logger.warn(`Bot ${bot.id} requires Steam Guard code!`);
-      logger.info(`1. Open Steam Mobile app on your phone`);
-      logger.info(`2. Go to "Authenticator" tab`);
-      logger.info(`3. Enter the 5-6 character code below:`);
-      logger.info(`⚠️  Code expires in 30 seconds!`);
-      logger.info(`Found callback with type: ${typeof callback}`);
-
-      const timeout = setTimeout(() => {
-        logger.error(`Bot ${bot.id} Steam Guard timeout`);
-        process.exit(1);
-      }, 30000);
-
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
-
-      rl.question('\nEnter Steam Guard Code: ', (code) => {
-        clearTimeout(timeout);
-
-        // Validate code format (5 or 6 characters)
-        if (!code || (code.length !== 5 && code.length !== 6)) {
-          logger.error(`Invalid code format. Must be 5-6 characters.`);
-          rl.close();
-          process.exit(1);
-        }
-
-        // Also allow alphanumeric for email codes
-        if (!/^[A-Za-z0-9]{5,6}$/.test(code)) {
-          logger.error(`Invalid code format. Use alphanumeric characters.`);
-          rl.close();
-          process.exit(1);
-        }
-
-        rl.close();
-
-        logger.info(`Submitting code: ${code}`);
-
-        if (typeof global.steamGuardCallback === 'function') {
-          global.steamGuardCallback(code);
-        } else {
-          logger.error('No valid callback found! Exiting.');
-          process.exit(1);
-        }
-      });
-    });
-
-    client.on('loggedOn', () => {
-      logger.info(`Bot ${bot.id} logged into Steam`);
-      bot.isOnline = true;
-      client.setPersona(SteamUser.EPersonaState.Online);
-      client.gamesPlayed([730]); // CS2 app ID
-    });
-
-    client.on('webSession', (sessionid, cookies) => {
-      manager.setCookies(cookies);
-
-      if (!this.activeBots.includes(bot.id)) {
-        this.activeBots.push(bot.id);
-      }
-
-      logger.info(`Bot ${bot.id} session established and active!`);
-    });
-
-    manager.on('newOffer', (offer) => {
-      logger.info(`Bot ${bot.id} received new trade offer: ${offer.id}`);
-      this.handleIncomingTradeOffer(bot, offer);
-    });
-
-    manager.on('sentOfferChanged', (offer, oldState) => {
-      logger.info(`Bot ${bot.id} trade offer ${offer.id} changed state: ${oldState} -> ${offer.state}`);
-      this.handleTradeOfferStateChange(bot, offer, oldState);
-    });
-
-    client.on('error', (err) => {
-      logger.error(`Bot ${bot.id} error:`, err);
-      bot.isOnline = false;
-      
-      // Attempt to reconnect after delay
-      setTimeout(() => {
-        this.loginBot(bot);
-      }, 30000);
-    });
-  }
-
-  loginBot(bot) {
-    logger.info(`loginBot() called for bot ${bot.id}`);
-    logger.info(`Username: ${bot.config.username}`);
-
-    const logOnOptions = {
-      accountName: bot.config.username,
-      password: bot.config.password,
-      sharedSecret: bot.config.sharedSecret,
-      identitySecret: bot.config.identitySecret
-    };
-
-    logger.info('Calling bot.client.logOn()...');
-    try {
-      bot.client.logOn(logOnOptions);
-      logger.info('bot.client.logOn() called successfully');
-    } catch (error) {
-      logger.error(`Error calling logOn: ${error}`);
-    }
-  }
-
-  async handleIncomingTradeOffer(bot, offer) {
-    try {
-      // Auto-decline offers that aren't from our system
-      const isSystemTrade = await this.isSystemGeneratedTrade(offer);
-      
-      if (!isSystemTrade) {
-        offer.decline((err) => {
-          if (err) {
-            logger.error(`Failed to decline offer ${offer.id}:`, err);
-          } else {
-            logger.info(`Declined non-system offer ${offer.id}`);
-          }
-        });
-        return;
-      }
-
-      // Handle system trades
-      this.processSystemTrade(bot, offer);
-    } catch (error) {
-      logger.error(`Error handling incoming trade offer:`, error);
-    }
-  }
-
-  async isSystemGeneratedTrade(offer) {
-    // Check if this trade offer was generated by our marketplace system
-    // This could be done by checking against pending trades in database
-    const MarketListing = require('../models/MarketListing');
-    
-    const listing = await MarketListing.findOne({
-      tradeOfferId: offer.id,
-      status: 'pending_trade'
-    });
-
-    return !!listing;
-  }
-
-  async processSystemTrade(bot, offer) {
-    try {
-      // Validate the trade offer matches our expectations
-      const isValid = await this.validateTradeOffer(offer);
-      
-      if (isValid) {
-        offer.accept((err, status) => {
-          if (err) {
-            logger.error(`Failed to accept trade offer ${offer.id}:`, err);
-            this.handleTradeFailure(offer.id, err);
-          } else {
-            logger.info(`Accepted trade offer ${offer.id}, status: ${status}`);
-            this.handleTradeSuccess(offer.id);
-          }
-        });
+      // Validate required fields
+      if (config.username && config.password) {
+        configs.push(config);
       } else {
-        logger.warn(`Invalid trade offer ${offer.id}, declining`);
-        offer.decline();
+        logger.warn(`Bot ${index} configuration incomplete, skipping`);
       }
-    } catch (error) {
-      logger.error(`Error processing system trade:`, error);
+
+      index++;
     }
+
+    return configs;
   }
 
-  async validateTradeOffer(offer) {
-    // Implement validation logic
-    // Check items, quantities, etc.
-    return true; // Simplified for now
-  }
-
-  handleTradeOfferStateChange(bot, offer, oldState) {
-    const TradeOfferManager = require('steam-tradeoffer-manager');
-    
-    if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-      this.handleTradeSuccess(offer.id);
-      bot.currentTrades = Math.max(0, bot.currentTrades - 1);
-    } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined ||
-               offer.state === TradeOfferManager.ETradeOfferState.Canceled ||
-               offer.state === TradeOfferManager.ETradeOfferState.InvalidItems) {
-      this.handleTradeFailure(offer.id, `Trade state: ${offer.state}`);
-      bot.currentTrades = Math.max(0, bot.currentTrades - 1);
+  /**
+   * Queue a trade offer for sending
+   */
+  queueTrade(tradeData) {
+    if (this.tradeQueue.length >= this.maxQueueSize) {
+      throw new Error('Trade queue is full');
     }
+
+    const trade = {
+      ...tradeData,
+      id: `trade_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      attempts: 0,
+      status: 'queued'
+    };
+
+    this.tradeQueue.push(trade);
+
+    logger.info(`Trade queued: ${trade.id} for listing ${tradeData.listingId}`);
+
+    return trade.id;
   }
 
-  async handleTradeSuccess(offerId) {
+  /**
+   * Process trade queue
+   */
+  async processTradeQueue() {
+    if (this.isProcessingTrades || this.tradeQueue.length === 0) {
+      return;
+    }
+
+    this.isProcessingTrades = true;
+
     try {
-      const MarketListing = require('../models/MarketListing');
-      const Transaction = require('../models/Transaction');
-      
-      const listing = await MarketListing.findOne({ tradeOfferId: offerId })
-        .populate('seller buyer');
-      
-      if (listing) {
-        // Update listing status
-        listing.status = 'sold';
-        await listing.save();
+      while (this.tradeQueue.length > 0) {
+        const trade = this.tradeQueue.shift();
 
-        // Create transaction records
-        await this.createTransactionRecords(listing);
+        try {
+          await this.executeTrade(trade);
+          logger.info(`Trade ${trade.id} executed successfully`);
+        } catch (error) {
+          logger.error(`Trade ${trade.id} failed:`, error.message);
 
-        // Notify users via socket
-        this.notifyTradeCompletion(listing);
+          trade.attempts++;
+          trade.status = 'failed';
+          trade.error = error.message;
+
+          if (trade.attempts < this.retryAttempts) {
+            // Exponential backoff
+            const delay = Math.pow(2, trade.attempts) * BOT_MANAGER_CONFIG.TRADE_BACKOFF_BASE;
+            logger.info(`Retrying trade ${trade.id} in ${delay}ms (attempt ${trade.attempts})`);
+
+            setTimeout(() => {
+              this.tradeQueue.push(trade);
+            }, delay);
+          } else {
+            logger.error(`Trade ${trade.id} failed after ${trade.attempts} attempts`);
+
+            // Handle permanent failure
+            await this.handleTradeFailure(trade);
+          }
+        }
       }
-    } catch (error) {
-      logger.error(`Error handling trade success:`, error);
+    } finally {
+      this.isProcessingTrades = false;
     }
   }
 
-  async handleTradeFailure(offerId, error) {
+  /**
+   * Execute a trade
+   */
+  async executeTrade(trade) {
+    const listing = await MarketListing.findById(trade.listingId).populate('seller buyer');
+
+    if (!listing) {
+      throw new Error('Listing not found');
+    }
+
+    if (listing.status !== 'pending_trade') {
+      throw new Error('Listing is not in pending_trade status');
+    }
+
+    // Find available bot
+    const availableBot = this.getAvailableBot();
+    if (!availableBot) {
+      throw new Error('No available bots');
+    }
+
+    // Verify item is in bot inventory
+    if (!availableBot.hasItem(trade.assetId)) {
+      // Refresh bot inventory and try again
+      await availableBot.loadInventory();
+
+      if (!availableBot.hasItem(trade.assetId)) {
+        throw new Error(`Item ${trade.assetId} not found in bot inventory`);
+      }
+    }
+
+    logger.info(`[${availableBot.id}] Executing trade ${trade.id} for listing ${trade.listingId}`);
+
+    // Get buyer's Steam ID
+    let buyerSteamId;
+    if (trade.buyerId) {
+      const buyer = await User.findById(trade.buyerId);
+      if (buyer && buyer.steamId) {
+        buyerSteamId = buyer.steamId;
+      }
+    }
+
+    if (!buyerSteamId) {
+      throw new Error('Buyer Steam ID not found');
+    }
+
+    // Create and send trade offer
+    const result = await availableBot.sendSellOffer(
+      trade.listingId,
+      buyerSteamId,
+      trade.buyerTradeUrl,
+      trade.assetId
+    );
+
+    // Update listing with trade offer ID
+    listing.tradeOfferId = result.offerId;
+    await listing.save();
+
+    // Update transaction
+    const transaction = await Transaction.findOne({
+      listing: trade.listingId,
+      type: 'purchase'
+    });
+
+    if (transaction) {
+      transaction.status = 'completed';
+      transaction.tradeOfferId = result.offerId;
+      await transaction.save();
+    }
+
+    trade.status = 'completed';
+    trade.offerId = result.offerId;
+
+    return result;
+  }
+
+  /**
+   * Handle trade failure
+   */
+  async handleTradeFailure(trade) {
     try {
-      const MarketListing = require('../models/MarketListing');
-      
-      const listing = await MarketListing.findOne({ tradeOfferId: offerId });
-      
+      const listing = await MarketListing.findById(trade.listingId);
+
       if (listing) {
-        // Reset listing status
+        // Refund buyer
+        if (trade.buyerId) {
+          const buyer = await User.findById(trade.buyerId);
+          if (buyer) {
+            buyer.wallet.balance += listing.price;
+            buyer.wallet.pendingBalance -= listing.price;
+            await buyer.save();
+
+            // Log refund
+            logger.info(`Refunded buyer for failed trade: ${trade.listingId}`);
+          }
+        }
+
+        // Reset listing to active
         listing.status = 'active';
+        listing.buyer = null;
         listing.tradeOfferId = null;
         await listing.save();
 
-        // Notify users of failure
-        this.notifyTradeFailure(listing, error);
+        logger.info(`Listing ${trade.listingId} reset to active status`);
       }
     } catch (error) {
       logger.error(`Error handling trade failure:`, error);
     }
   }
 
-  async createTransactionRecords(listing) {
-    const Transaction = require('../models/Transaction');
-    
-    // Create sale transaction for seller
-    await Transaction.create({
-      type: 'sale',
-      user: listing.seller._id,
-      amount: listing.price * 0.95, // 5% marketplace fee
-      marketListing: listing._id,
-      status: 'completed',
-      description: `Sale of ${listing.item.marketName}`
-    });
-
-    // Create purchase transaction for buyer
-    await Transaction.create({
-      type: 'purchase',
-      user: listing.buyer._id,
-      amount: -listing.price,
-      marketListing: listing._id,
-      status: 'completed',
-      description: `Purchase of ${listing.item.marketName}`
-    });
-
-    // Create fee transaction
-    await Transaction.create({
-      type: 'fee',
-      user: listing.seller._id,
-      amount: -listing.price * 0.05,
-      marketListing: listing._id,
-      status: 'completed',
-      description: `Marketplace fee for ${listing.item.marketName}`
-    });
-  }
-
-  notifyTradeCompletion(listing) {
-    // Implementation would use socket.io to notify users
-    logger.info(`Trade completed for listing ${listing._id}`);
-  }
-
-  notifyTradeFailure(listing, error) {
-    // Implementation would use socket.io to notify users
-    logger.error(`Trade failed for listing ${listing._id}:`, error);
-  }
-
+  /**
+   * Get available bot
+   */
   getAvailableBot() {
-    for (const bot of this.bots.values()) {
-      if (bot.isOnline && bot.isAvailable && bot.currentTrades < bot.maxTrades) {
-        return bot;
-      }
-    }
-    return null;
-  }
+    const available = this.activeBots.filter(bot =>
+      bot.isOnline && bot.isAvailable && bot.currentTrades < bot.maxTrades
+    );
 
-  async sendTradeOffer(botId, partnerSteamId, itemsToGive, itemsToReceive, tradeUrl, message) {
-    const bot = this.bots.get(botId);
-    
-    if (!bot || !bot.isOnline) {
-      throw new Error('Bot not available');
+    if (available.length === 0) {
+      return null;
     }
 
-    return new Promise((resolve, reject) => {
-      const offer = bot.manager.createOffer(tradeUrl);
-      
-      if (itemsToGive.length > 0) {
-        offer.addMyItems(itemsToGive);
-      }
-      
-      if (itemsToReceive.length > 0) {
-        offer.addTheirItems(itemsToReceive);
-      }
-      
-      offer.setMessage(message || 'CSGO Skinfo Marketplace Trade');
-      
-      offer.send((err, status) => {
-        if (err) {
-          reject(err);
-        } else {
-          bot.currentTrades++;
-          resolve({ offerId: offer.id, status });
-        }
-      });
-    });
+    // Return bot with least current trades
+    available.sort((a, b) => a.currentTrades - b.currentTrades);
+
+    return available[0];
   }
 
+  /**
+   * Start trade queue processor
+   */
   startTradeProcessor() {
     setInterval(() => {
-      if (!this.isProcessingTrades && this.tradeQueue.length > 0) {
-        this.processTradeQueue();
-      }
-    }, 5000); // Check every 5 seconds
+      this.processTradeQueue();
+    }, BOT_MANAGER_CONFIG.TRADE_POLL_INTERVAL); // Check every 5 seconds
   }
 
-  async processTradeQueue() {
-    if (this.tradeQueue.length === 0) return;
-    
-    this.isProcessingTrades = true;
-    
+  /**
+   * Check trade offer status
+   */
+  async checkTradeStatus(tradeOfferId) {
     try {
-      const trade = this.tradeQueue.shift();
-      const bot = this.getAvailableBot();
-      
-      if (bot) {
-        await this.sendTradeOffer(
-          bot.id,
-          trade.partnerSteamId,
-          trade.itemsToGive,
-          trade.itemsToReceive,
-          trade.tradeUrl,
-          trade.message
+      // Find bot that created this trade
+      for (const bot of this.activeBots) {
+        const status = await require('./steamIntegrationService').getTradeOfferStatus(
+          bot.manager,
+          tradeOfferId
         );
-      } else {
-        // Put trade back in queue if no bot available
-        this.tradeQueue.unshift(trade);
+
+        if (status) {
+          return {
+            botId: bot.id,
+            ...status
+          };
+        }
       }
+
+      return null;
     } catch (error) {
-      logger.error('Error processing trade queue:', error);
-    } finally {
-      this.isProcessingTrades = false;
+      logger.error(`Error checking trade status for ${tradeOfferId}:`, error);
+      return null;
     }
   }
 
-  queueTrade(tradeData) {
-    this.tradeQueue.push(tradeData);
+  /**
+   * Get all bot statuses
+   */
+  getBotsStatus() {
+    return this.activeBots.map(bot => bot.getStatus());
+  }
+
+  /**
+   * Get queue status
+   */
+  getQueueStatus() {
+    return {
+      queueSize: this.tradeQueue.length,
+      maxQueueSize: this.maxQueueSize,
+      isProcessing: this.isProcessingTrades,
+      trades: this.tradeQueue.map(trade => ({
+        id: trade.id,
+        listingId: trade.listingId,
+        status: trade.status,
+        attempts: trade.attempts,
+        timestamp: new Date(trade.timestamp)
+      }))
+    };
+  }
+
+  /**
+   * Get system status
+   */
+  getSystemStatus() {
+    return {
+      bots: {
+        total: this.bots.size,
+        online: this.activeBots.filter(b => b.isOnline).length,
+        available: this.activeBots.filter(b => b.isAvailable).length
+      },
+      queue: this.getQueueStatus(),
+      uptime: process.uptime()
+    };
+  }
+
+  /**
+   * Refresh all bot inventories
+   */
+  async refreshInventories() {
+    logger.info('Refreshing all bot inventories...');
+
+    for (const bot of this.activeBots) {
+      try {
+        await bot.loadInventory();
+      } catch (error) {
+        logger.error(`[${bot.id}] Failed to refresh inventory:`, error);
+      }
+    }
+
+    logger.info('Bot inventories refreshed');
+  }
+
+  /**
+   * Shutdown all bots
+   */
+  async shutdown() {
+    logger.info('Shutting down Steam Bot Manager...');
+
+    const shutdownPromises = [];
+
+    for (const bot of this.activeBots) {
+      shutdownPromises.push(bot.shutdown());
+    }
+
+    await Promise.all(shutdownPromises);
+
+    this.bots.clear();
+    this.activeBots = [];
+    this.tradeQueue = [];
+
+    logger.info('Steam Bot Manager shutdown complete');
+  }
+
+  /**
+   * Helper: Sleep
+   */
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 

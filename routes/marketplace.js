@@ -4,8 +4,21 @@ const { authenticateToken } = require('../middleware/auth');
 const MarketListing = require('../models/MarketListing');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
+const TradeOfferService = require('../services/tradeOfferService');
 const { validateListing, validatePurchase } = require('../middleware/validation');
 const logger = require('../utils/logger');
+
+// Инициализируем TradeOfferService один раз
+let tradeOfferService;
+
+// Middleware для инициализации сервиса
+router.use((req, res, next) => {
+  if (!tradeOfferService && req.steamBotManager) {
+    // Передаем io для WebSocket уведомлений
+    tradeOfferService = new TradeOfferService(req.steamBotManager, req.io);
+  }
+  next();
+});
 
 // Get all market listings with filters and pagination
 router.get('/listings', async (req, res) => {
@@ -191,36 +204,64 @@ router.post('/listings/:id/purchase', authenticateToken, validatePurchase, async
     listing.buyer = req.user.id;
     await listing.save();
 
-    // Deduct funds from buyer (hold in pending)
+    // Deduct funds from buyer immediately
     buyer.wallet.balance -= listing.price;
-    buyer.wallet.pendingBalance += listing.price;
     await buyer.save();
 
-    // Queue trade with Steam bot
-    const tradeData = {
-      listingId: listing._id,
-      partnerSteamId: buyer.steamId,
-      tradeUrl: buyer.tradeUrl,
-      itemsToGive: [{ assetid: listing.item.assetId, appid: 730, contextid: 2 }],
-      itemsToReceive: [],
-      message: `CSGO Skinfo Marketplace - Purchase of ${listing.item.marketName}`
-    };
+    // Create and send trade offer using TradeOfferService
+    const botManager = req.steamBotManager;
+    if (!botManager || botManager.activeBots.length === 0) {
+      return res.status(503).json({ error: 'No active bots available' });
+    }
 
-    req.steamBotManager.queueTrade(tradeData);
+    const bot = botManager.activeBots[0];
 
-    // Create pending transaction
+    // Validate item is in bot inventory
+    const validation = await tradeOfferService.validateAssetId(bot, listing.item.assetId);
+    if (!validation.valid) {
+      // Refund buyer
+      buyer.wallet.balance += listing.price;
+      await buyer.save();
+
+      // Reset listing
+      listing.status = 'active';
+      listing.buyer = undefined;
+      await listing.save();
+
+      return res.status(400).json({ error: 'Item not available in bot inventory' });
+    }
+
+    // Create trade offer
+    const tradeResult = await tradeOfferService.createOffer(
+      bot,
+      buyer.steamId,
+      [listing.item.assetId],
+      [],
+      listing._id.toString()
+    );
+
+    // Update listing with trade offer ID
+    listing.tradeOfferId = tradeResult.offerId;
+    await listing.save();
+
+    // Create transaction (completed - money already moved)
     await Transaction.create({
       type: 'purchase',
       user: req.user.id,
       amount: -listing.price,
       marketListing: listing._id,
-      status: 'pending',
-      description: `Purchase of ${listing.item.marketName}`
+      status: 'completed',
+      description: `Purchase of ${listing.item.marketName} (Trade offer: ${tradeResult.offerId})`
     });
 
-    res.json({ 
-      message: 'Purchase initiated, trade offer will be sent shortly',
-      listing 
+    res.json({
+      success: true,
+      message: 'Purchase completed, trade offer sent',
+      listing,
+      tradeOffer: {
+        offerId: tradeResult.offerId,
+        url: `https://steamcommunity.com/tradeoffer/${tradeResult.offerId}/`
+      }
     });
   } catch (error) {
     logger.error('Error purchasing item:', error);

@@ -23,7 +23,9 @@ class SteamBot {
     this.maxTrades = 5;
     this.client = null;
     this.manager = null;
-    this.inventory = [];
+    // Поддержка множественных инвентарей для разных игр
+    this.inventory = {}; // { '730': [], '570': [] }
+    this.inventoryLoaded = {}; // { '730': false, '570': false }
   }
 
   async initialize() {
@@ -51,7 +53,50 @@ class SteamBot {
       // Login to Steam
       await this.login();
 
-      // Load inventory
+      // Wait for webSession to get cookies for TradeOfferManager
+      logger.info(`[${this.id}] Waiting for webSession to get cookies...`);
+      await new Promise((resolve, reject) => {
+        this.client.once('webSession', (sessionID, cookies) => {
+          logger.info(`[${this.id}] Got web session, setting cookies for TradeOfferManager`);
+
+          this.manager.setCookies(cookies, (err) => {
+            if (err) {
+              logger.error(`[${this.id}] Failed to set cookies:`, err);
+              reject(err);
+              return;
+            }
+
+            logger.info(`[${this.id}] Cookies set successfully, inventory will load automatically`);
+            resolve();
+          });
+        });
+
+        // Timeout after 30 seconds
+        setTimeout(() => {
+          reject(new Error('webSession timeout - cookies not received'));
+        }, 30000);
+      });
+
+      // Force load bot inventory immediately
+      logger.info(`[${this.id}] Forcing bot inventory load...`);
+      try {
+        this.manager.emit('steamCurrency', (currency) => {
+          logger.info(`[${this.id}] Steam currency: ${currency}`);
+        });
+
+        // Try to get inventory directly - TradeOfferManager loads inventory automatically
+        // Check if inventory is already loaded
+        if (this.manager.inventory && this.manager.inventory.getItems) {
+          const items = this.manager.inventory.getItems();
+          logger.info(`[${this.id}] Got inventory directly: ${items?.length || 0} items`);
+        } else {
+          logger.info(`[${this.id}] Inventory not loaded yet, will retry later`);
+        }
+      } catch (error) {
+        logger.error(`[${this.id}] Error forcing inventory load:`, error);
+      }
+
+      // Load all inventories (CS2 and Dota 2)
       await this.loadInventory();
 
       logger.info(`[${this.id}] Bot initialized successfully`);
@@ -81,6 +126,8 @@ class SteamBot {
     // Logged in successfully
     this.client.on('loggedOn', (details) => {
       logger.info(`[${this.id}] Logged in as: ${details.vanityurl || details.accountName}`);
+      logger.info(`[${this.id}] SteamID available: ${this.client.steamID || this.client.steamId || 'NONE'}`);
+      logger.info(`[${this.id}] Client properties: ${JSON.stringify(Object.keys(this.client).slice(0, 20))}`);
 
       this.isOnline = true;
       this.isAvailable = true;
@@ -129,6 +176,7 @@ class SteamBot {
 
     // Trade offer state changed
     this.manager.on('offerList', (offers) => {
+      if (!Array.isArray(offers)) return;
       offers.forEach(offer => {
         if (offer.isCompleted()) {
           logger.info(`[${this.id}] Trade offer ${offer.id} completed`);
@@ -136,6 +184,42 @@ class SteamBot {
         }
       });
     });
+
+    // Bot inventory loaded
+    this.manager.on('inventoryLoaded', () => {
+      logger.info(`[${this.id}] Bot inventory loaded event triggered`);
+      this.loadInventory();
+    });
+
+    // Add retry mechanism for inventory loading
+    let inventoryRetryCount = 0;
+    const config = SteamBot.INVENTORY_CONFIG;
+
+    const retryInventoryLoad = () => {
+      if (inventoryRetryCount < config.MAX_RETRIES) {
+        inventoryRetryCount++;
+        logger.info(`[${this.id}] Retrying inventory load (attempt ${inventoryRetryCount}/${config.MAX_RETRIES})`);
+        setTimeout(() => {
+          this.loadInventory().then(() => {
+            const totalItems = (this.inventory['730']?.length || 0) + (this.inventory['570']?.length || 0);
+            if (totalItems === 0 && inventoryRetryCount < config.MAX_RETRIES) {
+              retryInventoryLoad();
+            }
+          });
+        }, config.RETRY_DELAY); // Wait 10 seconds between retries
+      } else {
+        logger.warn(`[${this.id}] Max inventory retry attempts reached, giving up`);
+      }
+    };
+
+    // Start retry mechanism after initial load
+    setTimeout(() => {
+      const totalItems = (this.inventory['730']?.length || 0) + (this.inventory['570']?.length || 0);
+      if (totalItems === 0) {
+        logger.info(`[${this.id}] Initial inventory empty, starting retry mechanism`);
+        retryInventoryLoad();
+      }
+    }, config.INITIAL_RETRY_DELAY); // Start after 30 seconds
 
     // Error handling
     this.client.on('error', (error) => {
@@ -178,17 +262,59 @@ class SteamBot {
     }
   }
 
-  async loadInventory() {
+  // Константы для настройки загрузки инвентаря
+  static INVENTORY_CONFIG = {
+    MAX_RETRIES: 5,
+    RETRY_DELAY: 10000, // 10 seconds
+    INITIAL_RETRY_DELAY: 30000, // 30 seconds
+    TIMEOUT: 30000 // 30 seconds
+  };
+
+  /**
+   * Load inventory for specific game (or all games)
+   * @param {number} appId - Game appId (730 for CS2, 570 for Dota 2). If not specified, loads all games.
+   * @returns {Promise<Array>} - Loaded inventory items
+   */
+  async loadInventory(appId = null) {
     try {
-      logger.info(`[${this.id}] Loading bot inventory...`);
+      // Load all inventories if no specific appId
+      if (!appId) {
+        logger.info(`[${this.id}] Loading all bot inventories (CS2 and Dota 2)...`);
 
-      this.inventory = await steamIntegration.getBotInventory(this.client);
+        // Load CS2 inventory (appId=730)
+        this.inventory['730'] = await this.loadInventory(730);
+        this.inventoryLoaded['730'] = true;
 
-      logger.info(`[${this.id}] Loaded ${this.inventory.length} tradable items`);
+        // Load Dota 2 inventory (appId=570)
+        this.inventory['570'] = await this.loadInventory(570);
+        this.inventoryLoaded['570'] = true;
 
-      return this.inventory;
+        logger.info(`[${this.id}] All inventories loaded - CS2: ${this.inventory['730'].length}, Dota 2: ${this.inventory['570'].length}`);
+
+        return {
+          '730': this.inventory['730'],
+          '570': this.inventory['570']
+        };
+      }
+
+      // Load specific game inventory
+      const gameName = appId === 730 ? 'CS2' : (appId === 570 ? 'Dota 2' : `AppId ${appId}`);
+      logger.info(`[${this.id}] Loading ${gameName} inventory (appId: ${appId})...`);
+
+      this.inventory[appId] = await new Promise((resolve, reject) => {
+        steamIntegration.getBotInventory(this.manager, appId)
+          .then(resolve)
+          .catch(reject);
+      });
+
+      this.inventoryLoaded[appId] = true;
+      logger.info(`[${this.id}] Loaded ${this.inventory[appId].length} ${gameName} items`);
+
+      return this.inventory[appId];
     } catch (error) {
-      logger.error(`[${this.id}] Failed to load inventory:`, error);
+      logger.error(`[${this.id}] Failed to load inventory for appId ${appId}:`, error);
+      this.inventory[appId] = [];
+      this.inventoryLoaded[appId] = false;
       return [];
     }
   }
@@ -384,10 +510,14 @@ class SteamBot {
   }
 
   /**
-   * Check if bot has specific item
+   * Check if bot has specific item (searches in all inventories)
    */
   hasItem(assetId) {
-    return this.inventory.some(item =>
+    const allItems = [
+      ...(this.inventory['730'] || []),
+      ...(this.inventory['570'] || [])
+    ];
+    return allItems.some(item =>
       item.assetid === assetId || item.id === assetId
     );
   }
@@ -402,8 +532,12 @@ class SteamBot {
       isAvailable: this.isAvailable,
       currentTrades: this.currentTrades,
       maxTrades: this.maxTrades,
-      inventorySize: this.inventory.length,
-      steamId: this.client?.steamId || null,
+      inventory: {
+        cs2: this.inventory['730']?.length || 0,
+        dota2: this.inventory['570']?.length || 0,
+        total: (this.inventory['730']?.length || 0) + (this.inventory['570']?.length || 0)
+      },
+      steamId: this.client?.steamID || null,
       accountName: this.config.username
     };
   }

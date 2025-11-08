@@ -1,0 +1,29 @@
+# Global owners
+* @zhaslan
+
+# Backend code
+/app.js @zhaslan
+/routes/ @zhaslan
+/models/ @zhaslan
+/services/ @zhaslan
+/middleware/ @zhaslan
+/config/ @zhaslan
+/types/ @zhaslan
+/tsconfig.json @zhaslan
+/package.json @zhaslan
+
+# Frontend code
+/frontend/ @zhaslan
+/frontend/src/ @zhaslan
+/frontend/package.json @zhaslan
+
+# Documentation
+*.md @zhaslan
+/docs/ @zhaslan
+
+# CI/CD
+/.github/ @zhaslan
+
+# Tests
+/tests/ @zhaslan
+/jest.config.js @zhaslan

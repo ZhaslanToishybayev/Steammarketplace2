@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+public/
+*.min.js
+*.config.js
+frontend/dist/
+frontend/build/
+coverage/
+.nyc_output/

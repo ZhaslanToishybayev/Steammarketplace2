@@ -1,357 +1,290 @@
-# CSGO Skinfo Marketplace
+# 🔥 Steam Marketplace
 
-A modern marketplace for CS2/CSGO skins with Steam integration, automated trading bots, and Stripe payments.
+> Современная платформа для торговли CS2 скинами с интеграцией Steam
 
-## Features
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-16%2B-green.svg)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-4.4-brightgreen.svg)](https://www.mongodb.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
-### Core Marketplace
-- **Steam Authentication**: Login with Steam account
-- **Inventory Integration**: Automatic inventory sync from Steam
-- **Listing Management**: Create, edit, and manage skin listings
-- **Advanced Search**: Filter by price, rarity, condition, weapon type
-- **Real-time Updates**: Live notifications for trades and purchases
+---
 
-### Trading System
-- **Automated Steam Bots**: Handle trade offers automatically
-- **Trade Queue**: Efficient processing of multiple trades
-- **Trade Validation**: Verify items and prevent fraud
-- **Trade History**: Complete transaction records
+## 🚀 Быстрый старт
 
-### Payment System
-- **Stripe Integration**: Secure payment processing
-- **Wallet System**: Internal balance management
-- **Deposit/Withdrawal**: Add funds via card, withdraw to PayPal/bank
-- **Transaction History**: Complete financial records
+### Одно-командное развертывание:
 
-### Security & Safety
-- **JWT Authentication**: Secure API access
-- **Rate Limiting**: Prevent abuse and spam
-- **Input Validation**: Comprehensive data validation
-- **Audit Logging**: Track all important actions
-
-## Tech Stack
-
-### Backend
-- **Node.js** with Express.js
-- **MongoDB** with Mongoose ODM
-- **Socket.io** for real-time communication
-- **Passport.js** for Steam authentication
-- **Stripe** for payment processing
-
-### Steam Integration
-- **steam-user**: Bot account management
-- **steam-community**: Community features
-- **steam-tradeoffer-manager**: Trade offer handling
-
-### Security
-- **Helmet.js**: Security headers
-- **bcryptjs**: Password hashing
-- **jsonwebtoken**: JWT tokens
-- **express-rate-limit**: Rate limiting
-
-## Installation
-
-### Prerequisites
-- Node.js 16+ 
-- MongoDB
-- Steam API key
-- Stripe account
-- Steam bot accounts
-
-### Setup
-
-1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd csgo-marketplace
+cd steam-marketplace
+./start.sh
 ```
 
-2. **Install dependencies**
+**Готово!** Откройте http://localhost:5173 в браузере
+
+---
+
+## ✨ Возможности
+
+- 🔐 **Авторизация через Steam** - быстрый вход через Steam OAuth
+- 🤖 **Автоматические Steam боты** - боты для торговли скинами
+- 💾 **Локальная MongoDB** - полный контроль над данными
+- ⚡ **React + Vite** - быстрый современный frontend
+- 🔒 **JWT авторизация** - безопасная аутентификация
+- 💳 **Stripe интеграция** - платежная система (опционально)
+- 📡 **Real-time** - Socket.io для мгновенных обновлений
+- 🛡️ **Security** - Helmet, Rate Limiting, CORS
+
+---
+
+## 📋 Системные требования
+
+| Компонент | Минимальная версия |
+|-----------|--------------------|
+| Node.js   | 16.x               |
+| npm       | 8.x                |
+| Docker    | 20.x               |
+| Docker Compose | 2.x           |
+| RAM       | 4GB                |
+| Диск      | 2GB                |
+
+**Поддерживаемые ОС:** Ubuntu 20.04+, macOS 10.15+, Windows 10+
+
+---
+
+## 🛠️ Установка вручную
+
+### 1. Клонирование
 ```bash
-npm install
+git clone <repository-url>
+cd steam-marketplace
 ```
 
-3. **Environment Configuration**
+### 2. Зависимости
+```bash
+# Backend
+npm install
+
+# Frontend
+cd frontend && npm install && cd ..
+```
+
+### 3. Настройка
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Обновите Steam API ключи в .env
 ```
 
-4. **Required Environment Variables**
-```env
-# Steam API Key (get from https://steamcommunity.com/dev/apikey)
-STEAM_API_KEY=your-steam-api-key
-
-# Steam Bot Credentials
-STEAM_BOT_1_USERNAME=bot-username
-STEAM_BOT_1_PASSWORD=bot-password
-STEAM_BOT_1_SHARED_SECRET=shared-secret
-STEAM_BOT_1_IDENTITY_SECRET=identity-secret
-
-# Stripe Keys (get from https://dashboard.stripe.com/apikeys)
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# Database
-MONGODB_URI=mongodb://localhost:27017/csgo-marketplace
-
-# JWT Secrets
-JWT_SECRET=your-jwt-secret
-SESSION_SECRET=your-session-secret
-```
-
-5. **Start the server**
+### 4. Запуск
 ```bash
-# Development
-npm run dev
+# MongoDB
+docker-compose up -d mongodb
 
-# Production
-npm start
+# Backend (новый терминал)
+node app.js
+
+# Frontend (новый терминал)
+cd frontend && npm run dev
 ```
 
-## Steam Bot Setup
+---
 
-### Creating Bot Accounts
+## 🔑 Получение Steam API ключа
 
-1. **Create Steam Account**
-   - Create new Steam account for bot
-   - Add CS2 to library (free to play)
-   - Enable Steam Guard mobile authenticator
+1. Зайдите на https://steamcommunity.com/dev/apikey
+2. Войдите в Steam аккаунт
+3. Введите домен: `localhost`
+4. Скопируйте ключ в `.env` как `STEAM_API_KEY`
 
-2. **Get Bot Credentials**
-   - Username and password
-   - Shared secret from mobile authenticator
-   - Identity secret from mobile authenticator
+---
 
-3. **Configure Bot**
-   - Add credentials to `.env` file
-   - Ensure bot account has CS2 in library
-   - Set bot profile to public
+## 🌍 URL после запуска
 
-### Bot Security
-- Use dedicated accounts only for trading
-- Enable all Steam Guard features
-- Regularly monitor bot activity
-- Keep credentials secure
+| Сервис | URL |
+|--------|-----|
+| **Frontend** | http://localhost:5173 |
+| **Backend** | http://localhost:3001 |
+| **Health Check** | http://localhost:3001/health |
 
-## API Endpoints
+---
 
-### Authentication
+## 📁 Структура проекта
+
 ```
-GET  /api/auth/steam          - Initiate Steam login
-GET  /api/auth/steam/return   - Steam login callback
-GET  /api/auth/me             - Get current user
-POST /api/auth/logout         - Logout
-```
-
-### Marketplace
-```
-GET    /api/marketplace/listings           - Get all listings
-GET    /api/marketplace/listings/:id       - Get single listing
-POST   /api/marketplace/listings           - Create listing
-PUT    /api/marketplace/listings/:id       - Update listing
-DELETE /api/marketplace/listings/:id       - Cancel listing
-POST   /api/marketplace/listings/:id/purchase - Purchase item
-GET    /api/marketplace/my-listings        - Get user's listings
+steam-marketplace/
+├── 📄 start.sh                 # Автозапуск
+├── 📄 docker-compose.yml       # MongoDB
+├── 📄 .env.example             # Пример конфига
+├── 📄 README.md                # Этот файл
+├── 📄 DEPLOYMENT_GUIDE.md      # Подробное руководство
+├── 📁 frontend/                # React + Vite
+│   ├── package.json
+│   ├── src/
+│   └── vite.config.js
+├── 📁 backend/                 # Node.js + Express
+│   ├── app.js
+│   ├── routes/
+│   ├── models/
+│   └── services/
+└── 📁 documentation/           # Документация
 ```
 
-### Payments
-```
-POST /api/payments/create-payment-intent   - Create Stripe payment
-POST /api/payments/webhook                 - Stripe webhook
-GET  /api/payments/transactions            - Get transaction history
-POST /api/payments/withdraw                - Request withdrawal
-```
+---
 
-### Steam Integration
-```
-GET  /api/steam/inventory        - Get user inventory
-POST /api/steam/trade-url        - Set trade URL
-GET  /api/steam/trade-history    - Get trade history
+## 🔧 Управление
+
+### Запуск
+```bash
+./start.sh
 ```
 
-## Database Schema
-
-### User Model
-```javascript
-{
-  steamId: String,
-  username: String,
-  displayName: String,
-  avatar: String,
-  tradeUrl: String,
-  wallet: {
-    balance: Number,
-    pendingBalance: Number
-  },
-  steamInventory: [InventoryItem],
-  reputation: {
-    positive: Number,
-    negative: Number,
-    total: Number
-  }
-}
+### Остановка
+```bash
+docker-compose down
+pkill -f 'node app.js'
 ```
 
-### Market Listing Model
-```javascript
-{
-  seller: ObjectId,
-  buyer: ObjectId,
-  item: {
-    assetId: String,
-    name: String,
-    marketName: String,
-    iconUrl: String,
-    rarity: String,
-    exterior: String
-  },
-  price: Number,
-  status: String, // active, sold, cancelled, pending_trade
-  tradeOfferId: String
-}
+### Перезапуск
+```bash
+docker-compose restart mongodb
 ```
 
-### Transaction Model
-```javascript
-{
-  type: String, // deposit, withdrawal, purchase, sale, fee
-  user: ObjectId,
-  amount: Number,
-  status: String, // pending, completed, failed
-  stripePaymentIntentId: String,
-  marketListing: ObjectId
-}
+---
+
+## 📊 Мониторинг
+
+```bash
+# Статус сервисов
+curl http://localhost:3001/health
+
+# Docker контейнеры
+docker ps | grep mongo
+
+# Логи MongoDB
+docker logs -f steam-marketplace-mongodb
 ```
 
-## Trading Flow
+---
 
-1. **User Lists Item**
-   - Item verified in Steam inventory
-   - Listing created in database
-   - Item marked as "listed" (not tradable to others)
+## 🐳 Docker команды
 
-2. **Buyer Purchases**
-   - Funds deducted from buyer wallet
-   - Listing status changed to "pending_trade"
-   - Trade queued for bot processing
+```bash
+# Управление MongoDB
+docker start steam-marketplace-mongodb
+docker stop steam-marketplace-mongodb
+docker logs steam-marketplace-mongodb
 
-3. **Bot Processes Trade**
-   - Bot sends trade offer to buyer
-   - Trade offer includes seller's item
-   - Buyer accepts trade offer
+# Очистка
+docker system prune -a
+```
 
-4. **Trade Completion**
-   - Bot receives confirmation
-   - Funds transferred to seller (minus fees)
-   - Listing marked as "sold"
-   - Transaction records created
+---
 
-## Payment Flow
+## 🆘 Устранение проблем
 
-1. **Deposit Funds**
-   - User initiates deposit via Stripe
-   - Payment intent created
-   - User completes payment
-   - Webhook confirms payment
-   - Funds added to user wallet
+### MongoDB не запускается
+```bash
+netstat -tlnp | grep 27017
+docker-compose down && docker-compose up -d
+```
 
-2. **Purchase Item**
-   - Funds deducted from wallet
-   - Held in pending balance during trade
-   - Released to seller on completion
-   - Refunded on trade failure
+### Порт занят
+```bash
+# Проверить что использует порт
+lsof -i :3001
+lsof -i :5173
+lsof -i :27017
 
-3. **Withdrawal**
-   - User requests withdrawal
-   - Funds deducted from wallet
-   - Manual processing (PayPal/bank transfer)
-   - Transaction recorded
+# Убить процесс
+kill -9 <PID>
+```
 
-## Security Considerations
+### Зависимости не устанавливаются
+```bash
+npm cache clean --force
+rm -rf node_modules frontend/node_modules
+npm install && cd frontend && npm install
+```
 
-### API Security
-- JWT tokens for authentication
-- Rate limiting on all endpoints
-- Input validation and sanitization
-- CORS configuration
-- Helmet.js security headers
+---
 
-### Trading Security
-- Verify item ownership before listing
-- Validate trade offers match expectations
-- Monitor for suspicious activity
-- Automatic trade offer validation
-- Bot account isolation
+## 📚 Документация
 
-### Payment Security
-- Stripe handles all card processing
-- No card data stored locally
-- Webhook signature verification
-- Transaction amount validation
-- Fraud detection integration
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Подробное руководство
+- **[SYSTEM_WORKING_REPORT.md](SYSTEM_WORKING_REPORT.md)** - Отчет о состоянии системы
 
-## Monitoring & Logging
+---
 
-### Application Logs
-- Winston logger with multiple transports
-- Error tracking and alerting
-- Performance monitoring
-- Trade activity logging
+## 🎯 Стек технологий
 
-### Key Metrics
-- Active listings count
-- Trade success rate
-- Payment processing times
-- User activity metrics
-- Bot performance stats
+### Backend
+- Node.js 16+
+- Express.js
+- MongoDB 4.4
+- Mongoose
+- Passport.js (Steam OAuth)
+- Steam API
+- Socket.io
+- JWT
+- Winston (логи)
 
-## Deployment
+### Frontend
+- React 18+
+- Vite
+- React Router
+- Axios
+- Socket.io Client
+- Tailwind CSS
 
-### Production Setup
-1. **Environment**
-   - Use production MongoDB cluster
-   - Configure Redis for caching
-   - Set up SSL certificates
-   - Configure reverse proxy (nginx)
+### DevOps
+- Docker & Docker Compose
+- MongoDB Docker
+- Git
 
-2. **Steam Bots**
-   - Deploy bots on separate servers
-   - Monitor bot connectivity
-   - Implement bot failover
-   - Regular bot maintenance
+---
 
-3. **Monitoring**
-   - Application performance monitoring
-   - Database monitoring
-   - Payment processing alerts
-   - Trade failure notifications
+## 🔒 Безопасность
 
-### Scaling Considerations
-- Horizontal scaling with load balancer
-- Database sharding for large datasets
-- Redis cluster for session storage
-- Multiple bot instances for high volume
-- CDN for static assets
+⚠️ **ВАЖНО для продакшена:**
+- Изменить пароли по умолчанию
+- Использовать HTTPS
+- Настроить Firewall
+- Отключить авторизацию MongoDB только в dev!
+- Создать пользователей БД с правами
+- НИКОГДА не коммитить `.env` в git!
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 📄 Лицензия
 
-## Support
+MIT License - подробности в файле [LICENSE](LICENSE)
 
-For support and questions:
-- Create GitHub issue
-- Check documentation
-- Review API examples
+---
 
-## Disclaimer
+## 🤝 Вклад
 
-This software is for educational purposes. Ensure compliance with:
-- Steam Terms of Service
-- Local gambling regulations
-- Payment processing requirements
-- Data protection laws
+1. Fork проект
+2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit изменения (`git commit -m 'Add AmazingFeature'`)
+4. Push в branch (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
 
-Always implement proper security measures and conduct thorough testing before production deployment.
+---
+
+## 📞 Поддержка
+
+При возникновении проблем:
+1. Проверьте [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+2. Убедитесь что все зависимости установлены
+3. Проверьте логи: `docker logs steam-marketplace-mongodb`
+
+---
+
+## 🎉 Спасибо!
+
+**Приятного использования Steam Marketplace!** 🚀
+
+⭐ Ставьте звездочку если проект полезен!
+
+---
+
+[![Made with ❤️](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red?style=for-the-badge)](https://github.com)

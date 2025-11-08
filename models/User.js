@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  steamName: {
+    type: String,
+    required: true
+  },
   username: {
     type: String,
     required: true
@@ -22,6 +26,16 @@ const userSchema = new mongoose.Schema({
   profileUrl: {
     type: String,
     required: true
+  },
+  steamAccessToken: {
+    type: String,
+    default: null,
+    required: false
+  },
+  steamRefreshToken: {
+    type: String,
+    default: null,
+    required: false
   },
   tradeUrl: {
     type: String,
@@ -53,6 +67,50 @@ const userSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  userInventory: [{
+    assetId: String,
+    classId: String,
+    instanceId: String,
+    appid: Number,
+    name: String,
+    marketName: String,
+    type: String,
+    tradable: Boolean,
+    marketable: Boolean,
+    descriptions: Array,
+    tags: Array,
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  // Inventory organized by game (CS2, Dota 2, etc.)
+  gameInventories: {
+    type: Map,
+    of: [{
+      assetId: String,
+      classId: String,
+      instanceId: String,
+      name: String,
+      marketName: String,
+      iconUrl: String,
+      tradable: Boolean,
+      marketable: Boolean,
+      type: String,
+      rarity: String,
+      exterior: String,
+      weapon: String,
+      quality: String,
+      stattrak: Boolean,
+      souvenir: Boolean,
+      amount: Number,
+      lastUpdated: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+    default: {}
+  },
   isAdmin: {
     type: Boolean,
     default: false
@@ -123,5 +181,12 @@ userSchema.methods.updateInventory = async function(steamInventory) {
   
   await this.save();
 };
+
+// Add indexes for better query performance
+userSchema.index({ steamId: 1 }, { unique: true });
+userSchema.index({ username: 1 });
+userSchema.index({ 'wallet.balance': 1 });
+userSchema.index({ isBanned: 1 });
+userSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('User', userSchema);

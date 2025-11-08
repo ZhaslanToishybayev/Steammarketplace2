@@ -6,6 +6,7 @@
 const axios = require('axios');
 const SteamUser = require('steam-user');
 const TradeOfferManager = require('steam-tradeoffer-manager');
+const rateLimiter = require('../utils/rateLimit');
 const logger = require('../utils/logger');
 
 class SteamIntegrationService {
@@ -17,7 +18,7 @@ class SteamIntegrationService {
   /**
    * Get real Steam inventory from Steam Community API
    */
-  async getInventory(steamId, appId = 730) {
+  async getInventory(steamId, appId = 730, accessToken = null) {
     const cacheKey = `inventory_${steamId}_${appId}`;
     const cached = this.cache.get(cacheKey);
 
@@ -25,83 +26,88 @@ class SteamIntegrationService {
       return { items: cached.data, cached: true };
     }
 
-    try {
-      const url = `https://steamcommunity.com/inventory/${steamId}/${appId}/2?l=english&count=5000`;
-      const response = await axios.get(url, {
-        timeout: 10000,
-        headers: {
+    // Используем центральный rateLimiter
+    return rateLimiter.addRequest(async () => {
+      try {
+        const url = `https://steamcommunity.com/inventory/${steamId}/${appId}/2?l=english&count=5000`;
+        const headers = {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-
-      if (!response.data.success) {
-        throw new Error('Steam API returned error');
-      }
-
-      const { assets, descriptions } = response.data;
-
-      if (!assets || !descriptions) {
-        return { items: [], cached: false };
-      }
-
-      // Combine assets with descriptions
-      const items = assets.map(asset => {
-        const description = descriptions.find(desc =>
-          desc.classid === asset.classid && desc.instanceid === asset.instanceid
-        );
-
-        return {
-          assetId: asset.assetid,
-          classId: asset.classid,
-          instanceId: asset.instanceid,
-          amount: asset.amount,
-          name: description?.name || 'Unknown',
-          marketName: description?.market_name || description?.name || 'Unknown',
-          iconUrl: description?.icon_url
-            ? this.getFullIconUrl(description.icon_url)
-            : null,
-          tradable: description?.tradable === 1,
-          marketable: description?.marketable === 1,
-          type: description?.type || 'Unknown',
-          rarity: this.getTagValue(description, 'Rarity'),
-          exterior: this.getTagValue(description, 'Exterior'),
-          weapon: this.getTagValue(description, 'Weapon'),
-          quality: this.getTagValue(description, 'Quality'),
-          stattrak: description?.market_name?.includes('StatTrak™') || false,
-          souvenir: description?.market_name?.includes('Souvenir') || false,
-          inspectLink: this.generateInspectLink(description?.market_name, asset.assetid),
-          // Add position info for trade offers
-          contextId: asset.contextid,
-          appId: asset.appid
         };
-      });
 
-      // Filter for CS2 marketable items
-      const csgoItems = items.filter(item =>
-        item.type &&
-        item.marketable &&
-        !item.type.includes('Base Grade Container') &&
-        !item.type.includes('Graffiti') &&
-        !item.type.includes('Music')
-      );
+        // Add OAuth token if available (required for accessing inventories since Steam API changes)
+        if (accessToken) {
+          headers['Authorization'] = `Bearer ${accessToken}`;
+        }
 
-      // Cache result
-      this.cache.set(cacheKey, {
-        data: csgoItems,
-        timestamp: Date.now()
-      });
+        const response = await axios.get(url, {
+          timeout: 10000,
+          headers: headers
+        });
 
-      return { items: csgoItems, cached: false };
-    } catch (error) {
-      logger.error(`Error fetching inventory for ${steamId}:`, error.message);
+        if (!response.data.success) {
+          throw new Error('Steam API returned error');
+        }
 
-      // Return cached version if available
-      if (cached) {
-        return { items: cached.data, cached: true, error: error.message };
+        const { assets, descriptions } = response.data;
+
+        if (!assets || !descriptions) {
+          return { items: [], cached: false };
+        }
+
+        // Combine assets with descriptions
+        const items = assets.map(asset => {
+          const description = descriptions.find(desc =>
+            desc.classid === asset.classid && desc.instanceid === asset.instanceid
+          );
+
+          return {
+            assetId: asset.assetid,
+            classId: asset.classid,
+            instanceId: asset.instanceid,
+            amount: asset.amount,
+            name: description?.name || 'Unknown',
+            marketName: description?.market_name || description?.name || 'Unknown',
+            iconUrl: description?.icon_url
+              ? this.getFullIconUrl(description.icon_url)
+              : null,
+            tradable: description?.tradable === 1,
+            marketable: description?.marketable === 1,
+            type: description?.type || 'Unknown',
+            rarity: this.getTagValue(description, 'Rarity'),
+            exterior: this.getTagValue(description, 'Exterior'),
+            weapon: this.getTagValue(description, 'Weapon'),
+            quality: this.getTagValue(description, 'Quality'),
+            stattrak: description?.market_name?.includes('StatTrak™') || false,
+            souvenir: description?.market_name?.includes('Souvenir') || false,
+            inspectLink: this.generateInspectLink(description?.market_name, asset.assetid),
+            // Add position info for trade offers
+            contextId: asset.contextid,
+            appId: asset.appid
+          };
+        });
+
+        // NO FILTERING HERE - let the routes filter based on game type
+        // This service should return all items and let routes decide what to show
+        const allItems = items;
+
+        // Cache result
+        this.cache.set(cacheKey, {
+          data: allItems,
+          timestamp: Date.now()
+        });
+
+        return { items: allItems, cached: false };
+      } catch (error) {
+        logger.error(`Error fetching inventory for ${steamId}:`, error.message);
+
+        // Return cached version if available
+        if (cached) {
+          return { items: cached.data, cached: true, error: error.message };
+        }
+
+        throw error;
       }
-
-      throw error;
-    }
+    });
   }
 
   /**
@@ -237,21 +243,102 @@ class SteamIntegrationService {
   /**
    * Get bot inventory from Steam bot account
    */
-  async getBotInventory(botClient, appId = 730, contextId = 2) {
-    return new Promise((resolve, reject) => {
-      botClient.getInventory(appId, contextId, true, (err, inventory) => {
-        if (err) {
-          logger.error('Error getting bot inventory:', err);
-          return reject(err);
+  async getBotInventory(tradeOfferManager, appId = 730, contextId = 2) {
+    // Константы для настройки загрузки инвентаря бота
+    const BOT_INVENTORY_CONFIG = {
+      TIMEOUT: 60000 // 60 seconds
+    };
+
+    // Используем центральный rateLimiter
+    return rateLimiter.addRequest(() => {
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          logger.warn('[Bot] Inventory load timeout, falling back to Steam API');
+          // Fallback to Steam API if TradeOfferManager takes too long
+          if (tradeOfferManager.steam && tradeOfferManager.steam.steamID) {
+            const steamId = tradeOfferManager.steam.steamID.getSteamID64();
+            this.getInventory(steamId, appId)
+              .then(result => resolve(result.items))
+              .catch(err => {
+                logger.error('[Bot] Steam API fallback failed:', err);
+                resolve([]);
+              });
+          } else {
+            resolve([]);
+          }
+        }, BOT_INVENTORY_CONFIG.TIMEOUT); // 60 second timeout
+
+        try {
+          // Use the correct TradeOfferManager v2+ method: getInventoryContents
+          logger.info('[Bot] Using TradeOfferManager.getInventoryContents()...');
+
+          tradeOfferManager.getInventoryContents(appId, contextId, true, (err, inventory) => {
+            clearTimeout(timeout);
+
+            if (err) {
+              logger.error('[Bot] Error loading inventory via getInventoryContents:', err);
+              // Try Steam API as fallback
+              if (tradeOfferManager.steam && tradeOfferManager.steam.steamID) {
+                const steamId = tradeOfferManager.steam.steamID.getSteamID64();
+                this.getInventory(steamId, appId)
+                  .then(result => resolve(result.items))
+                  .catch(apiErr => {
+                    logger.error('[Bot] Steam API fallback failed:', apiErr);
+                    resolve([]);
+                  });
+              } else {
+                resolve([]);
+              }
+              return;
+            }
+
+            if (!inventory || !Array.isArray(inventory)) {
+              logger.info('[Bot] No inventory array returned, trying Steam API fallback');
+              // Try Steam API as fallback
+              if (tradeOfferManager.steam && tradeOfferManager.steam.steamID) {
+                const steamId = tradeOfferManager.steam.steamID.getSteamID64();
+                this.getInventory(steamId, appId)
+                  .then(result => resolve(result.items))
+                  .catch(apiErr => {
+                    logger.error('[Bot] Steam API fallback failed:', apiErr);
+                    resolve([]);
+                  });
+              } else {
+                resolve([]);
+              }
+              return;
+            }
+
+            logger.info(`[Bot] Got ${inventory.length} items from TradeOfferManager`);
+
+            // Log item details for the first item
+            if (inventory.length > 0) {
+              const firstItem = inventory[0];
+              logger.info(`[Bot] Item #1: ${firstItem.name} (AssetID: ${firstItem.assetid})`);
+              logger.info(`[Bot] Item #1 details: type=${firstItem.type}, tradable=${firstItem.tradable}, marketable=${firstItem.marketable}`);
+            }
+
+            // Filter for tradable and marketable CS2 items
+            const tradableItems = inventory.filter(item => {
+              const isTradable = item.tradable !== false && item.marketable !== false;
+              const type = item.type || '';
+              const isValidType = !type.includes('Base Grade Container') &&
+                                !type.includes('Graffiti') &&
+                                !type.includes('Music') &&
+                                !type.includes('Music Kit') &&
+                                type.trim() !== '';
+
+              return isTradable && isValidType;
+            });
+
+            logger.info(`[Bot] Found ${tradableItems.length} tradable items out of ${inventory.length} total`);
+            resolve(tradableItems);
+          });
+        } catch (error) {
+          clearTimeout(timeout);
+          logger.error('[Bot] Exception loading inventory:', error);
+          reject(error);
         }
-
-        const tradableItems = inventory.filter(item =>
-          item.tradable &&
-          !item.isDisabled &&
-          item.marketable !== false
-        );
-
-        resolve(tradableItems);
       });
     });
   }

@@ -1,6 +1,21 @@
 const logger = require('../utils/logger');
+const { Sentry } = require('../config/sentry');
 
 const errorHandler = (err, req, res, next) => {
+  // Log to Sentry
+  if (Sentry) {
+    Sentry.captureException(err, {
+      tags: {
+        url: req.url,
+        method: req.method
+      },
+      extra: {
+        ip: req.ip,
+        userAgent: req.get('User-Agent')
+      }
+    });
+  }
+
   logger.error('Error occurred:', {
     error: err.message,
     stack: err.stack,

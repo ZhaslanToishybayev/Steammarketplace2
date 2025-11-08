@@ -1,0 +1,102 @@
+# Development override configuration
+# This file is automatically loaded by docker-compose for development
+# Use: docker-compose up
+
+version: '3.8'
+
+services:
+  # Development MongoDB with replica set
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: steam-marketplace-dev
+    command: >
+      mongod --bind_ip_all
+      --replSet rs0
+      --dbpath /data/db
+    volumes:
+      - mongodb_dev_data:/data/db
+
+  # Development Redis
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    # No password in development for ease of access
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+
+  # Development app with hot reload
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/steam-marketplace-dev?authSource=admin
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev_jwt_secret_key_for_development_only_change_in_production
+      SESSION_SECRET: dev_session_secret_key_for_development_only_change_in_production
+      STEAM_API_KEY: your_steam_api_key
+      STEAM_CLIENT_ID: your_steam_client_id
+      STEAM_CLIENT_SECRET: your_steam_client_secret
+      SENTRY_DSN: ""
+      DEBUG: steam-marketplace:*
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/frontend/node_modules
+      - ./logs:/app/logs
+    ports:
+      - "3001:3001"
+      - "9229:9229"  # Debug port
+    command: npm run dev
+    stdin_open: true
+    tty: true
+
+  # MongoDB Express (Web UI for MongoDB) - Development only
+  mongo-express:
+    image: mongo-express
+    container_name: steam-marketplace-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      - mongodb
+    networks:
+      - steam-marketplace
+    profiles:
+      - dev-tools
+
+  # Redis Commander (Web UI for Redis) - Development only
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: steam-marketplace-redis-commander
+    ports:
+      - "8082:8081"
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - steam-marketplace
+    profiles:
+      - dev-tools
+
+volumes:
+  mongodb_dev_data:
+  redis_dev_data:
+
+networks:
+  steam-marketplace:
+    driver: bridge
