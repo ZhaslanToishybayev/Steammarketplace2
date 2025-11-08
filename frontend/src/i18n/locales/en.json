@@ -1,0 +1,238 @@
+{
+  "nav": {
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "favorites": "Favorites",
+    "inventory": "Inventory",
+    "analytics": "Analytics",
+    "connectSteam": "Connect Steam",
+    "logout": "Logout"
+  },
+  "home": {
+    "hero": {
+      "title": "TRADE CS2 SKINS INSTANTLY",
+      "subtitle": "Next-Gen CS2 Trading Platform",
+      "description": "The fastest, secure and modern marketplace for CS2 skins. Trade with confidence using our advanced automation.",
+      "startTrading": "START TRADING",
+      "viewStats": "VIEW STATS",
+      "goToMarketplace": "GO TO MARKETPLACE"
+    },
+    "stats": {
+      "title": "Total Volume Traded",
+      "growth": "this month",
+      "traders": "Active Traders",
+      "newToday": "new today",
+      "tradeTime": "Average Trade Time",
+      "lightningFast": "Lightning fast"
+    },
+    "features": {
+      "title": "WHY CHOOSE US?",
+      "escrow": {
+        "title": "Escrow Protection",
+        "description": "Your trades are protected by our advanced escrow system. Your items and money are always safe with military-grade security."
+      },
+      "instant": {
+        "title": "Instant Delivery",
+        "description": "Automated Steam trade offers deliver your skins instantly after purchase. No waiting, no hassle, just instant gratification."
+      },
+      "global": {
+        "title": "Global Market",
+        "description": "Access to thousands of listings from players around the world. Best prices guaranteed with our price matching algorithm."
+      }
+    }
+  },
+  "marketplace": {
+    "title": "MARKETPLACE",
+    "subtitle": "Your Steam CS2 marketplace",
+    "search": "Search skins, collections...",
+    "sort": {
+      "priceLowToHigh": "Price: Low to High",
+      "priceHighToLow": "Price: High to Low",
+      "floatLowToHigh": "Float: Low to High",
+      "floatHighToLow": "Float: High to Low",
+      "newestFirst": "Newest First",
+      "oldestFirst": "Oldest First",
+      "rarity": "Rarity",
+      "nameAZ": "Name: A to Z",
+      "nameZA": "Name: Z to A"
+    },
+    "filters": {
+      "title": "Filters",
+      "active": "Active",
+      "clearAll": "Clear All",
+      "collapse": "Collapse",
+      "game": "Game",
+      "weaponType": "Weapon Type",
+      "condition": "Condition",
+      "rarity": "Rarity",
+      "floatRange": "Float Range",
+      "statTrakOnly": "StatTrak™ Only",
+      "stickerCount": "Sticker Count",
+      "priceRange": "Price Range",
+      "min": "Min",
+      "max": "Max",
+      "apply": "Apply Filters"
+    },
+    "game": {
+      "all": "All",
+      "cs2": "CS2",
+      "csgo": "CSGO",
+      "dota2": "Dota 2",
+      "rust": "Rust"
+    },
+    "condition": {
+      "all": "All Conditions",
+      "fn": "Factory New",
+      "mw": "Minimal Wear",
+      "ft": "Field-Tested",
+      "ww": "Well-Worn",
+      "bs": "Battle-Scarred"
+    },
+    "rarity": {
+      "all": "All",
+      "consumer": "Consumer",
+      "industrial": "Industrial",
+      "milSpec": "Mil-Spec",
+      "restricted": "Restricted",
+      "classified": "Classified",
+      "covert": "Covert",
+      "contraband": "Contraband",
+      "covertKnife": "Covert Knife",
+      "rareSpecial": "Rare Special"
+    },
+    "count": {
+      "any": "Any",
+      "0": "0",
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4+"
+    },
+    "results": "Found",
+    "listings": "listings",
+    "loading": "Loading marketplace...",
+    "error": "Failed to load marketplace. Please try again.",
+    "empty": {
+      "title": "No items found",
+      "description": "Try adjusting your filters or search terms"
+    }
+  },
+  "favorites": {
+    "title": "My Favorites",
+    "subtitle": "You have {{count}} favorite items",
+    "clearAll": "Clear All",
+    "empty": {
+      "title": "No favorites yet",
+      "description": "Start exploring the marketplace and add items to your favorites",
+      "browse": "Browse Marketplace"
+    },
+    "remove": "Remove from favorites",
+    "added": "Added to favorites",
+    "removed": "Removed from favorites"
+  },
+  "inventory": {
+    "title": "INVENTORY",
+    "subtitle": "Your Steam CS2 inventory",
+    "tabs": {
+      "myInventory": "My Inventory",
+      "botInventory": "Bot Inventory"
+    },
+    "gameTabs": {
+      "cs2": "CS2",
+      "dota2": "Dota 2"
+    },
+    "loading": "Loading {{game}} inventory...",
+    "botLoading": "Loading {{game}} bot inventory...",
+    "success": {
+      "loaded": "Inventory successfully loaded!",
+      "empty": "Your {{game}} inventory is empty or contains no tradable items"
+    },
+    "userProfile": {
+      "title": "Your Steam Profile",
+      "steamId": "Steam ID",
+      "username": "Username",
+      "status": "Status",
+      "public": "Public",
+      "private": "Private",
+      "owns": "Owns",
+      "notOwns": "Does not own"
+    },
+    "diagnostics": {
+      "title": "Inventory Diagnostics",
+      "profileLoaded": "Profile loaded",
+      "ownershipChecked": "Game ownership checked",
+      "inventoryLoaded": "Inventory loaded",
+      "reason": "Reason",
+      "retry": "Retry",
+      "needsOAuth": "For full inventory loading:"
+    },
+    "privacyGuide": {
+      "title": "Setup Guide",
+      "step1": "Open Steam → Account Details → Privacy Settings",
+      "step2": "Set \"Inventory\" = {{public}}",
+      "step3": "Save changes",
+      "step4": "Click \"{{retry}}\" above",
+      "alt": "Alternatively: use \"Bot Inventory\" tab - there are always items for testing"
+    },
+    "botInfo": {
+      "title": "Bot Inventory (Sgovt1)",
+      "status": "Status",
+      "online": "Online",
+      "items": "Items",
+      "ready": "Ready to trade",
+      "yes": "Yes",
+      "noItems": "No items in bot's {{game}} inventory"
+    },
+    "testTrade": "Test Trade System",
+    "privateInventory": "Private inventory",
+    "privateInventoryDescription": "Your Steam inventory is private. To load via Steam API you need:",
+    "alternative": "Alternative: Use \"Bot Inventory\" tab - there is 1 item (AUG | Sweeper)"
+  },
+  "auth": {
+    "error": "Authentication Error",
+    "failed": "Authentication failed",
+    "backToHome": "Back to Home"
+  },
+  "listing": {
+    "float": "Float",
+    "statTrak": "StatTrak™",
+    "stickers": "Stickers",
+    "condition": "Condition",
+    "rarity": "Rarity",
+    "tradable": "Tradable",
+    "marketable": "Marketable",
+    "exterior": {},
+    "settings": {
+      "grid": "Grid",
+      "list": "List"
+    }
+  },
+  "theme": {
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "language": {
+    "select": "Language"
+  },
+  "analytics": {
+    "title": "ANALYTICS",
+    "subtitle": "Real-time marketplace insights",
+    "realtime": "Real-time Data",
+    "timeRange": {
+      "24h": "24 Hours",
+      "7d": "7 Days",
+      "30d": "30 Days",
+      "90d": "90 Days"
+    },
+    "activeUsers": "Active Users",
+    "sales24h": "Sales (24h)",
+    "volume24h": "Volume (24h)",
+    "salesVolume": "Sales & Volume",
+    "sales": "Sales",
+    "volume": "Volume",
+    "userActivity": "User Activity",
+    "popularItems": "Popular Items",
+    "priceTrends": "Price Trends",
+    "price": "Price"
+  }
+}
