@@ -2,8 +2,6 @@
 # This file is automatically loaded by docker-compose for development
 # Use: docker-compose up
 
-version: '3.8'
-
 services:
   # Development MongoDB with replica set
   mongodb:
@@ -22,7 +20,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
     # No password in development for ease of access
     command: redis-server --appendonly yes
     volumes:

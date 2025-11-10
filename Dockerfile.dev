@@ -4,7 +4,7 @@ FROM node:18-alpine
 # Create app directory
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
+# Install dumb-init for proper signal handling and curl for health checks
 RUN apk add --no-cache dumb-init curl
 
 # Create non-root user for development
@@ -22,12 +22,9 @@ RUN cd frontend && npm install
 # Copy source code
 COPY . .
 
-# Fix ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-RUN chown -R nodejs:nodejs /app/frontend
-
-# Switch to non-root user
-USER nodejs
+# Fix permissions for directories with restrictive permissions
+# This ensures the nodejs user can access mounted volumes
+RUN find /app -type d -perm 700 -exec chmod 755 {} \; 2>/dev/null || true
 
 # Expose ports
 EXPOSE 3001 9229
