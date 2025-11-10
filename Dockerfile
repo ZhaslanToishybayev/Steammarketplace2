@@ -26,6 +26,11 @@ COPY --from=dependencies --chown=nodejs:nodejs /app/node_modules ./node_modules
 # Copy application code
 COPY --chown=nodejs:nodejs . .
 
+# Copy frontend build to public directory
+RUN mkdir -p /app/public && \
+    cp -r /app/frontend/dist/* /app/public/ && \
+    chown -R nodejs:nodejs /app/public
+
 # Switch to non-root user
 USER nodejs
 
