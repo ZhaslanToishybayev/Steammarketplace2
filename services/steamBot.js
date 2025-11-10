@@ -23,6 +23,9 @@ class SteamBot {
     this.maxTrades = 5;
     this.client = null;
     this.manager = null;
+    // Флаги для предотвращения множественных попыток подключения
+    this.isLoggingIn = false;
+    this.isReconnecting = false;
     // Поддержка множественных инвентарей для разных игр
     this.inventory = {}; // { '730': [], '570': [] }
     this.inventoryLoaded = {}; // { '730': false, '570': false }
@@ -161,9 +164,9 @@ class SteamBot {
 
       this.isOnline = false;
 
-      // Re-login
+      // Wait before attempting to reconnect
       setTimeout(() => {
-        this.login();
+        this.reconnect();
       }, 5000);
     });
 
@@ -232,6 +235,20 @@ class SteamBot {
   }
 
   async login() {
+    // Проверяем, не подключаемся ли уже
+    if (this.isLoggingIn) {
+      logger.info(`[${this.id}] Already logging in, skipping duplicate login attempt`);
+      return;
+    }
+
+    // Проверяем, подключен ли уже
+    if (this.isOnline) {
+      logger.info(`[${this.id}] Already online, skipping login`);
+      return;
+    }
+
+    this.isLoggingIn = true;
+
     return new Promise((resolve, reject) => {
       logger.info(`[${this.id}] Logging in...`);
 
@@ -244,10 +261,17 @@ class SteamBot {
       });
 
       this.client.once('loggedOn', () => {
+        this.isOnline = true;
+        this.isLoggingIn = false;
+        this.isReconnecting = false;
+        this.isAvailable = true;
+        logger.info(`[${this.id}] Successfully logged in`);
         resolve();
       });
 
       this.client.once('logOnFailure', (error) => {
+        this.isLoggingIn = false;
+        this.isReconnecting = false;
         logger.error(`[${this.id}] Login failed:`, error);
         reject(error);
       });
@@ -255,9 +279,31 @@ class SteamBot {
   }
 
   async reconnect() {
+    // Проверяем, не идёт ли уже переподключение
+    if (this.isReconnecting) {
+      logger.info(`[${this.id}] Already reconnecting, skipping duplicate attempt`);
+      return;
+    }
+
+    // Проверяем, не подключаемся ли уже
+    if (this.isLoggingIn) {
+      logger.info(`[${this.id}] Login in progress, will wait for completion`);
+      return;
+    }
+
+    // Проверяем, подключен ли уже
+    if (this.isOnline) {
+      logger.info(`[${this.id}] Already online, no need to reconnect`);
+      return;
+    }
+
+    this.isReconnecting = true;
+    logger.info(`[${this.id}] Initiating reconnection...`);
+
     try {
       await this.login();
     } catch (error) {
+      this.isReconnecting = false;
       logger.error(`[${this.id}] Reconnection failed:`, error);
     }
   }
