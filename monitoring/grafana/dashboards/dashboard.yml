@@ -1,0 +1,16 @@
+# Grafana Dashboard Provisioning Configuration
+# This file configures Grafana to automatically load dashboard JSON files
+# https://grafana.com/docs/grafana/latest/dashboards/provisioning/
+
+apiVersion: 1
+
+providers:
+  - name: 'Steam Marketplace Dashboards'
+    orgId: 1
+    folder: 'Steam Marketplace'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards

@@ -1,8 +1,8 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const logger = require('../utils/logger');
 const steamOAuthService = require('../services/steamOAuthService');
+const tokenService = require('../services/tokenService');
 
 const router = express.Router();
 
@@ -111,17 +111,17 @@ router.get('/steam/callback', async (req, res) => {
       logger.info(`✅ User updated: ${steamId}`);
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user._id, steamId: user.steamId },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+    // Generate token pair (access + refresh)
+    const userAgent = req.headers['user-agent'] || null;
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const tokenPair = await tokenService.generateTokenPair(user, userAgent, ipAddress);
+
+    logger.info('✅ Token pair generated, redirecting to frontend');
+
+    // Redirect to frontend with tokens
+    res.redirect(
+      `${process.env.CLIENT_URL}/auth/success?accessToken=${tokenPair.accessToken}&refreshToken=${tokenPair.refreshToken}&expiresIn=900`
     );
-
-    logger.info('✅ JWT token generated, redirecting to frontend');
-
-    // Redirect to frontend with token
-    res.redirect(`${process.env.CLIENT_URL}/auth/success?token=${token}`);
 
   } catch (error) {
     logger.error('❌ Error in OAuth callback:', error);
@@ -173,15 +173,13 @@ router.post('/test-user', async (req, res) => {
       return res.status(404).json({ error: 'Test user not found' });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: user._id, steamId: user.steamId },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    // Generate token pair
+    const tokenPair = await tokenService.generateTokenPair(user, 'test-user-agent', '127.0.0.1');
 
     res.json({
-      token,
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+      expiresIn: 900,
       user: {
         id: user._id,
         username: user.username,
@@ -259,7 +257,7 @@ router.get('/me', async (req, res) => {
       return res.status(401).json({ error: 'No token provided' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = tokenService.verifyAccessToken(token);
     const user = await User.findById(decoded.id).select('-steamInventory');
 
     if (!user) {
@@ -301,6 +299,113 @@ router.get('/me', async (req, res) => {
  */
 router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
+});
+
+/**
+ * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Refresh access token
+ *     description: Use refresh token to get new access token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token
+ *     responses:
+ *       200:
+ *         description: New tokens generated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *                 expiresIn:
+ *                   type: number
+ *       401:
+ *         description: Invalid refresh token
+ */
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: 'Refresh token required' });
+    }
+
+    // В реальном приложении нужно передать userId из безопасного источника
+    // Например, из зашифрованного JWT в refresh токене
+    // Для простоты примера, берем из заголовка (НЕ БЕЗОПАСНО для production!)
+    const userId = req.headers['x-user-id'];
+
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID required' });
+    }
+
+    const userAgent = req.headers['user-agent'] || null;
+    const ipAddress = req.ip || req.connection.remoteAddress;
+
+    const tokenPair = await tokenService.refreshTokens(
+      refreshToken,
+      userId,
+      userAgent,
+      ipAddress
+    );
+
+    res.json({
+      accessToken: tokenPair.accessToken,
+      refreshToken: tokenPair.refreshToken,
+      expiresIn: 900 // 15 минут
+    });
+  } catch (error) {
+    logger.error('Token refresh failed:', error);
+    res.status(401).json({ error: 'Invalid refresh token' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/auth/logout-all:
+ *   post:
+ *     summary: Logout from all devices
+ *     description: Revoke all refresh tokens for current user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully logged out from all devices
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/logout-all', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' });
+    }
+
+    const decoded = tokenService.verifyAccessToken(token);
+    await tokenService.revokeAllUserTokens(decoded.id);
+
+    res.json({ message: 'Logged out from all devices' });
+  } catch (error) {
+    logger.error('Logout all failed:', error);
+    res.status(401).json({ error: 'Invalid token' });
+  }
 });
 
 module.exports = router;

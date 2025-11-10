@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: 🚀 CI/CD Pipeline
 
 on:
   push:
@@ -8,241 +8,142 @@ on:
 
 env:
   NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # ========================================
-  # LINTING AND CODE QUALITY
-  # ========================================
-  lint:
-    name: 🔍 Lint & Code Quality
+  # ==============================================================================
+  # 🔍 CODE QUALITY & SECURITY
+  # ==============================================================================
+  code-quality:
+    name: Code Quality & Security
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Run ESLint
+      - name: 🔍 Run ESLint
         run: npm run lint
-        continue-on-error: true
 
-      - name: Check Prettier formatting
-        run: npx prettier --check .
-        continue-on-error: true
-
-      - name: Code quality check
-        run: |
-          echo "Checking for console.log statements..."
-          ! grep -r "console\.log" --include="*.js" --exclude-dir=node_modules --exclude-dir=tests .
-
-  # ========================================
-  # SECURITY SCANNING
-  # ========================================
-  security:
-    name: 🔒 Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run npm audit
-        run: npm audit --audit-level=high
-        continue-on-error: true
-
-      - name: Run Snyk security scan
-        uses: snyk/actions/node@master
+      - name: 🔍 SonarQube Scan
+        uses: sonarqube-quality-gate-action@master
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          args: --severity-threshold=high
-        continue-on-error: true
+          scanMetadataReportFile: .scannerwork/report-task.txt
 
-  # ========================================
-  # UNIT AND INTEGRATION TESTS
-  # ========================================
+  # ==============================================================================
+  # 🧪 UNIT & INTEGRATION TESTS
+  # ==============================================================================
   test:
     name: 🧪 Run Tests
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:6
-        env:
-          MONGO_INITDB_ROOT_USERNAME: root
-          MONGO_INITDB_ROOT_PASSWORD: example
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand({ping: 1})'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    strategy:
+      matrix:
+        test-type: [unit, integration]
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Wait for MongoDB
+      - name: 🧪 Run tests
         run: |
-          timeout 30 bash -c 'until mongosh --host localhost --port 27017 --eval "db.adminCommand({ping: 1})"; do sleep 2; done'
+          if [ "${{ matrix.test-type }}" = "unit" ]; then
+            npm run test:unit
+          else
+            npm run test:integration
+          fi
 
-      - name: Run unit tests
-        run: npm run test:unit
-        env:
-          MONGODB_URI: mongodb://root:example@localhost:27017/test?authSource=admin
-          JWT_SECRET: test_jwt_secret_for_ci_only
-          SESSION_SECRET: test_session_secret_for_ci_only
-          NODE_ENV: test
-
-      - name: Run integration tests
-        run: npm run test:integration
-        env:
-          MONGODB_URI: mongodb://root:example@localhost:27017/test?authSource=admin
-          JWT_SECRET: test_jwt_secret_for_ci_only
-          SESSION_SECRET: test_session_secret_for_ci_only
-          NODE_ENV: test
-
-      - name: Generate test coverage
-        run: npm run test:coverage
-        env:
-          MONGODB_URI: mongodb://root:example@localhost:27017/test?authSource=admin
-          JWT_SECRET: test_jwt_secret_for_ci_only
-          SESSION_SECRET: test_session_secret_for_ci_only
-          NODE_ENV: test
-
-      - name: Upload coverage to Codecov
+      - name: 📊 Upload coverage
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-        continue-on-error: true
+          flags: ${{ matrix.test-type }}
+          name: codecov-${{ matrix.test-type }}
 
-      - name: Archive test results
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: coverage/
-
-  # ========================================
-  # BUILD APPLICATION
-  # ========================================
+  # ==============================================================================
+  # 🏗️ BUILD APPLICATION
+  # ==============================================================================
   build:
-    name: 🔨 Build Application
+    name: 🏗️ Build Application
     runs-on: ubuntu-latest
-    needs: [lint, security, test]
+    needs: [code-quality, test]
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm ci
 
-      - name: Build application
+      - name: 🏗️ Build application
         run: npm run build
-        continue-on-error: true
 
-      - name: Archive build artifacts
+      - name: 📝 Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: build-artifacts
-          path: dist/
+          name: build-files
+          path: |
+            dist/
+            public/
+            !node_modules/
 
-  # ========================================
-  # FRONTEND BUILD
-  # ========================================
-  build-frontend:
-    name: 🎨 Build Frontend
+  # ==============================================================================
+  # 🐳 BUILD DOCKER IMAGE
+  # ==============================================================================
+  docker-build:
+    name: 🐳 Build Docker Image
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
-
-      - name: Archive frontend build
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend-build
-          path: frontend/dist/
-
-  # ========================================
-  # DOCKER BUILD AND SCAN
-  # ========================================
-  docker:
-    name: 🐳 Docker Build & Scan
-    runs-on: ubuntu-latest
-    needs: [build, build-frontend]
+    needs: [code-quality, test]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: 🔧 Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
+      - name: 🔐 Log in to Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: 📝 Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/steam-marketplace
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
+      - name: 🐳 Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -252,132 +153,225 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ secrets.DOCKER_USERNAME }}/steam-marketplace:latest
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+  # ==============================================================================
+  # 🧪 E2E TESTS
+  # ==============================================================================
+  e2e-tests:
+    name: 🧪 E2E Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          sarif_file: 'trivy-results.sarif'
-        continue-on-error: true
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-  # ========================================
-  # DEPLOY TO STAGING
-  # ========================================
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: 🧪 Run E2E tests
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: 📸 Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  # ==============================================================================
+  # 🚀 DEPLOY TO STAGING
+  # ==============================================================================
   deploy-staging:
     name: 🚀 Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [docker]
+    needs: [docker-build, e2e-tests]
     if: github.ref == 'refs/heads/develop'
-    environment: staging
+    environment:
+      name: staging
+      url: https://staging.steam-marketplace.dev
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to staging
-        run: |
-          echo "Deploying to staging environment..."
-          # Add your staging deployment commands here
-          # Example: SSH to server, pull Docker image, restart services
-        env:
-          STAGING_HOST: ${{ secrets.STAGING_HOST }}
-          STAGING_USER: ${{ secrets.STAGING_USER }}
-          STAGING_KEY: ${{ secrets.STAGING_SSH_KEY }}
+      - name: 🔐 Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  # ========================================
-  # DEPLOY TO PRODUCTION
-  # ========================================
+      - name: 🐳 Pull Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+
+      - name: 🔧 Setup SSH
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          known_hosts: ${{ secrets.STAGING_KNOWN_HOSTS }}
+
+      - name: 🚀 Deploy to staging server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} '
+            cd /opt/steam-marketplace &&
+            docker-compose -f docker-compose.staging.yml pull &&
+            docker-compose -f docker-compose.staging.yml up -d --remove-orphans &&
+            docker system prune -f
+          '
+
+      - name: 🧪 Run smoke tests
+        run: |
+          sleep 30
+          curl -f https://staging.steam-marketplace.dev/api/health || exit 1
+
+      - name: 📊 Notify deployment
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: 'Staging deployment: ${{ job.status }}'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ==============================================================================
+  # 🚀 DEPLOY TO PRODUCTION
+  # ==============================================================================
   deploy-production:
     name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
-    needs: [docker]
+    needs: [docker-build, e2e-tests]
     if: github.ref == 'refs/heads/main'
-    environment: production
+    environment:
+      name: production
+      url: https://sgomarket.com
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Run health checks
-        run: |
-          echo "Running pre-deployment health checks..."
-          # Add health check commands
+      - name: 🔐 Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to production
+      - name: 🐳 Pull Docker image
         run: |
-          echo "Deploying to production environment..."
-          # Add your production deployment commands here
-          # Example: Blue-green deployment, rolling update, etc.
-        env:
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
-          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
-          PRODUCTION_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Post-deployment health check
+      - name: 🔧 Setup SSH
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          known_hosts: ${{ secrets.PRODUCTION_KNOWN_HOSTS }}
+
+      - name: 📝 Create backup
         run: |
-          echo "Running post-deployment health checks..."
-          # Add health check commands to verify deployment
+          ssh -o StrictHostKeyChecking=no ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} '
+            mkdir -p /opt/backups/$(date +%Y%m%d_%H%M%S) &&
+            docker exec steam-marketplace_mongodb_1 mongodump --out /backup &&
+            tar -czf /opt/backups/$(date +%Y%m%d_%H%M%S)/db.tar.gz /backup
+          '
 
-      - name: Notify deployment success
+      - name: 🚀 Deploy to production server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} '
+            cd /opt/steam-marketplace &&
+            docker-compose -f docker-compose.prod.yml pull &&
+            docker-compose -f docker-compose.prod.yml up -d --remove-orphans &&
+            docker system prune -f
+          '
+
+      - name: 🧪 Run smoke tests
+        run: |
+          sleep 30
+          for i in {1..5}; do
+            if curl -f https://sgomarket.com/api/health; then
+              echo "Smoke test passed"
+              break
+            fi
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+
+      - name: 🔄 Health check
+        run: |
+          curl -f https://sgomarket.com/api/auth/test-user -X POST || exit 1
+
+      - name: 📊 Notify deployment
+        if: always()
         uses: 8398a7/action-slack@v3
         with:
-          status: success
-          text: '🚀 Production deployment successful for commit ${{ github.sha }}'
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: 'Production deployment: ${{ job.status }}'
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        continue-on-error: true
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  # ========================================
-  # PERFORMANCE TESTING
-  # ========================================
-  performance:
-    name: ⚡ Performance Tests
+  # ==============================================================================
+  # 🔄 ROLLBACK (Manual trigger only)
+  # ==============================================================================
+  rollback:
+    name: 🔄 Rollback Deployment
     runs-on: ubuntu-latest
-    needs: [deploy-staging]
-    if: github.ref == 'refs/heads/develop'
+    if: github.event_name == 'workflow_dispatch'
+    environment:
+      name: production
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run Lighthouse CI
+      - name: 📝 Get previous deployment
+        id: prev-deploy
         run: |
-          npm install -g @lhci/cli@0.12.x
-          lhci autorun
-        env:
-          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1)
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
-      - name: Archive Lighthouse results
-        uses: actions/upload-artifact@v3
+      - name: 🔐 Log in to Container Registry
+        uses: docker/login-action@v3
         with:
-          name: lighthouse-results
-          path: .lighthouseci/
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  # ========================================
-  # NOTIFICATIONS
-  # ========================================
-  notify:
-    name: 📢 Send Notifications
-    runs-on: ubuntu-latest
-    needs: [deploy-production]
-    if: always()
-    steps:
-      - name: Notify on success
-        if: needs.deploy-production.result == 'success'
+      - name: 🐳 Pull previous Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.prev-deploy.outputs.tag }}
+
+      - name: 🔧 Setup SSH
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          known_hosts: ${{ secrets.PRODUCTION_KNOWN_HOSTS }}
+
+      - name: 🚀 Rollback to previous version
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} '
+            cd /opt/steam-marketplace &&
+            docker-compose -f docker-compose.prod.yml pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.prev-deploy.outputs.tag }} &&
+            docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.prev-deploy.outputs.tag }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest &&
+            docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+          '
+
+      - name: 🧪 Verify rollback
+        run: |
+          sleep 30
+          curl -f https://sgomarket.com/api/health || exit 1
+
+      - name: 📊 Notify rollback
         uses: 8398a7/action-slack@v3
         with:
-          status: success
-          text: '✅ Production deployment completed successfully! 🎉'
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: 'Production rollback to ${{ steps.prev-deploy.outputs.tag }}: ${{ job.status }}'
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Notify on failure
-        if: needs.deploy-production.result == 'failure'
-        uses: 8398a7/action-slack@v3
-        with:
-          status: failure
-          text: '❌ Production deployment failed! 🚨'
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

@@ -96,42 +96,56 @@
             "type": "domain",
             "enforcement": "suggest",
             "priority": "medium",
-            "description": "Frontend development for Steam Marketplace interface",
+            "description": "Frontend development for Steam Marketplace (React + Vite + i18n + Dark/Light themes)",
             "promptTriggers": {
                 "keywords": [
                     "frontend",
+                    "React",
                     "UI",
                     "interface",
-                    "html",
-                    "bootstrap",
+                    "component",
+                    "jsx",
+                    "tsx",
+                    "Vite",
+                    "dark theme",
+                    "light theme",
+                    "i18n",
+                    "internationalization",
+                    "theme",
+                    "router",
                     "socket.io client",
-                    "static files",
-                    "public",
-                    "templates",
-                    "express.static",
-                    "marketplace UI"
+                    "marketplace UI",
+                    "ListingCard",
+                    "Header"
                 ],
                 "intentPatterns": [
-                    "(create|add|build).*?(HTML|UI|frontend|interface)",
-                    "(update|modify).*?(public|static|templates)",
-                    "(add|implement).*?(socket.*?client|WebSocket)"
+                    "(create|add|build).*?(React|component|UI|frontend)",
+                    "(update|modify).*?(frontend|component|theme)",
+                    "(add|implement).*?(theme|i18n|router|WebSocket)",
+                    "(style|css|theme).*?(component|UI)",
+                    "(optimize|reduce).*?(bundle|size)"
                 ]
             },
             "fileTriggers": {
                 "pathPatterns": [
-                    "public/**/*.html",
-                    "templates/**/*.ejs",
-                    "templates/**/*.html",
-                    "static/**/*"
+                    "frontend/src/**/*.{js,jsx,ts,tsx}",
+                    "frontend/src/**/**/*.{js,jsx,ts,tsx}",
+                    "frontend/package.json",
+                    "frontend/vite.config.js"
                 ],
                 "pathExclusions": [
-                    "node_modules/**/*"
+                    "frontend/node_modules/**/*",
+                    "**/*.test.{js,jsx,ts,tsx}",
+                    "**/*.spec.{js,jsx,ts,tsx}"
                 ],
                 "contentPatterns": [
-                    "<!DOCTYPE",
-                    "bootstrap",
+                    "import.*from.*react",
+                    "useState|useEffect",
+                    "ThemeContext",
+                    "i18n",
                     "socket\\.io",
-                    "express\\.static"
+                    "function.*Component",
+                    "const.*=.*\\(\\) =>"
                 ]
             }
         },
@@ -306,6 +320,108 @@
                     "passport.*authenticate"
                 ]
             }
+        },
+        "testing-suite": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "Comprehensive testing suite: Jest, Playwright, Artillery, MongoDB Memory Server",
+            "promptTriggers": {
+                "keywords": [
+                    "test",
+                    "testing",
+                    "jest",
+                    "playwright",
+                    "e2e",
+                    "unit test",
+                    "integration test",
+                    "artillery",
+                    "load test",
+                    "performance test",
+                    "mongodb-memory-server",
+                    "coverage",
+                    "test runner",
+                    "mock",
+                    "nock"
+                ],
+                "intentPatterns": [
+                    "(write|create|add).*?test",
+                    "(setup|configure).*?(jest|playwright|testing)",
+                    "(run|execute).*?test",
+                    "(test|verify).*?(performance|load|e2e|unit|integration)",
+                    "(increase|improve).*?test.*?coverage"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "tests/**/*.js",
+                    "tests/**/*.spec.js",
+                    "jest.config.js",
+                    "playwright.config.js",
+                    "artillery.yml",
+                    "package.json"
+                ],
+                "pathExclusions": [
+                    "node_modules/**/*"
+                ],
+                "contentPatterns": [
+                    "describe\\(",
+                    "test\\(",
+                    "expect\\(",
+                    "beforeEach|afterEach",
+                    "@playwright/test",
+                    "artillery"
+                ]
+            }
+        },
+        "deployment-vercel-pskz": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Deployment strategies: Vercel Pro current, migration to ps.kz",
+            "promptTriggers": {
+                "keywords": [
+                    "deploy",
+                    "deployment",
+                    "vercel",
+                    "ps.kz",
+                    "CI/CD",
+                    "github actions",
+                    "docker",
+                    "nginx",
+                    "load balancer",
+                    "blue-green deployment",
+                    "migration",
+                    "staging",
+                    "production"
+                ],
+                "intentPatterns": [
+                    "(deploy|deploy).*?(vercel|pskz|production)",
+                    "(setup|configure).*?(CI/CD|github.*?actions)",
+                    "(migrate|move).*?(vercel.*?pskz|hosting)",
+                    "(setup|configure).*?(nginx|load.*?balancer)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    ".github/workflows/**/*",
+                    "Dockerfile*",
+                    "docker-compose*.yml",
+                    "nginx/**/*",
+                    "k8s/**/*",
+                    "vercel.json"
+                ],
+                "pathExclusions": [
+                    "node_modules/**/*"
+                ],
+                "contentPatterns": [
+                    "github.*?workflows",
+                    "vercel",
+                    "docker.*?build",
+                    "nginx.*?config",
+                    "pskz"
+                ]
+            }
         }
     },
     "notes": {
@@ -321,11 +437,15 @@
             "low": "Optional - Trigger only for explicit matches"
         },
         "steam_marketplace_config": {
-            "project_structure": "Express.js + MongoDB + Steam API",
+            "project_structure": "Express.js + MongoDB + Steam API + React/Vite frontend",
             "database": "MongoDB with Mongoose ODM",
             "auth": "Steam OAuth via Passport.js + JWT",
             "steam_libraries": "steam-user, steam-tradeoffer-manager, steamcommunity",
-            "real_time": "Socket.io"
+            "real_time": "Socket.io",
+            "frontend": "React 18 + Vite + i18next + Dark/Light themes",
+            "testing": "Jest + Playwright + Artillery + MongoDB Memory Server",
+            "deployment": "Vercel Pro (current) → ps.kz (target)",
+            "ci_cd": "GitHub Actions"
         }
     }
 }

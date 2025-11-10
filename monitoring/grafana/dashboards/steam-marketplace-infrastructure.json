@@ -1,0 +1,297 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Steam Marketplace - Infrastructure",
+    "description": "Infrastructure and system metrics for Steam Marketplace",
+    "tags": ["steam", "infrastructure", "system", "nodejs"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Application Uptime",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "process_uptime_seconds",
+            "legendFormat": "Uptime",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "decimals": 0,
+            "custom": {
+              "displayMode": "value",
+              "colorMode": "none"
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Memory Usage",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "expr": "process_memory_usage_bytes / 1024 / 1024",
+            "legendFormat": "Heap MB",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "MB",
+            "decimals": 0,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 512},
+                {"color": "red", "value": 1024}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Active Connections",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "http_connections_active",
+            "legendFormat": "Active",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "HTTP Queue Size",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "http_queue_size",
+            "legendFormat": "Queue",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 10},
+                {"color": "red", "value": 50}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Memory Usage Breakdown",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "process_memory_usage_bytes / 1024 / 1024",
+            "legendFormat": "Heap",
+            "refId": "A"
+          },
+          {
+            "expr": "process_resident_set_bytes / 1024 / 1024",
+            "legendFormat": "RSS",
+            "refId": "B"
+          },
+          {
+            "expr": "process_external / 1024 / 1024",
+            "legendFormat": "External",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "MB",
+            "min": 0,
+            "unit": "MB"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Event Loop Lag",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "nodejs_eventloop_lag_seconds",
+            "legendFormat": "Event Loop Lag",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Seconds",
+            "min": 0,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "HTTP Connections",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 17},
+        "targets": [
+          {
+            "expr": "http_connections_active",
+            "legendFormat": "Active",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Count",
+            "min": 0,
+            "unit": "short"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "HTTP Request Rate (5m)",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 17},
+        "targets": [
+          {
+            "expr": "steam_marketplace:http_requests_rate_5m",
+            "legendFormat": "Total",
+            "refId": "A"
+          },
+          {
+            "expr": "steam_marketplace:http_requests_rate_5m:by_service",
+            "legendFormat": "By Service - {{service}}",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec",
+            "min": 0,
+            "unit": "reqps"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Database Connections",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 26},
+        "targets": [
+          {
+            "expr": "mongodb_connections",
+            "legendFormat": "Total - {{state}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Connections",
+            "min": 0,
+            "unit": "short"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Database Query Performance",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 26},
+        "targets": [
+          {
+            "expr": "steam_marketplace:db_query_duration:p95_5m",
+            "legendFormat": "P95",
+            "refId": "A"
+          },
+          {
+            "expr": "steam_marketplace:db_query_duration:p99_5m",
+            "legendFormat": "P99",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Seconds",
+            "min": 0,
+            "unit": "s"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Cache Performance",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 35},
+        "targets": [
+          {
+            "expr": "steam_marketplace:cache_hit_rate_5m",
+            "legendFormat": "Hit Rate",
+            "refId": "A"
+          },
+          {
+            "expr": "redis_memory_used_bytes / 1024 / 1024",
+            "legendFormat": "Memory MB",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Hit Rate %",
+            "min": 0,
+            "max": 100,
+            "unit": "percent"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Cache Operations",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 35},
+        "targets": [
+          {
+            "expr": "steam_marketplace:cache_operations_rate_5m",
+            "legendFormat": "Ops/sec - {{operation}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Operations/sec",
+            "min": 0,
+            "unit": "reqps"
+          }
+        ]
+      }
+    ]
+  }
+}

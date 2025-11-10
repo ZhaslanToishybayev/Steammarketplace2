@@ -27,6 +27,9 @@ const paymentRoutes = require('./routes/payments');
 const userRoutes = require('./routes/users');
 const tradeRoutes = require('./routes/trade');
 const adminRoutes = require('./routes/admin');
+const healthRoutes = require('./routes/health');
+const metricsRoutes = require('./routes/metrics');
+const slackRoutes = require('./routes/slack');
 
 // Import middleware
 const { authenticateToken } = require('./middleware/auth');
@@ -209,10 +212,13 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/trade', tradeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/health', healthRoutes);
+app.use('/api/metrics', metricsRoutes);
+app.use('/api/slack', slackRoutes);
 
-// Health check endpoint
+// Legacy health endpoint (redirect to new)
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.redirect('/api/health');
 });
 
 // Serve static files from public directory

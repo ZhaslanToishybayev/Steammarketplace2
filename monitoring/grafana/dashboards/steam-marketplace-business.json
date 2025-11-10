@@ -1,0 +1,295 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Steam Marketplace - Business Metrics",
+    "description": "Business KPIs and metrics for Steam Marketplace",
+    "tags": ["steam", "marketplace", "business", "kpi"],
+    "style": "dark",
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Marketplace Transactions Rate",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate(marketplace_transactions_total[5m]))",
+            "legendFormat": "Transactions/sec",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Trade Offers Rate",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate(trade_offers_total[5m]))",
+            "legendFormat": "Offers/sec",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Active Marketplace Listings",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "marketplace_listings_active",
+            "legendFormat": "Listings",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Inventory Updates",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(rate(user_inventory_updates_total[5m]))",
+            "legendFormat": "Updates/sec",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Transactions by Type",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "sum(rate(marketplace_transactions_total[5m])) by (type)",
+            "legendFormat": "{{type}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Transactions/sec",
+            "min": 0,
+            "unit": "reqps"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Trade Offers by Type and Status",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "sum(rate(trade_offers_total[5m])) by (type, status)",
+            "legendFormat": "{{type}} - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Offers/sec",
+            "min": 0,
+            "unit": "reqps"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Successful Transactions",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 17},
+        "targets": [
+          {
+            "expr": "sum(rate(marketplace_transactions_total{status=\"success\"}[5m]))",
+            "legendFormat": "Success/sec",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 0.5},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Failed Trade Offers",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 17},
+        "targets": [
+          {
+            "expr": "sum(rate(trade_offers_total{status=\"failed\"}[5m]))",
+            "legendFormat": "Failed/sec",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 0.1},
+                {"color": "red", "value": 0.5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Trade Offer Failure Rate",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 17},
+        "targets": [
+          {
+            "expr": "sum(rate(trade_offers_total{status=\"failed\"}[5m])) / sum(rate(trade_offers_total[5m])) * 100",
+            "legendFormat": "Failure %",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Transaction Status Breakdown",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 17},
+        "targets": [
+          {
+            "expr": "sum(increase(marketplace_transactions_total[1h])) by (status)",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Inventory Updates by Source",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 25},
+        "targets": [
+          {
+            "expr": "sum(rate(user_inventory_updates_total[5m])) by (source)",
+            "legendFormat": "{{source}}",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Updates/sec",
+            "min": 0,
+            "unit": "reqps"
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Marketplace Listings Trend",
+        "type": "timeseries",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 25},
+        "targets": [
+          {
+            "expr": "marketplace_listings_active",
+            "legendFormat": "Active Listings",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Count",
+            "min": 0,
+            "unit": "short"
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Business Metrics Summary (24h)",
+        "type": "table",
+        "gridPos": {"h": 10, "w": 24, "x": 0, "y": 34},
+        "targets": [
+          {
+            "expr": "sum(increase(marketplace_transactions_total[24h])) by (type, status)",
+            "legendFormat": "",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(increase(trade_offers_total[24h])) by (type, status)",
+            "legendFormat": "",
+            "refId": "B"
+          }
+        ],
+        "columns": [
+          {"text": "Metric", "value": "Metric"},
+          {"text": "Type", "value": "Type"},
+          {"text": "Status", "value": "Status"},
+          {"text": "Count", "value": "Count"}
+        ]
+      }
+    ]
+  }
+}

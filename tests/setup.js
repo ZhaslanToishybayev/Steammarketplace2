@@ -1,8 +1,54 @@
 // Jest setup file
+const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test_jwt_secret_for_testing_only_12345';
 process.env.SESSION_SECRET = 'test_session_secret_for_testing_only_67890';
-process.env.MONGODB_URI = 'mongodb://localhost:27017/test-db';
+
+// MongoDB Memory Server setup
+let mongoServer;
+
+beforeAll(async () => {
+  try {
+    // Start in-memory MongoDB
+    mongoServer = await MongoMemoryServer.create();
+    const mongoUri = mongoServer.getUri();
+
+    // Connect to in-memory database
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  } catch (error) {
+    console.error('MongoDB setup error:', error.message);
+    // Continue even if MongoDB fails - some tests don't need it
+  }
+});
+
+afterAll(async () => {
+  // Clean up
+  try {
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.connection.dropDatabase();
+      await mongoose.connection.close();
+    }
+    if (mongoServer) {
+      await mongoServer.stop();
+    }
+  } catch (error) {
+    // Ignore cleanup errors
+    console.log('Cleanup error (ignored):', error.message);
+  }
+});
+
+beforeEach(async () => {
+  // Clean collections before each test
+  const collections = mongoose.connection.collections;
+  for (const key in collections) {
+    await collections[key].deleteMany({});
+  }
+});
 
 // Mock external dependencies
 jest.mock('axios');

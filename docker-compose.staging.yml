@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # ==============================================================================
+  # 🔷 STEAM MARKETPLACE APPLICATION
+  # ==============================================================================
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY:-steam-marketplace}/steam-marketplace:${GITHUB_REF_NAME:-develop}
+    container_name: steam-marketplace-app-staging
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=staging
+      - PORT=3001
+    env_file:
+      - .env.staging
+    volumes:
+      - app_logs_staging:/app/logs
+    networks:
+      - app_network_staging
+    depends_on:
+      - mongodb
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==============================================================================
+  # 🗄️ MONGODB DATABASE
+  # ==============================================================================
+  mongodb:
+    image: mongo:7.0
+    container_name: steam-marketplace-mongodb-staging
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-changeme_staging}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE:-steam-marketplace-staging}
+    volumes:
+      - mongodb_data_staging:/data/db
+    networks:
+      - app_network_staging
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==============================================================================
+  # ⚡ REDIS CACHE
+  # ==============================================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: steam-marketplace-redis-staging
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme_staging}
+    volumes:
+      - redis_data_staging:/data
+    networks:
+      - app_network_staging
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==============================================================================
+  # 📊 NGINX REVERSE PROXY
+  # ==============================================================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: steam-marketplace-nginx-staging
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.staging.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs_staging:/var/log/nginx
+    networks:
+      - app_network_staging
+    depends_on:
+      - app
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ==============================================================================
+# 💾 VOLUMES
+# ==============================================================================
+volumes:
+  mongodb_data_staging:
+    driver: local
+  redis_data_staging:
+    driver: local
+  app_logs_staging:
+    driver: local
+  nginx_logs_staging:
+    driver: local
+
+# ==============================================================================
+# 🌐 NETWORKS
+# ==============================================================================
+networks:
+  app_network_staging:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

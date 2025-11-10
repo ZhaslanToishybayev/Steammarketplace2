@@ -1,140 +1,108 @@
-# 🚀 БЫСТРЫЙ СТАРТ - Steam Marketplace
+# ⚡ Быстрый старт - Развертывание за 30 минут
 
-## ⚡ Запуск на НОВОМ компьютере за 1 минуту!
+## 🎯 Что нужно подготовить ДО начала:
 
-### Шаг 1: Скопируй файлы проекта
-Перенесите папку `steam-marketplace` на новый компьютер (GitHub, флешка, архив)
+1. **VPS на ps.kz** (заказан и оплачен)
+2. **Домен** (привязан к аккаунту ps.kz)
+3. **Steam API Key** для production домена
+4. **SSH доступ** к серверу
 
-### Шаг 2: Установи зависимости
+---
+
+## 📋 Чек-лист на 30 минут:
+
+### ⏱️ Минуты 1-5: Подготовка
+- [ ] Подключиться к серверу по SSH
+- [ ] Обновить систему: `sudo apt update && sudo apt upgrade -y`
+
+### ⏱️ Минуты 6-10: Docker
+- [ ] Установить Docker: `curl -fsSL https://get.docker.com | sh`
+- [ ] Установить Docker Compose: `sudo apt install docker-compose -y`
+
+### ⏱️ Минуты 11-15: Проект
+- [ ] Загрузить проект на сервер (SFTP/Git)
+- [ ] Перейти в папку проекта
+- [ ] Скопировать: `cp .env.example .env.production`
+
+### ⏱️ Минуты 16-20: Настройка
+- [ ] Отредактировать `.env.production`
+- [ ] Заменить `yourdomain.ps.kz` на ваш домен
+- [ ] Вставить Steam API Key
+- [ ] Сгенерировать JWT_SECRET и SESSION_SECRET
+
+### ⏱️ Минуты 21-25: Деплой
+- [ ] Запустить: `docker-compose -f docker-compose.prod.yml up -d --build`
+- [ ] Проверить: `docker-compose ps`
+- [ ] Проверить: `curl http://localhost:3001/api/health`
+
+### ⏱️ Минуты 26-30: Домен
+- [ ] В панели ps.kz: добавить A-записи
+- [ ] Дождаться DNS (5-10 минут)
+- [ ] Проверить: `https://yourdomain.ps.kz/api/health`
+
+---
+
+## 📝 Быстрые команды:
+
 ```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install -y nodejs npm docker.io docker-compose
+# 1. Подключение
+ssh root@IP_СЕРВЕРА
 
-# macOS (через Homebrew)
-brew install node docker docker-compose
+# 2. Обновление
+sudo apt update && sudo apt upgrade -y && sudo apt install curl git -y
 
-# Windows
-# Установите: Node.js, Docker Desktop, Git
-```
+# 3. Docker
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+newgrp docker
+sudo apt install docker-compose -y
 
-### Шаг 3: Запуск (ОДНА КОМАНДА!)
-```bash
+# 4. Проект
+cd /var/www
+# Загрузить файлы проекта
+
+# 5. Настройка
 cd steam-marketplace
-./start.sh
-```
+cp .env.example .env.production
+nano .env.production
+# Заполнить все поля!
 
-**Готово!** Откройте http://localhost:5173 🎉
+# 6. Деплой
+docker-compose -f docker-compose.prod.yml up -d --build
+curl http://localhost:3001/api/health
 
----
-
-## 📦 Что делает start.sh автоматически:
-
-1. ✅ Проверяет Node.js, npm, Docker
-2. ✅ Создает .env файл если его нет
-3. ✅ Устанавливает зависимости Backend
-4. ✅ Устанавливает зависимости Frontend
-5. ✅ Запускает MongoDB (Docker)
-6. ✅ Запускает Backend
-7. ✅ Запускает Frontend
-
----
-
-## 🔧 Ручная установка (если нужно)
-
-### 1. Клонирование/копирование
-```bash
-git clone <репозиторий>
-# ИЛИ просто скопируйте папку
-```
-
-### 2. Установка зависимостей
-```bash
-npm install
-cd frontend && npm install && cd ..
-```
-
-### 3. Конфигурация
-```bash
-cp .env.example .env
-# Обновите Steam API ключи в .env
-nano .env
-```
-
-### 4. Запуск сервисов
-```bash
-# MongoDB
-docker-compose up -d mongodb
-
-# Backend (новый терминал)
-node app.js
-
-# Frontend (новый терминал)
-cd frontend && npm run dev
+# 7. Проверка
+docker-compose -f docker-compose.prod.yml ps
 ```
 
 ---
 
-## 🌍 URLs после запуска
+## 🔗 Полезные ссылки:
 
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:3001
-- **Health Check:** http://localhost:3001/health
-
----
-
-## ⚙️ Настройка Steam (обязательно!)
-
-1. Получите API ключ: https://steamcommunity.com/dev/apikey
-2. Обновите файл `.env`:
-```bash
-STEAM_API_KEY=ваш_ключ
-STEAM_BOT_1_USERNAME=логин_бота
-STEAM_BOT_1_PASSWORD=пароль_бота
-STEAM_BOT_1_SHARED_SECRET=секрет
-STEAM_BOT_1_IDENTITY_SECRET=секрет
-```
-
-3. Перезапустите: `./start.sh`
+- **Создание Steam API Key:** https://steamcommunity.com/dev/apikey
+- **Панель ps.kz:** https://ps.kz
+- **Документация Docker:** https://docs.docker.com
+- **Let's Encrypt:** https://letsencrypt.org
 
 ---
 
-## 🛠️ Управление
+## ❓ Частые вопросы:
 
-### Остановка
-```bash
-docker-compose down
-pkill -f 'node app.js'
-```
+**Q: Не могу подключиться по SSH?**
+A: Проверьте IP адрес, логин и пароль в письме от ps.kz
 
-### Перезапуск
-```bash
-./start.sh
-```
+**Q: Docker не найден?**
+A: Перезайдите в систему: `newgrp docker`
 
-### Проверка статуса
-```bash
-curl http://localhost:3001/health
-docker ps | grep mongo
-```
+**Q: Порт 3001 занят?**
+A: Остановите локальный Node.js: `pkill -f node`
+
+**Q: Ошибка "permission denied"?**
+A: Добавьте `sudo` перед командами Docker
+
+**Q: Домен не работает?**
+A: Проверьте DNS: `nslookup yourdomain.ps.kz`
 
 ---
 
-## 📚 Подробная документация
-
-- `README.md` - Полное описание
-- `DEPLOYMENT_GUIDE.md` - Детальное руководство
-- `SYSTEM_WORKING_REPORT.md` - Отчет о системе
-
----
-
-## 🎯 Система готова!
-
-Все работает из коробки:
-- ✅ MongoDB (Docker)
-- ✅ Node.js Backend
-- ✅ React Frontend
-- ✅ Steam интеграция
-- ✅ Автоматический запуск
-
-**Просто запустите `./start.sh` и используйте!** 🚀
+**Готовы? Начинаем!** 🚀

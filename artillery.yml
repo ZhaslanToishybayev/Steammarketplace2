@@ -1,0 +1,98 @@
+# Artillery Load Test Configuration
+# https://artillery.io/docs/
+
+config:
+  target: 'http://localhost:3001'
+  phases:
+    # Warm up
+    - duration: 60
+      arrivalRate: 2
+      name: "Warm up"
+    # Ramp up
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 10
+      name: "Ramp up"
+    # Sustained load
+    - duration: 300
+      arrivalRate: 10
+      name: "Sustained load"
+    # Spike test
+    - duration: 60
+      arrivalRate: 20
+      name: "Spike test"
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+      Accept: 'application/json'
+
+# Test scenarios
+scenarios:
+  # Homepage
+  - name: "Browse homepage"
+    weight: 30
+    flow:
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+            - contentType: json
+
+  # Marketplace browse
+  - name: "Browse marketplace"
+    weight: 25
+    flow:
+      - get:
+          url: "/api/marketplace/listings"
+          expect:
+            - statusCode: 200
+      - think: 2
+
+  # Steam inventory
+  - name: "Get inventory"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/steam/inventory"
+          headers:
+            Authorization: "Bearer test-token"
+          expect:
+            - statusCode: [200, 401] # 401 if not authenticated
+      - think: 3
+
+  # Health check
+  - name: "Health check"
+    weight: 15
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+      - think: 1
+
+  # Search
+  - name: "Search items"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/marketplace/listings"
+          qs:
+            search: "AK-47"
+            limit: 10
+          expect:
+            - statusCode: 200
+      - think: 2
+
+# Plugins for metrics
+plugins:
+  expect: {}
+  metrics-by-endpoint: {}
+  publish-metrics:
+    - type: statsd
+      host: localhost
+      port: 8125
+
+# Custom functions
+functions:
+  weightedScenarios: |
+    module.exports = { scenarios: [] };

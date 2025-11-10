@@ -1,0 +1,285 @@
+# Alert Rules for Steam Marketplace
+# https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+
+groups:
+  # ==============================================================================
+  # 🚨 CRITICAL ALERTS
+  # ==============================================================================
+  - name: critical-alerts
+    rules:
+      # Service is down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 0m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Steam Marketplace service is down"
+          description: "The {{ $labels.job }} service has been down for more than 0 minutes."
+          runbook_url: "https://docs.steam-marketplace.com/runbooks/service-down"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            rate(http_requests_total{status=~"5.."}[5m]) /
+            rate(http_requests_total[5m])
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% for {{ $labels.job }} service."
+          runbook_url: "https://docs.steam-marketplace.com/runbooks/high-error-rate"
+
+      # Database connection issues
+      - alert: DatabaseDown
+        expr: mongodb_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "MongoDB database is down"
+          description: "MongoDB instance {{ $labels.instance }} has been down for more than 1 minute."
+          runbook_url: "https://docs.steam-marketplace.com/runbooks/database-down"
+
+      # Cache connection issues
+      - alert: CacheDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis instance {{ $labels.instance }} has been down for more than 1 minute."
+          runbook_url: "https://docs.steam-marketplace.com/runbooks/cache-down"
+
+      # High response time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.job }} service."
+          runbook_url: "https://docs.steam-marketplace.com/runbooks/high-response-time"
+
+  # ==============================================================================
+  # ⚠️ WARNING ALERTS
+  # ==============================================================================
+  - name: warning-alerts
+    rules:
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}."
+          runbook_url: "https://docs.steam-marketplace.com/runbooks/high-memory-usage"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+
+      # High disk usage
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}."
+
+      # High request rate
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 100
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High request rate"
+          description: "Request rate is {{ $value }} requests/sec for {{ $labels.job }} service."
+
+      # Database connection pool saturation
+      - alert: DatabaseConnectionPoolSaturation
+        expr: mongodb_connections{state="current"} / mongodb_connections{state="available"} > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Database connection pool saturation"
+          description: "Connection pool is {{ $value | humanizePercentage }} full on {{ $labels.instance }}."
+
+      # Cache hit rate low
+      - alert: LowCacheHitRate
+        expr: rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m])) < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}."
+
+  # ==============================================================================
+  # 📊 INFO ALERTS
+  # ==============================================================================
+  - name: info-alerts
+    rules:
+      # Deployment occurred
+      - alert: DeploymentOccurred
+        expr: changes(app_version[1h]) > 0
+        for: 0m
+        labels:
+          severity: info
+          team: platform
+        annotations:
+          summary: "New deployment detected"
+          description: "Application version changed from {{ $labels.from }} to {{ $labels.to }}."
+
+      # SSL certificate expiring soon
+      - alert: SSLCertificateExpiring
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 0m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value }} days."
+
+  # ==============================================================================
+  # 🔒 SECURITY ALERTS
+  # ==============================================================================
+  - name: security-alerts
+    rules:
+      # High number of failed authentication attempts
+      - alert: HighAuthFailureRate
+        expr: rate(auth_failures_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failure rate is {{ $value }} failures/sec."
+
+      # Suspicious API usage pattern
+      - alert: SuspiciousAPIActivity
+        expr: rate(api_requests_total{source="external"}[5m]) > 1000
+        for: 15m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Suspicious API activity detected"
+          description: "High API request rate from external source: {{ $value }} requests/sec."
+
+      # Unusual error patterns
+      - alert: UnusualErrorPatterns
+        expr: rate(http_requests_total{status=~"4.."}[5m]) / rate(http_requests_total[5m]) > 0.5
+        for: 15m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Unusual error patterns detected"
+          description: "Error rate is {{ $value }}% which may indicate an attack."
+
+  # ==============================================================================
+  # 🏗️ INFRASTRUCTURE ALERTS
+  # ==============================================================================
+  - name: infrastructure-alerts
+    rules:
+      # Container restart detected
+      - alert: ContainerRestarted
+        expr: increase(container_start_time_seconds[1h]) > 0
+        for: 0m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Container restarted"
+          description: "Container {{ $labels.name }} has restarted."
+
+      # Load balancer health check failed
+      - alert: LoadBalancerHealthCheckFailed
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Load balancer health check failed"
+          description: "Health check failed for {{ $labels.instance }}."
+
+      # Node health degraded
+      - alert: NodeHealthDegraded
+        expr: up{job="node-exporter"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Node health degraded"
+          description: "Node {{ $labels.instance }} has been down for more than 5 minutes."
+
+  # ==============================================================================
+  # 💼 BUSINESS METRICS ALERTS
+  # ==============================================================================
+  - name: business-alerts
+    rules:
+      # Low marketplace activity
+      - alert: LowMarketplaceActivity
+        expr: rate(marketplace_transactions_total[1h]) < 10
+        for: 30m
+        labels:
+          severity: warning
+          team: product
+        annotations:
+          summary: "Low marketplace activity"
+          description: "Marketplace transaction rate is {{ $value }} transactions/hour."
+
+      # Steam API response time high
+      - alert: SteamAPIResponseTimeHigh
+        expr: histogram_quantile(0.95, rate(steam_api_request_duration_seconds_bucket[5m])) > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Steam API response time is high"
+          description: "95th percentile Steam API response time is {{ $value }}s."
+
+      # Trade offer failures
+      - alert: HighTradeOfferFailureRate
+        expr: rate(trade_offers_failed_total[5m]) / rate(trade_offers_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High trade offer failure rate"
+          description: "Trade offer failure rate is {{ $value | humanizePercentage }}."

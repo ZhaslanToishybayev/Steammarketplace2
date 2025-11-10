@@ -7,17 +7,14 @@ version: '3.8'
 services:
   # Development MongoDB with replica set
   mongodb:
-    image: mongo:6
+    image: mongo:4.4
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: steam-marketplace-dev
-    command: >
-      mongod --bind_ip_all
-      --replSet rs0
-      --dbpath /data/db
+    command: mongod --bind_ip_all
     volumes:
       - mongodb_dev_data:/data/db
 

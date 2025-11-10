@@ -1,0 +1,406 @@
+# Alertmanager Configuration
+# Manages alert routing, notifications, and escalation
+# https://prometheus.io/docs/alerting/latest/alertmanager/
+
+global:
+  # Global SMTP configuration
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@sgomarket.com'
+  smtp_auth_username: 'alerts@sgomarket.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+
+  # Slack configuration (can be overridden per-receiver)
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+# Template files for custom notification formats
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree - determines how alerts are grouped and routed
+route:
+  # Default receiver for unmatched alerts
+  receiver: 'default-notifications'
+
+  # Group alerts by these labels
+  group_by: ['alertname', 'service', 'severity']
+
+  # How long to wait to group alerts
+  group_wait: 10s
+
+  # Interval between notifications for the same group
+  group_interval: 10s
+
+  # Repeat interval for resolved alerts
+  repeat_interval: 4h
+
+  # Child routes for specific severity levels
+  routes:
+    # ========================================================================
+    # 🔴 CRITICAL ALERTS - Immediate attention required
+    # ========================================================================
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      group_interval: 2m
+      repeat_interval: 15m
+      continue: true
+
+    # ========================================================================
+    # 🟡 WARNING ALERTS - Investigate soon
+    # ========================================================================
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+
+    # ========================================================================
+    # 🟢 INFO ALERTS - Informational only
+    # ========================================================================
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_wait: 1m
+      group_interval: 10m
+      repeat_interval: 24h
+
+    # ========================================================================
+    # 🔐 SECURITY ALERTS - Security team notification
+    # ========================================================================
+    - match:
+        category: security
+      receiver: 'security-alerts'
+      group_wait: 5s
+      group_interval: 1m
+      repeat_interval: 30m
+      continue: true
+
+    # ========================================================================
+    # 💼 BUSINESS ALERTS - Product team notification
+    # ========================================================================
+    - match:
+        category: business
+      receiver: 'business-alerts'
+      group_wait: 1m
+      group_interval: 5m
+      repeat_interval: 1h
+
+    # ========================================================================
+    # 🏗️ INFRASTRUCTURE ALERTS - DevOps team
+    # ========================================================================
+    - match:
+        category: infrastructure
+      receiver: 'infrastructure-alerts'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+
+    # ========================================================================
+    # Database specific alerts
+    # ========================================================================
+    - match:
+        service: database
+      receiver: 'database-alerts'
+      group_wait: 10s
+      group_interval: 3m
+      repeat_interval: 30m
+
+    # ========================================================================
+    # Cache specific alerts
+    # ========================================================================
+    - match:
+        service: cache
+      receiver: 'cache-alerts'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+
+# Inhibition rules - suppress alerts based on other alerts
+inhibit_rules:
+  # Suppress warning alerts if critical alert is active
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+
+  # Suppress info alerts if warning or critical is active
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['alertname', 'instance']
+
+  # Suppress specific endpoint alerts if service is down
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match_re:
+      alertname: '.*EndpointDown'
+    equal: ['instance']
+
+  # Suppress business metric alerts if system is down
+  - source_match:
+      category: 'critical'
+    target_match:
+      category: 'business'
+    equal: ['instance']
+
+# Receivers - where alerts are sent
+receivers:
+  # ========================================================================
+  # DEFAULT RECEIVER
+  # ========================================================================
+  - name: 'default-notifications'
+    email_configs:
+      - to: 'admin@sgomarket.com'
+        subject: '[Steam Marketplace] Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # ========================================================================
+  # CRITICAL ALERTS - Multiple channels
+  # ========================================================================
+  - name: 'critical-alerts'
+    # Slack notification
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-critical'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Instance:* {{ .Labels.instance }}
+          *Time:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ if .Annotations.runbook }}*Runbook:* {{ .Annotations.runbook }}{{ end }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+    # Email notification
+    email_configs:
+      - to: 'oncall@sgomarket.com,admin@sgomarket.com'
+        subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+
+          {{ if .Annotations.runbook }}
+          Runbook: {{ .Annotations.runbook }}
+          {{ end }}
+
+          {{ if .Annotations.dashboard }}
+          Dashboard: {{ .Annotations.dashboard }}
+          {{ end }}
+          {{ end }}
+
+    # PagerDuty integration (optional)
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_INTEGRATION_KEY}'
+        description: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        severity: 'critical'
+
+  # ========================================================================
+  # WARNING ALERTS
+  # ========================================================================
+  - name: 'warning-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#alerts-warning'
+        title: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Severity:* {{ .Labels.severity }}
+          *Instance:* {{ .Labels.instance }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+    email_configs:
+      - to: 'devops@sgomarket.com'
+        subject: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # ========================================================================
+  # INFO ALERTS
+  # ========================================================================
+  - name: 'info-alerts'
+    email_configs:
+      - to: 'notifications@sgomarket.com'
+        subject: 'ℹ️ INFO: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # ========================================================================
+  # SECURITY ALERTS - Dedicated security channel
+  # ========================================================================
+  - name: 'security-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#security'
+        title: '🔐 SECURITY: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *SECURITY ALERT*
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Source: {{ .Labels.source }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+    email_configs:
+      - to: 'security@sgomarket.com'
+        subject: '🔐 SECURITY ALERT: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          SECURITY ALERT
+
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Source: {{ .Labels.source }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+
+          {{ if .Annotations.action_required }}
+          Action Required: {{ .Annotations.action_required }}
+          {{ end }}
+          {{ end }}
+
+  # ========================================================================
+  # BUSINESS ALERTS - Product team
+  # ========================================================================
+  - name: 'business-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#product'
+        title: '💼 BUSINESS: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Business Alert*
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        color: '#36a64f'
+        send_resolved: true
+
+    email_configs:
+      - to: 'product@sgomarket.com'
+        subject: '💼 Business Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Business Alert
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # ========================================================================
+  # INFRASTRUCTURE ALERTS - DevOps team
+  # ========================================================================
+  - name: 'infrastructure-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#devops'
+        title: '🏗️ INFRASTRUCTURE: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Infrastructure Alert*
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+    email_configs:
+      - to: 'devops@sgomarket.com'
+        subject: '🏗️ Infrastructure Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Infrastructure Alert
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # ========================================================================
+  # DATABASE ALERTS
+  # ========================================================================
+  - name: 'database-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL}'
+        channel: '#database'
+        title: '🗄️ DATABASE: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Database Alert*
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Database: {{ .Labels.database }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+    email_configs:
+      - to: 'dba@sgomarket.com'
+        subject: '🗄️ Database Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Database Alert
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Database: {{ .Labels.database }}
+          Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  # ========================================================================
+  # CACHE ALERTS
+  # ========================================================================
+  - name: 'cache-alerts'
+    email_configs:
+      - to: 'devops@sgomarket.com'
+        subject: '⚡ Cache Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+          Cache Alert
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Cache Instance: {{ .Labels.instance }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
