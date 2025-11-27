@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-11-26T01:58:07.269Z",
+  "steamId": "76561199257487454",
+  "method": "HTML scraping",
+  "results": [
+    {
+      "success": true,
+      "game": "Dota 2",
+      "appId": "570",
+      "icon": "🎮",
+      "items": [],
+      "totalItems": 0,
+      "hasItems": false,
+      "rawInventoryData": null,
+      "inventoryState": "unknown",
+      "gameDetected": "Dota 2",
+      "responseTime": 477,
+      "dataLength": 44967
+    },
+    {
+      "success": true,
+      "game": "Counter-Strike 2",
+      "appId": "730",
+      "icon": "🔫",
+      "items": [],
+      "totalItems": 0,
+      "hasItems": false,
+      "rawInventoryData": null,
+      "inventoryState": "unknown",
+      "responseTime": 329,
+      "dataLength": 44967
+    },
+    {
+      "success": true,
+      "game": "Team Fortress 2",
+      "appId": "440",
+      "icon": "🧩",
+      "items": [],
+      "totalItems": 0,
+      "hasItems": false,
+      "rawInventoryData": null,
+      "inventoryState": "unknown",
+      "responseTime": 291,
+      "dataLength": 44967
+    },
+    {
+      "success": true,
+      "game": "PUBG",
+      "appId": "578080",
+      "icon": "🏹",
+      "items": [],
+      "totalItems": 0,
+      "hasItems": false,
+      "rawInventoryData": null,
+      "inventoryState": "unknown",
+      "responseTime": 304,
+      "dataLength": 44967
+    },
+    {
+      "success": true,
+      "game": "GTA V",
+      "appId": "271590",
+      "icon": "🚗",
+      "items": [],
+      "totalItems": 0,
+      "hasItems": false,
+      "rawInventoryData": null,
+      "inventoryState": "unknown",
+      "responseTime": 316,
+      "dataLength": 44967
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 0,
+    "empty": 5,
+    "private": 0,
+    "failed": 0,
+    "totalItems": 0
+  }
+}

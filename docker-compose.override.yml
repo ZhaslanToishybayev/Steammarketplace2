@@ -1,0 +1,50 @@
+version: '3.8'
+
+# Development override configuration with default secrets
+# This file provides default values for development only
+# For production, create a separate .env file with strong secrets
+
+services:
+  # PostgreSQL Database - Development defaults
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: steam_password_dev
+
+  # MongoDB Database - Development defaults
+  mongodb:
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo_root_dev
+      MONGO_INITDB_ROOT_PASSWORD: mongo_password_dev
+
+  # Redis Cache - Development defaults
+  redis:
+    environment:
+      REDIS_PASSWORD: redis_password_dev
+
+  # Backend API - Development defaults
+  backend:
+    environment:
+      JWT_SECRET: dev-jwt-secret-key-change-in-production
+      JWT_REFRESH_SECRET: dev-jwt-refresh-secret-key-change-in-production
+      STEAM_API_KEY: dev-steam-api-key
+      CORS_ORIGIN: http://localhost:3000,http://localhost:3001,https://localhost:3000,https://localhost:3001
+
+  # Grafana - Development defaults
+  grafana:
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin_dev_password
+
+  # PostgreSQL Exporter - Development defaults
+  postgres-exporter:
+    environment:
+      DATA_SOURCE_NAME: "postgresql://steam_user:steam_password_dev@postgres:5432/steam_marketplace?sslmode=disable"
+
+  # Redis Exporter - Development defaults
+  redis-exporter:
+    environment:
+      REDIS_PASSWORD: redis_password_dev
+
+  # MongoDB Exporter - Development defaults
+  mongodb-exporter:
+    environment:
+      MONGODB_URI: "mongodb://mongo_root_dev:mongo_password_dev@mongodb:27017/steam_marketplace?authSource=admin"

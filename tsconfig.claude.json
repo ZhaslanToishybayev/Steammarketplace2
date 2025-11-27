@@ -1,0 +1,71 @@
+{
+  "compilerOptions": {
+    // Strict Type Checking
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Additional Checks
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitThis": true,
+    "noPropertyAccessFromIndexSignature": false, // Allow indexed access for Steam API responses
+
+    // Module Resolution
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Target & Module
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022", "DOM"],
+    "skipLibCheck": true,
+
+    // Output
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    // Advanced
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Path Mapping
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["apps/backend/src/*"],
+      "@modules/*": ["apps/backend/src/modules/*"],
+      "@common/*": ["apps/backend/src/common/*"],
+      "@steam/*": ["apps/backend/src/modules/steam/*"],
+      "@auth/*": ["apps/backend/src/modules/auth/*"],
+      "@trading/*": ["apps/backend/src/modules/trading/*"],
+      "@inventory/*": ["apps/backend/src/modules/inventory/*"],
+      "@marketplace/*": ["apps/backend/src/modules/marketplace/*"],
+      "@user/*": ["apps/backend/src/modules/user/*"],
+      "@admin/*": ["apps/backend/src/modules/admin/*"]
+    }
+  },
+  "include": [
+    "apps/backend/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "name": "testsite-testing",
+  "version": "1.0.0",
+  "description": "Automated Testing Suite for Steam Marketplace Website",
+  "scripts": {
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:e2e": "jest --testPathPattern=e2e",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:steam": "jest --testPathPattern=steam",
+    "test:trading": "jest --testPathPattern=trading",
+    "test:auth": "jest --testPathPattern=auth",
+    "test:inventory": "jest --testPathPattern=inventory",
+    "test:performance": "jest --testPathPattern=performance",
+    "test:smoke": "jest --testPathPattern=smoke",
+    "test:security": "jest --testPathPattern=security",
+    "lint:tests": "eslint tests/**/*.js",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:debug": "jest --debug",
+    "test:verbose": "jest --verbose"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "supertest": "^6.3.3",
+    "puppeteer": "^21.5.0",
+    "puppeteer-core": "^21.5.0",
+    "playwright": "^1.40.0",
+    "@playwright/test": "^1.40.0",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.8",
+    "sinon": "^15.2.0",
+    "nock": "^13.3.6",
+    "faker": "^6.6.6",
+    "axios": "^1.6.2",
+    "cypress": "^13.6.0",
+    "eslint": "^8.54.0",
+    "@jest/globals": "^29.7.0",
+    "@jest/types": "^29.6.3",
+    "jest-html-reporter": "^3.1.4",
+    "jest-junit": "^16.0.0",
+    "coverage": "^1.0.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js",
+      "**/tests/**/*.spec.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/dist/",
+      "/build/"
+    ],
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!**/node_modules/**",
+      "!**/tests/**",
+      "!**/coverage/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html",
+      "json"
+    ],
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testTimeout": 30000,
+    "maxWorkers": 4
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

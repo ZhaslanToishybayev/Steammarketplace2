@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Marketplace - Simple Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        .logo h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .panel h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+        }
+
+        .btn-secondary:hover {
+            background: #1976D2;
+        }
+
+        .btn-warning {
+            background: #FF9800;
+        }
+
+        .btn-warning:hover {
+            background: #F57C00;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .status-card.error {
+            border-left-color: #f44336;
+        }
+
+        .status-card.warning {
+            border-left-color: #FF9800;
+        }
+
+        .status-card.info {
+            border-left-color: #2196F3;
+        }
+
+        .status-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .status-content {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            margin-top: 15px;
+        }
+
+        .success {
+            color: #4CAF50;
+        }
+
+        .error {
+            color: #f44336;
+        }
+
+        .info {
+            color: #2196F3;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,2C6.477,2,2,6.477,2,12s4.477,10,10,10s10-4.477,10-10S17.523,2,12,2z M12,18c-3.314,0-6-2.686-6-6 s2.686-6,6-6s6,2.686,6,6S15.314,18,12,18z"/>
+                    <path d="M13,7h-2v4H7v2h4v4h2v-4h4v-2h-4V7z"/>
+                </svg>
+                <h1>Steam Marketplace</h1>
+            </div>
+            <div class="subtitle">Простой тест (работает без CORS проблем)</div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="panel">
+            <h2>📋 Инструкция по использованию</h2>
+            <div class="status-card info">
+                <div class="status-title">🚀 Как тестировать:</div>
+                <div class="status-content">
+                    1. Скопируйте команды из блоков ниже<br>
+                    2. Вставьте в терминал/командную строку<br>
+                    3. Запустите для проверки сервисов<br>
+                    4. Смотрите результаты в терминале
+                </div>
+            </div>
+        </div>
+
+        <!-- Backend API Test -->
+        <div class="panel">
+            <h2>🔧 Backend API Тест</h2>
+            <div class="status-card">
+                <div class="status-title">Проверка Backend API:</div>
+                <div class="status-content">
+                    Проверяет соединение с NestJS backend
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="copyToClipboard('curl http://localhost:3001/health')">
+                📋 Скопировать команду: curl http://localhost:3001/health
+            </button>
+            <div class="code">
+curl http://localhost:3001/health
+            </div>
+            <div class="status-card info">
+                <div class="status-title">💡 Ожидаемый результат:</div>
+                <div class="status-content success">OK</div>
+            </div>
+        </div>
+
+        <!-- Simple API Test -->
+        <div class="panel">
+            <h2>🔌 Simple API Тест</h2>
+            <div class="status-card">
+                <div class="status-title">Проверка Simple API:</div>
+                <div class="status-content">
+                    Проверяет соединение с Simple API сервером
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="copyToClipboard('curl http://localhost:3004/api/health')">
+                📋 Скопировать команду: curl http://localhost:3004/api/health
+            </button>
+            <div class="code">
+curl http://localhost:3004/api/health
+            </div>
+            <button class="btn btn-secondary" onclick="copyToClipboard('curl http://localhost:3004/api/test')">
+                📋 Скопировать команду: curl http://localhost:3004/api/test
+            </button>
+            <div class="code">
+curl http://localhost:3004/api/test
+            </div>
+            <div class="status-card info">
+                <div class="status-title">💡 Ожидаемый результат:</div>
+                <div class="status-content success">{"status":"ok","message":"API is working!"}</div>
+            </div>
+        </div>
+
+        <!-- Test Interface Test -->
+        <div class="panel">
+            <h2>🧪 Test Interface Тест</h2>
+            <div class="status-card">
+                <div class="status-title">Проверка Test Interface:</div>
+                <div class="status-content">
+                    Проверяет соединение с тестовым интерфейсом
+                </div>
+            </div>
+            <button class="btn btn-warning" onclick="copyToClipboard('curl http://localhost:3007/api/test')">
+                📋 Скопировать команду: curl http://localhost:3007/api/test
+            </button>
+            <div class="code">
+curl http://localhost:3007/api/test
+            </div>
+            <div class="status-card info">
+                <div class="status-title">💡 Ожидаемый результат:</div>
+                <div class="status-content success">{"status":"success","message":"Working test interface API is functional!"}</div>
+            </div>
+        </div>
+
+        <!-- Full System Test -->
+        <div class="panel">
+            <h2>🧪 Полный тест системы</h2>
+            <div class="status-card">
+                <div class="status-title">Комплексное тестирование:</div>
+                <div class="status-content">
+                    Запускает все тесты автоматически
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="copyToClipboard('node final-working-test.js')">
+                📋 Скопировать команду: node final-working-test.js
+            </button>
+            <div class="code">
+node final-working-test.js
+            </div>
+            <div class="status-card warning">
+                <div class="status-title">⚠️ Требование:</div>
+                <div class="status-content">
+                    Файл final-working-test.js должен быть в текущей директории
+                </div>
+            </div>
+        </div>
+
+        <!-- Browser Test -->
+        <div class="panel">
+            <h2>🌐 Тест через браузер</h2>
+            <div class="status-card">
+                <div class="status-title">Интерактивный тест:</div>
+                <div class="status-content">
+                    Откройте тестовый интерфейс в браузере
+                </div>
+            </div>
+            <button class="btn btn-warning" onclick="openInNewTab('http://localhost:3007')">
+                🚀 Открыть Test Interface (http://localhost:3007)
+            </button>
+            <div class="status-card info">
+                <div class="status-title">💡 Что можно сделать:</div>
+                <div class="status-content">
+                    • Нажимать кнопки для тестирования<br>
+                    • Смотреть результаты в реальном времени<br>
+                    • Получать информацию о системе
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="panel">
+            <h2>📊 Информация о системе</h2>
+            <div class="status-card success">
+                <div class="status-title">✅ Работающие сервисы:</div>
+                <div class="status-content">
+                    • Backend API: http://localhost:3001<br>
+                    • Simple API: http://localhost:3004<br>
+                    • Test Interface: http://localhost:3007
+                </div>
+            </div>
+            <div class="status-card warning">
+                <div class="status-title">⚠️ Ограничения:</div>
+                <div class="status-content">
+                    • Steam OAuth: Требует настройки<br>
+                    • Реальная торговля: Не доступна<br>
+                    • Steam инвентарь: Требует Steam API ключи
+                </div>
+            </div>
+            <div class="status-card info">
+                <div class="status-title">💡 Возможности:</div>
+                <div class="status-content">
+                    • Backend API тестирование<br>
+                    • Simple API функциональность<br>
+                    • Системный мониторинг<br>
+                    • Steam API доступность<br>
+                    • Полный тест системы
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            // Создаем временный элемент для копирования
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            // Показываем уведомление
+            alert('Команда скопирована в буфер обмена: ' + text);
+        }
+
+        function openInNewTab(url) {
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>

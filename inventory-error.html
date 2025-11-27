@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Steam Inventory - Privacy Issue</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #1a1a1a;
+      color: #fff;
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+      background: #2d2d2d;
+      border-radius: 15px;
+      border: 1px solid #444;
+    }
+    .error-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+    .error-title {
+      color: #e74c3c;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .error-message {
+      font-size: 18px;
+      margin-bottom: 30px;
+      color: #d0d0d0;
+    }
+    .solution-box {
+      background: #3d3d3d;
+      padding: 30px;
+      border-radius: 10px;
+      margin: 30px 0;
+      border: 1px solid #555;
+    }
+    .solution-title {
+      color: #2ecc71;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .step {
+      background: #444;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+    }
+    .step-number {
+      background: #3498db;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    .step-title {
+      color: #3498db;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .steam-link {
+      background: #1f2937;
+      color: white;
+      padding: 15px 30px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin: 10px;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    .steam-link:hover {
+      background: #111827;
+      transform: translateY(-2px);
+    }
+    .demo-link {
+      background: #27ae60;
+      color: white;
+      padding: 15px 30px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin: 10px;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+    .demo-link:hover {
+      background: #229954;
+      transform: translateY(-2px);
+    }
+    .current-user {
+      background: #444;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid #3498db;
+    }
+    .user-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #3498db;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="error-icon">❌</div>
+    <h1 class="error-title">Steam Inventory Access Error</h1>
+    <p class="error-message">
+      Steam API returned: "Invalid Steam ID or inventory not accessible"
+    </p>
+
+    <div class="current-user">
+      <div class="user-info">
+        <img src="https://avatars.steamstatic.com/7e87962ae04745d758f418a1bb7c291ab72a336f_full.jpg" alt="Avatar" class="user-avatar">
+        <div>
+          <div class="user-name">ENTER</div>
+          <div style="color: #b0b0b0;">Steam ID: 76561199257487454</div>
+        </div>
+      </div>
+      <p><strong>Проблема:</strong> Ваш профиль или инвентарь настроен как приватный</p>
+    </div>
+
+    <div class="solution-box">
+      <h2 class="solution-title">🔧 Как исправить эту проблему</h2>
+
+      <div class="step">
+        <span class="step-number">1</span>
+        <div class="step-title">Перейдите в настройки Steam</div>
+        Откройте: <a href="https://steamcommunity.com/my/edit/settings/" target="_blank" class="steam-link">steamcommunity.com/my/edit/settings/</a>
+      </div>
+
+      <div class="step">
+        <span class="step-number">2</span>
+        <div class="step-title">Настройте приватность профиля</div>
+        <strong>"Profile Privacy"</strong> → выберите <strong>"Public"</strong>
+      </div>
+
+      <div class="step">
+        <span class="step-number">3</span>
+        <div class="step-title">Настройте приватность инвентаря</div>
+        <strong>"Inventory Privacy"</strong> → выберите <strong>"Public"</strong>
+      </div>
+
+      <div class="step">
+        <span class="step-number">4</span>
+        <div class="step-title">Проверьте наличие предметов</div>
+        Убедитесь что у вас есть предметы в инвентаре CS2: <a href="https://steamcommunity.com/my/inventory" target="_blank" class="steam-link">steamcommunity.com/my/inventory</a>
+      </div>
+
+      <div class="step">
+        <span class="step-number">5</span>
+        <div class="step-title">Обновите страницу</div>
+        После настройки приватности обновите эту страницу
+      </div>
+    </div>
+
+    <div style="margin: 30px 0;">
+      <a href="/" class="demo-link">🏠 Вернуться на главную</a>
+      <a href="/inventory-demo" class="demo-link">🎮 Просмотреть демо-инвентарь</a>
+    </div>
+
+    <div style="background: #444; padding: 20px; border-radius: 10px; margin-top: 30px;">
+      <h3>💡 Альтернативные варианты:</h3>
+      <p>Если вы не хотите делать свой инвентарь публичным:</p>
+      <ul style="text-align: left; max-width: 400px; margin: 15px auto;">
+        <li>Попробуйте посмотреть инвентарь в <strong>Dota 2</strong>: <a href="/inventory?appId=570" style="color: #3498db;">/inventory?appId=570</a></li>
+        <li>Используйте <strong>демо-режим</strong> для ознакомления с системой</li>
+        <li>Проверьте другие игры где у вас есть предметы</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
