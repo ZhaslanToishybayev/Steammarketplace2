@@ -1,0 +1,14 @@
+{
+  "name": "nextjs-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Next.js configuration debugging",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  }
+}

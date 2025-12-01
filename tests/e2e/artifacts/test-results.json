@@ -1,0 +1,224 @@
+{
+  "config": {
+    "configFile": "/home/zhaslan/Downloads/testsite/playwright.config.ts",
+    "rootDir": "/home/zhaslan/Downloads/testsite/tests/e2e/specs",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/home/zhaslan/Downloads/testsite/tests/e2e/setup/global-setup.ts",
+    "globalTeardown": "/home/zhaslan/Downloads/testsite/tests/e2e/setup/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "testEnvironment": "test",
+      "testConfig": "{\n  \"baseUrl\": \"http://localhost:3000\",\n  \"apiUrl\": \"http://localhost:3001/api\",\n  \"wsUrl\": \"ws://localhost:3001\",\n  \"features\": {\n    \"auth\": true,\n    \"inventory\": true,\n    \"trading\": true,\n    \"pricing\": true,\n    \"wallet\": true,\n    \"admin\": true,\n    \"realtime\": true,\n    \"errorHandling\": true\n  },\n  \"timeouts\": {\n    \"default\": 30000,\n    \"navigation\": 60000,\n    \"api\": 10000,\n    \"trade\": 120000,\n    \"inventory\": 180000\n  }\n}"
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "tests/e2e/artifacts/playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "tests/e2e/artifacts/test-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "tests/e2e/artifacts/junit.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/zhaslan/Downloads/testsite/tests/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "testEnvironment": "test",
+          "testConfig": "{\n  \"baseUrl\": \"http://localhost:3000\",\n  \"apiUrl\": \"http://localhost:3001/api\",\n  \"wsUrl\": \"ws://localhost:3001\",\n  \"features\": {\n    \"auth\": true,\n    \"inventory\": true,\n    \"trading\": true,\n    \"pricing\": true,\n    \"wallet\": true,\n    \"admin\": true,\n    \"realtime\": true,\n    \"errorHandling\": true\n  },\n  \"timeouts\": {\n    \"default\": 30000,\n    \"navigation\": 60000,\n    \"api\": 10000,\n    \"trade\": 120000,\n    \"inventory\": 180000\n  }\n}"
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/zhaslan/Downloads/testsite/tests/e2e/specs",
+        "testIgnore": [
+          "**/node_modules/**",
+          "**/dist/**",
+          "**/build/**"
+        ],
+        "testMatch": [
+          "**/*.spec.ts",
+          "**/*.test.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/zhaslan/Downloads/testsite/tests/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "testEnvironment": "test",
+          "testConfig": "{\n  \"baseUrl\": \"http://localhost:3000\",\n  \"apiUrl\": \"http://localhost:3001/api\",\n  \"wsUrl\": \"ws://localhost:3001\",\n  \"features\": {\n    \"auth\": true,\n    \"inventory\": true,\n    \"trading\": true,\n    \"pricing\": true,\n    \"wallet\": true,\n    \"admin\": true,\n    \"realtime\": true,\n    \"errorHandling\": true\n  },\n  \"timeouts\": {\n    \"default\": 30000,\n    \"navigation\": 60000,\n    \"api\": 10000,\n    \"trade\": 120000,\n    \"inventory\": 180000\n  }\n}"
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/home/zhaslan/Downloads/testsite/tests/e2e/specs",
+        "testIgnore": [
+          "**/node_modules/**",
+          "**/dist/**",
+          "**/build/**"
+        ],
+        "testMatch": [
+          "**/*.spec.ts",
+          "**/*.test.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/zhaslan/Downloads/testsite/tests/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "testEnvironment": "test",
+          "testConfig": "{\n  \"baseUrl\": \"http://localhost:3000\",\n  \"apiUrl\": \"http://localhost:3001/api\",\n  \"wsUrl\": \"ws://localhost:3001\",\n  \"features\": {\n    \"auth\": true,\n    \"inventory\": true,\n    \"trading\": true,\n    \"pricing\": true,\n    \"wallet\": true,\n    \"admin\": true,\n    \"realtime\": true,\n    \"errorHandling\": true\n  },\n  \"timeouts\": {\n    \"default\": 30000,\n    \"navigation\": 60000,\n    \"api\": 10000,\n    \"trade\": 120000,\n    \"inventory\": 180000\n  }\n}"
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/home/zhaslan/Downloads/testsite/tests/e2e/specs",
+        "testIgnore": [
+          "**/node_modules/**",
+          "**/dist/**",
+          "**/build/**"
+        ],
+        "testMatch": [
+          "**/*.spec.ts",
+          "**/*.test.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/zhaslan/Downloads/testsite/tests/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "testEnvironment": "test",
+          "testConfig": "{\n  \"baseUrl\": \"http://localhost:3000\",\n  \"apiUrl\": \"http://localhost:3001/api\",\n  \"wsUrl\": \"ws://localhost:3001\",\n  \"features\": {\n    \"auth\": true,\n    \"inventory\": true,\n    \"trading\": true,\n    \"pricing\": true,\n    \"wallet\": true,\n    \"admin\": true,\n    \"realtime\": true,\n    \"errorHandling\": true\n  },\n  \"timeouts\": {\n    \"default\": 30000,\n    \"navigation\": 60000,\n    \"api\": 10000,\n    \"trade\": 120000,\n    \"inventory\": 180000\n  }\n}"
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/home/zhaslan/Downloads/testsite/tests/e2e/specs",
+        "testIgnore": [
+          "**/node_modules/**",
+          "**/dist/**",
+          "**/build/**"
+        ],
+        "testMatch": [
+          "**/*.spec.ts",
+          "**/*.test.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/zhaslan/Downloads/testsite/tests/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "testEnvironment": "test",
+          "testConfig": "{\n  \"baseUrl\": \"http://localhost:3000\",\n  \"apiUrl\": \"http://localhost:3001/api\",\n  \"wsUrl\": \"ws://localhost:3001\",\n  \"features\": {\n    \"auth\": true,\n    \"inventory\": true,\n    \"trading\": true,\n    \"pricing\": true,\n    \"wallet\": true,\n    \"admin\": true,\n    \"realtime\": true,\n    \"errorHandling\": true\n  },\n  \"timeouts\": {\n    \"default\": 30000,\n    \"navigation\": 60000,\n    \"api\": 10000,\n    \"trade\": 120000,\n    \"inventory\": 180000\n  }\n}"
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/home/zhaslan/Downloads/testsite/tests/e2e/specs",
+        "testIgnore": [
+          "**/node_modules/**",
+          "**/dist/**",
+          "**/build/**"
+        ],
+        "testMatch": [
+          "**/*.spec.ts",
+          "**/*.test.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/home/zhaslan/Downloads/testsite/tests/e2e/artifacts/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "testEnvironment": "test",
+          "testConfig": "{\n  \"baseUrl\": \"http://localhost:3000\",\n  \"apiUrl\": \"http://localhost:3001/api\",\n  \"wsUrl\": \"ws://localhost:3001\",\n  \"features\": {\n    \"auth\": true,\n    \"inventory\": true,\n    \"trading\": true,\n    \"pricing\": true,\n    \"wallet\": true,\n    \"admin\": true,\n    \"realtime\": true,\n    \"errorHandling\": true\n  },\n  \"timeouts\": {\n    \"default\": 30000,\n    \"navigation\": 60000,\n    \"api\": 10000,\n    \"trade\": 120000,\n    \"inventory\": 180000\n  }\n}"
+        },
+        "id": "Tablet",
+        "name": "Tablet",
+        "testDir": "/home/zhaslan/Downloads/testsite/tests/e2e/specs",
+        "testIgnore": [
+          "**/node_modules/**",
+          "**/dist/**",
+          "**/build/**"
+        ],
+        "testMatch": [
+          "**/*.spec.ts",
+          "**/*.test.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.56.1",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev:frontend",
+      "url": "http://localhost:3000",
+      "timeout": 60000,
+      "reuseExistingServer": true,
+      "env": {
+        "NODE_ENV": "test",
+        "NEXT_PUBLIC_API_URL": "http://localhost:3001/api",
+        "NEXT_PUBLIC_WS_URL": "ws://localhost:3001"
+      }
+    }
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "TypeError: Cannot read properties of undefined (reading 'constructor')",
+      "stack": "TypeError: Cannot read properties of undefined (reading 'constructor')\n    at call (/home/zhaslan/Downloads/testsite/src/decorator/columns/PrimaryGeneratedColumn.ts:106:28)\n    at applyDec (/home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:2:45)\n    at /home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:2:45\n    at _applyDecs (/home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:2:45)\n    at Object.<anonymous> (/home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:108:2)\n    at Object.<anonymous> (/home/zhaslan/Downloads/testsite/tests/e2e/setup/test-data-seeder.ts:11:1)\n    at Object.<anonymous> (/home/zhaslan/Downloads/testsite/tests/e2e/setup/global-setup.ts:7:1)",
+      "location": {
+        "file": "/home/zhaslan/Downloads/testsite/src/decorator/columns/PrimaryGeneratedColumn.ts",
+        "column": 28,
+        "line": 106
+      }
+    },
+    {
+      "message": "TypeError: Cannot read properties of undefined (reading 'constructor')",
+      "stack": "TypeError: Cannot read properties of undefined (reading 'constructor')\n    at call (/home/zhaslan/Downloads/testsite/src/decorator/columns/PrimaryGeneratedColumn.ts:106:28)\n    at applyDec (/home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:2:45)\n    at /home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:2:45\n    at _applyDecs (/home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:2:45)\n    at Object.<anonymous> (/home/zhaslan/Downloads/testsite/apps/backend/src/modules/auth/entities/user.entity.ts:108:2)\n    at Object.<anonymous> (/home/zhaslan/Downloads/testsite/tests/e2e/setup/test-data-seeder.ts:11:1)\n    at Object.<anonymous> (/home/zhaslan/Downloads/testsite/tests/e2e/setup/global-teardown.ts:7:1)",
+      "location": {
+        "file": "/home/zhaslan/Downloads/testsite/src/decorator/columns/PrimaryGeneratedColumn.ts",
+        "column": 28,
+        "line": 106
+      }
+    }
+  ],
+  "stats": {
+    "startTime": "2025-11-25T22:21:35.272Z",
+    "duration": 20505.256,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
