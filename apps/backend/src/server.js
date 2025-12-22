@@ -245,11 +245,14 @@ app.get('/health/ready', async (req, res) => {
 });
 
 // Legacy health check (backwards compatible)
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const steamService = require('./config/steam');
+  const isSteamConnected = await steamService.testConnection();
+  
   res.json({
     status: 'OK',
     service: 'Steam Marketplace API',
-    steam_configured: !!process.env.STEAM_API_KEY,
+    steam_configured: isSteamConnected,
     escrow_enabled: true,
     websocket_enabled: true,
     timestamp: new Date().toISOString()
