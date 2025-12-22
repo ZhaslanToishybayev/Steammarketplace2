@@ -1,0 +1,8 @@
+{
+  "track_id": "steam_p2p_integration_20251222",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2025-12-22T19:15:00Z",
+  "updated_at": "2025-12-22T19:15:00Z",
+  "description": "Интеграция и проверка системы P2P обмена со Steam"
+}
