@@ -15,7 +15,7 @@ This plan outlines the steps to verify and integrate the Steam P2P trading syste
 - [x] Task: Verify Bot Login and Session Persistence 2e1c224
     - [ ] Write Tests: Create `tests/unit/bot-auth.test.js` to mock Steam login and verify session events
     - [ ] Implement: Improve bot login logic in `apps/backend/src/config/bots.config.js`
-- [ ] Task: Steam API Connectivity Check
+- [x] Task: Steam API Connectivity Check 9499418
     - [ ] Write Tests: Add integration test for the `/api/health` endpoint's steam check
     - [ ] Implement: Ensure the health check correctly reports Steam API status
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Bot Authentication and Connectivity' (Protocol in workflow.md)
