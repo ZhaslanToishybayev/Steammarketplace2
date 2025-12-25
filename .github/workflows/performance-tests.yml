@@ -1,0 +1,308 @@
+name: Performance Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run performance tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+        db-version: [13]
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: steam_user
+          POSTGRES_PASSWORD: steam_password
+          POSTGRES_DB: steam_marketplace
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      mongodb:
+        image: mongo:6
+        env:
+          MONGO_INITDB_ROOT_USERNAME: mongo_user
+          MONGO_INITDB_ROOT_PASSWORD: mongo_password
+          MONGO_INITDB_DATABASE: steam_marketplace
+        options: >-
+          --health-cmd "mongo --eval 'db.adminCommand(\"ismaster\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd apps/backend
+          npm ci
+          cd ../frontend
+          npm ci
+
+      - name: Setup environment
+        run: |
+          cp apps/backend/.env.example apps/backend/.env
+          cp apps/frontend/.env.local.example apps/frontend/.env.local
+
+          # Update database connection strings
+          echo "POSTGRES_HOST=localhost" >> apps/backend/.env
+          echo "POSTGRES_PORT=5432" >> apps/backend/.env
+          echo "POSTGRES_USER=steam_user" >> apps/backend/.env
+          echo "POSTGRES_PASSWORD=steam_password" >> apps/backend/.env
+          echo "POSTGRES_DB=steam_marketplace" >> apps/backend/.env
+
+          echo "MONGODB_URI=mongodb://mongo_user:mongo_password@localhost:27017/steam_marketplace" >> apps/backend/.env
+
+          echo "REDIS_HOST=localhost" >> apps/backend/.env
+          echo "REDIS_PORT=6379" >> apps/backend/.env
+          echo "REDIS_PASSWORD=" >> apps/backend/.env
+
+          echo "NEXT_PUBLIC_API_URL=http://localhost:3001/api" >> apps/frontend/.env.local
+
+      - name: Build applications
+        run: |
+          cd apps/backend
+          npm run build
+          cd ../frontend
+          npm run build
+
+      - name: Run database migrations
+        run: |
+          cd apps/backend
+          npm run db:migrate
+        env:
+          NODE_ENV: test
+
+      - name: Start backend service
+        run: |
+          cd apps/backend
+          npm run start:prod &
+          sleep 30
+
+          # Wait for backend to be ready
+          for i in {1..30}; do
+            if curl -f http://localhost:3001/api/health; then
+              echo "Backend is ready"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Backend failed to start"
+              exit 1
+            fi
+            sleep 2
+          done
+        env:
+          NODE_ENV: test
+
+      - name: Start frontend service
+        run: |
+          cd apps/frontend
+          npm run start &
+          sleep 10
+
+      - name: Run load tests
+        run: |
+          npm install -g artillery
+          artillery run scripts/load-test.js --output load-test-results.json
+
+          # Generate HTML report
+          artillery report load-test-results.json --output load-test-report.html
+
+          # Check performance thresholds
+          node -e "
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('load-test-results.json', 'utf8'));
+
+            // Check average response time
+            const avgResponseTime = results.aggregate.metrics.response_time.mean;
+            console.log('Average response time:', avgResponseTime, 'ms');
+
+            // Check 95th percentile response time
+            const p95ResponseTime = results.aggregate.metrics.response_time.p95;
+            console.log('95th percentile response time:', p95ResponseTime, 'ms');
+
+            // Check error rate
+            const errorRate = results.aggregate.metrics.error_rate;
+            console.log('Error rate:', (errorRate * 100).toFixed(2), '%');
+
+            // Fail if performance thresholds are exceeded
+            if (avgResponseTime > 1000) {
+              console.error('❌ Average response time too high:', avgResponseTime, 'ms');
+              process.exit(1);
+            }
+
+            if (p95ResponseTime > 2000) {
+              console.error('❌ 95th percentile response time too high:', p95ResponseTime, 'ms');
+              process.exit(1);
+            }
+
+            if (errorRate > 0.05) {
+              console.error('❌ Error rate too high:', (errorRate * 100).toFixed(2), '%');
+              process.exit(1);
+            }
+
+            console.log('✅ Performance tests passed');
+          "
+
+      - name: Run database benchmarks
+        run: |
+          npm install -g ts-node typescript @types/node
+          npx ts-node scripts/benchmark-queries.ts > db-benchmark-results.txt
+
+          # Check for slow queries
+          if grep -q "executionTime.*[1-9][0-9][0-9]" db-benchmark-results.txt; then
+            echo "⚠️  Some database queries are taking longer than expected"
+            grep "executionTime.*[1-9][0-9][0-9]" db-benchmark-results.txt
+          fi
+
+      - name: Run cache performance tests
+        run: |
+          # Test cache hit rates
+          for i in {1..100}; do
+            curl -s http://localhost:3001/api/inventory > /dev/null
+          done
+
+          # Check Redis cache stats
+          redis-cli info stats | grep keyspace
+
+      - name: Run memory and CPU profiling
+        run: |
+          # Monitor memory usage during load test
+          timeout 60s bash -c 'while true; do
+            echo "$(date): $(ps aux | grep node | awk "{print \$4}")" >> memory-usage.log
+            sleep 5
+          done' &
+
+          # Run additional load test for profiling
+          artillery run scripts/load-test.js
+
+          # Stop monitoring
+          pkill -f "while true"
+
+          echo "Memory usage during test:"
+          cat memory-usage.log
+
+      - name: Generate performance report
+        run: |
+          cat > PERFORMANCE_REPORT.md << 'EOF'
+          # Performance Test Report
+
+          **Test Date:** $(date)
+          **Node.js Version:** ${{ matrix.node-version }}
+          **Database Version:** ${{ matrix.db-version }}
+
+          ## Load Test Results
+          $(cat load-test-results.json | jq -r '
+            "### Response Time Metrics\n" +
+            "- Average: \(.aggregate.metrics.response_time.mean)ms\n" +
+            "- Median: \(.aggregate.metrics.response_time.median)ms\n" +
+            "- 95th Percentile: \(.aggregate.metrics.response_time.p95)ms\n" +
+            "- 99th Percentile: \(.aggregate.metrics.response_time.p99)ms\n" +
+            "\n### Request Metrics\n" +
+            "- Total Requests: \(.aggregate.metrics.counters.requests)\n" +
+            "- Request Rate: \(.aggregate.metrics.rates.requests) req/s\n" +
+            "- Error Rate: \((.aggregate.metrics.rates.errors * 100) | floor) %\n"
+          )
+
+          ## Database Benchmark Results
+          $(cat db-benchmark-results.txt)
+
+          ## Cache Performance
+          $(redis-cli info stats | grep keyspace)
+
+          ## Recommendations
+          $(cat load-test-results.json | jq -r '
+            if .aggregate.metrics.response_time.p95 > 2000 then
+              "⚠️ Consider optimizing slow endpoints (95th percentile > 2s)"
+            elif .aggregate.metrics.rates.errors > 0.05 then
+              "⚠️ High error rate detected (>5%)"
+            else
+              "✅ Performance is within acceptable thresholds"
+            end
+          ')
+          EOF
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-test-results-${{ github.run_number }}
+          path: |
+            load-test-results.json
+            load-test-report.html
+            db-benchmark-results.txt
+            memory-usage.log
+            PERFORMANCE_REPORT.md
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            let body = '## Performance Test Results\n\n';
+
+            try {
+              const report = fs.readFileSync('PERFORMANCE_REPORT.md', 'utf8');
+              body += report;
+            } catch (error) {
+              body += 'Performance report could not be generated.\n';
+            }
+
+            body += '\n\n[View detailed results in artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Notify on performance regression
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Performance Test Failure - ' + new Date().toISOString(),
+              body: 'Performance tests failed for commit ' + context.sha + '. Please review the test results and optimize the code.\n\nView the [action results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.',
+              labels: ['performance', 'bug']
+            });

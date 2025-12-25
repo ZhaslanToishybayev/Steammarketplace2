@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Steam Marketplace Tests" tests="43" failures="0" errors="0" time="0.244">
+  <testsuite name="BasicTradingSystem" errors="0" failures="0" skipped="0" timestamp="2025-11-26T00:01:02" time="0.161" tests="31">
+    <testcase classname="BasicTradingSystem › constructor" name="should initialize with correct counters and fee percentage" time="0.002">
+    </testcase>
+    <testcase classname="BasicTradingSystem › createListing" name="should create a new listing with correct data" time="0.002">
+    </testcase>
+    <testcase classname="BasicTradingSystem › createListing" name="should calculate correct marketplace fee" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › createListing" name="should increment listing counter" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › createOffer" name="should create a new trade offer" time="0.005">
+    </testcase>
+    <testcase classname="BasicTradingSystem › createOffer" name="should create offer without message" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › acceptOffer" name="should accept a pending offer" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › acceptOffer" name="should throw error for non-existent offer" time="0.026">
+    </testcase>
+    <testcase classname="BasicTradingSystem › acceptOffer" name="should throw error for non-pending offer" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › declineOffer" name="should decline a pending offer" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › declineOffer" name="should decline offer without reason" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › cancelOffer" name="should cancel offer by creator" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › cancelOffer" name="should throw error if non-creator tries to cancel" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › completeTrade" name="should complete a trade and mark listing as sold" time="0.002">
+    </testcase>
+    <testcase classname="BasicTradingSystem › completeTrade" name="should throw error for non-existent listing" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › completeTrade" name="should throw error for non-active listing" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › calculateFee" name="should calculate 5% fee correctly" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › calculateFee" name="should handle string input" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › getUserListings" name="should return only active listings for user" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › getUserOffers" name="should return offers sent and received by user" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › getUserTrades" name="should return trades for user as buyer or seller" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › getActiveListings" name="should return only active listings" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › getActiveListings" name="should apply filters correctly" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › getActiveListings" name="should sort listings correctly" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › getMarketplaceStats" name="should return correct marketplace statistics" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › updateListingPrice" name="should update listing price and recalculate fees" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › updateListingPrice" name="should throw error for non-existent listing" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › updateListingPrice" name="should throw error for unauthorized user" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › updateListingPrice" name="should throw error for non-active listing" time="0.001">
+    </testcase>
+    <testcase classname="BasicTradingSystem › removeListing" name="should remove active listing" time="0">
+    </testcase>
+    <testcase classname="BasicTradingSystem › removeListing" name="should throw error for unauthorized removal" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="EnhancedSteamInventory" errors="0" failures="0" skipped="0" timestamp="2025-11-26T00:01:02" time="0.032" tests="12">
+    <testcase classname="EnhancedSteamInventory › constructor" name="should initialize with empty cache and request queue" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › constructor" name="should have cache duration constant" time="0.001">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › getFromCache" name="should return null for non-existent cache entry" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › getFromCache" name="should return cached data for valid entry" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › getFromCache" name="should return null for expired cache entry" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › setCache" name="should set cache entry with current timestamp" time="0.001">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › clearExpiredCache" name="should remove expired entries and keep valid ones" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › getCacheStats" name="should return correct cache statistics" time="0.001">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › getCacheStats" name="should return zero stats for empty cache" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › isCacheValid" name="should return true for valid cache entry" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › isCacheValid" name="should return false for non-existent cache entry" time="0">
+    </testcase>
+    <testcase classname="EnhancedSteamInventory › isCacheValid" name="should return false for expired cache entry" time="0.001">
+    </testcase>
+  </testsuite>
+</testsuites>
