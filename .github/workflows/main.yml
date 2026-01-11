@@ -54,6 +54,21 @@ jobs:
 
     - name: Seed Database
       run: |
+        echo "Waiting for table 'users' to be created..."
+        timeout=60
+        counter=0
+        until docker exec steam-marketplace-db psql -U steam_user -d steam_marketplace -c "SELECT 1 FROM users LIMIT 1;" > /dev/null 2>&1; do
+          if [ $counter -ge $timeout ]; then
+            echo "Table 'users' never appeared!"
+            docker logs steam-marketplace-backend
+            exit 1
+          fi
+          echo "Waiting for migration ($counter/$timeout)..."
+          sleep 2
+          counter=$((counter+1))
+        done
+
+        echo "Table exists! Seeding..."
         docker exec steam-marketplace-db psql -U steam_user -d steam_marketplace -c "
           INSERT INTO users (steam_id, username, balance, trade_url, created_at) VALUES 
           ('76561198000000001', 'TestUser1', 1000.00, 'https://steamcommunity.com/tradeoffer/new/?partner=1', NOW()),
