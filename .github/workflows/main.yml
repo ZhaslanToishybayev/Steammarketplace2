@@ -48,8 +48,6 @@ jobs:
         done
         echo "Backend is ready."
 
-    - name: Seed Database
-
     - name: Check Containers Logs (Debug)
       if: failure()
       run: docker compose logs
