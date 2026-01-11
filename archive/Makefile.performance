@@ -1,0 +1,157 @@
+# Steam Marketplace - Performance & Monitoring Makefile
+
+.PHONY: help
+help: ## Show this help
+	@echo 'Usage: make [target]'
+	@echo ''
+	@echo 'Performance & Monitoring Targets:'
+	@echo '  monitoring-up           Start Prometheus and Grafana'
+	@echo '  monitoring-down         Stop monitoring services'
+	@echo '  logs-prometheus         Show Prometheus logs'
+	@echo '  logs-grafana            Show Grafana logs'
+	@echo '  db-analyze             Run PostgreSQL ANALYZE'
+	@echo '  db-vacuum              Run PostgreSQL VACUUM'
+	@echo '  redis-info             Show Redis memory and performance info'
+	@echo '  queue-stats            Show Bull queue statistics'
+	@echo '  scale-backend          Scale backend replicas'
+	@echo '  scale-down             Scale down to single replica'
+	@echo '  prod-up               Start production stack with Nginx'
+	@echo '  prod-down             Stop production stack'
+	@echo '  prod-logs             Show production logs'
+	@echo '  load-test             Run load tests'
+	@echo '  benchmark-db          Run database benchmarks'
+	@echo '  health-check          Check application health'
+	@echo ''
+
+# Monitoring commands
+monitoring-up: ## Start Prometheus and Grafana
+	docker-compose -f docker/prometheus/docker-compose.monitoring.yml up -d
+
+monitoring-down: ## Stop monitoring services
+	docker-compose -f docker/prometheus/docker-compose.monitoring.yml down
+
+logs-prometheus: ## Show Prometheus logs
+	docker-compose -f docker/prometheus/docker-compose.monitoring.yml logs prometheus
+
+logs-grafana: ## Show Grafana logs
+	docker-compose -f docker/prometheus/docker-compose.monitoring.yml logs grafana
+
+# Performance commands
+db-analyze: ## Run PostgreSQL ANALYZE for statistics
+	docker-compose exec postgres psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c "ANALYZE;"
+
+db-vacuum: ## Run PostgreSQL VACUUM for cleanup
+	docker-compose exec postgres psl -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c "VACUUM ANALYZE;"
+
+redis-info: ## Show Redis memory and performance info
+	docker-compose exec redis redis-cli info memory
+	docker-compose exec redis redis-cli info stats
+	docker-compose exec redis redis-cli info persistence
+
+queue-stats: ## Show Bull queue statistics
+	docker-compose exec backend npm run queue:stats || echo "Queue stats command not available"
+
+# Scaling commands
+scale-backend: ## Scale backend replicas (usage: make scale-backend replicas=3)
+	docker-compose up -d --scale backend=$(replicas)
+
+scale-down: ## Scale down to single replica
+	docker-compose up -d --scale backend=1
+
+# Production commands
+prod-up: ## Start production stack with Nginx
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+prod-down: ## Stop production stack
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+
+prod-logs: ## Show production logs
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs --tail=100
+
+# Testing commands
+load-test: ## Run load tests with Artillery
+	npx artillery run scripts/load-test.js
+
+benchmark-db: ## Run database benchmarks
+	npx ts-node scripts/benchmark-queries.ts
+
+# Health checks
+health-check: ## Check application health
+	@echo "Checking application health..."
+	curl -f http://localhost:3001/api/health || echo "Backend health check failed"
+	curl -f http://localhost:3000 || echo "Frontend health check failed"
+	@echo "Health checks completed"
+
+# Development helpers
+dev-up: ## Start development environment
+	docker-compose up -d postgres redis mongodb
+	@echo "Development services started"
+	@echo "PostgreSQL: localhost:5432"
+	@echo "Redis: localhost:6379"
+	@echo "MongoDB: localhost:27017"
+
+dev-down: ## Stop development environment
+	docker-compose down
+
+# Cache management
+clear-cache: ## Clear Redis cache
+	docker-compose exec redis redis-cli FLUSHDB
+	@echo "Redis cache cleared"
+
+clear-all-cache: ## Clear all Redis data (use with caution)
+	docker-compose exec redis redis-cli FLUSHALL
+	@echo "All Redis data cleared"
+
+# Database maintenance
+db-backup: ## Backup database
+	@mkdir -p backups
+	docker-compose exec -T postgres pg_dump -U $${POSTGRES_USER} $${POSTGRES_DB} > backups/steam-marketplace-$$(date +%Y%m%d_%H%M%S).sql
+	@echo "Database backup created"
+
+db-restore: ## Restore database from latest backup
+	@latest_backup=$$(ls -t backups/*.sql | head -1); \
+	docker-compose exec -T postgres psql -U $${POSTGRES_USER} $${POSTGRES_DB} < $$latest_backup
+	@echo "Database restored from $$latest_backup"
+
+# Performance profiling
+profile-db: ## Profile slow database queries
+	docker-compose exec postgres psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -c "
+		SELECT
+			query,
+			calls,
+			total_time,
+			mean_time,
+			rows
+		FROM pg_stat_statements
+		ORDER BY mean_time DESC
+		LIMIT 10;
+	"
+
+profile-cache: ## Show cache hit/miss ratios
+	docker-compose exec redis redis-cli info stats | grep -E "(keyspace_hits|keyspace_misses|hit_rate)"
+
+# Security checks
+security-check: ## Run security checks
+	@echo "Checking for exposed ports..."
+	docker ps --format "table {{.Names}}\t{{.Ports}}" | grep -E "(0.0.0.0|::):"
+	@echo "Checking for default passwords..."
+	@if [ -z "$$POSTGRES_PASSWORD" ] || [ "$$POSTGRES_PASSWORD" = "steam_password" ]; then \
+		echo "⚠️  Default PostgreSQL password detected"; \
+	fi
+	@if [ -z "$$REDIS_PASSWORD" ] || [ "$$REDIS_PASSWORD" = "redis_password" ]; then \
+		echo "⚠️  Default Redis password detected"; \
+	fi
+
+# Cleanup
+cleanup: ## Clean up unused Docker resources
+	docker system prune -f
+	docker volume prune -f
+	@echo "Docker cleanup completed"
+
+# Documentation
+docs-serve: ## Serve documentation locally
+	@echo "Documentation available at:"
+	@echo "- Grafana: http://localhost:3001 (after make monitoring-up)"
+	@echo "- Prometheus: http://localhost:9090 (after make monitoring-up)"
+	@echo "- Application: http://localhost:3001/api/health"
+	@echo "- Swagger API docs: http://localhost:3001/api/docs"

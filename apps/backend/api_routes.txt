@@ -1,0 +1,71 @@
+// ==================== API ROUTES ADDED FOR FRONTEND ====================
+
+// Health check
+app.get('/api/health', (req, res) => {
+    res.json({
+        success: true,
+        server: 'Steam Auth Server',
+        port: PORT,
+        session: req.session.steamid ? { steamid: req.session.steamid } : 'No active session',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Steam auth для фронтенда
+app.get('/api/auth/steam', (req, res) => {
+    const returnUrl = 'http://localhost:3001/api/auth/steam/return';
+    const realm = 'http://localhost:3001';
+
+    const steamAuthUrl = 'https://steamcommunity.com/openid/login?' +
+        'openid.ns=http://specs.openid.net/auth/2.0&' +
+        'openid.mode=checkid_setup&' +
+        'openid.return_to=' + encodeURIComponent(returnUrl) + '&' +
+        'openid.realm=' + encodeURIComponent(realm) + '&' +
+        'openid.identity=http://specs.openid.net/auth/2.0/identifier_select&' +
+        'openid.claimed_id=http://specs.openid.net/auth/2.0/identifier_select';
+
+    console.log('API: Redirecting to Steam...');
+    res.redirect(steamAuthUrl);
+});
+
+// Обработка возврата от Steam
+app.get('/api/auth/steam/return', async (req, res) => {
+    try {
+        console.log('API Steam authentication callback received');
+        
+        // Проверяем OpenID ответ
+        if (!req.query['openid.claimed_id']) {
+            throw new Error('Invalid OpenID response from Steam');
+        }
+        
+        // Извлекаем steamid
+        const claimedId = req.query['openid.claimed_id'];
+        const steamid = claimedId.split('/').pop();
+        
+        if (!steamid || !/^\d+$/.test(steamid)) {
+            throw new Error('Could not extract valid SteamID from: ' + claimedId);
+        }
+        
+        // Сохраняем в сессию
+        req.session.steamid = steamid;
+        req.session.authenticated = true;
+        
+        console.log('✓ API Authentication successful. SteamID:', steamid);
+        
+        // Редирект на фронтенд с steamid
+        res.redirect('http://localhost:3000/dashboard?steamid=' + steamid);
+        
+    } catch (error) {
+        console.error('❌ API Steam auth error:', error);
+        res.redirect('http://localhost:3000/?error=auth_failed&message=' + encodeURIComponent(error.message));
+    }
+});
+
+// Тестовый endpoint для проверки сессии
+app.get('/api/test/session', (req, res) => {
+    res.json({
+        authenticated: !!req.session.steamid,
+        steamid: req.session.steamid || null,
+        sessionId: req.sessionID
+    });
+});

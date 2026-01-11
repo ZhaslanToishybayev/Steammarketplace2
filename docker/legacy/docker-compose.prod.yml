@@ -1,0 +1,203 @@
+# ============================================
+# PRODUCTION DOCKER COMPOSE
+# Steam Marketplace - Full Stack Deployment
+# ============================================
+
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: steam_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/backend/migrations:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+
+  # ============================================
+  # Redis (Sessions, Cache, Pub/Sub)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: steam_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+
+  # ============================================
+  # Backend API (Node.js)
+  # ============================================
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: steam_backend
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Explicitly pass these as the app validator requires them
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      
+      RUN_WORKER: "false"
+      
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+      SESSION_SECRET: ${SESSION_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      STEAM_API_KEY: ${STEAM_API_KEY}
+      STEAM_REALM: ${STEAM_REALM}
+      STEAM_RETURN_URL: ${STEAM_RETURN_URL}
+      FRONTEND_URL: ${FRONTEND_URL:-https://yourdomain.com}
+      # Bot credentials (mapped from STEAM_BOT_1_...)
+      BOT_ACCOUNT_NAME: ${STEAM_BOT_1_USERNAME}
+      BOT_PASSWORD: ${STEAM_BOT_1_PASSWORD}
+      BOT_SHARED_SECRET: ${STEAM_BOT_1_SHARED_SECRET}
+      BOT_IDENTITY_SECRET: ${STEAM_BOT_1_IDENTITY_SECRET}
+    volumes:
+      - ./apps/backend/sessions:/app/sessions
+      - ./apps/backend/logs:/app/logs
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - steam-network
+
+  # ============================================
+  # Worker (Steam Bots & Trade Queue)
+  # ============================================
+  worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: steam_worker
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    command: ["node", "src/worker.js"]
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT}
+      STEAM_API_KEY: ${STEAM_API_KEY}
+      # Bot credentials
+      BOT_ACCOUNT_NAME: ${STEAM_BOT_1_USERNAME}
+      BOT_PASSWORD: ${STEAM_BOT_1_PASSWORD}
+      BOT_SHARED_SECRET: ${STEAM_BOT_1_SHARED_SECRET}
+      BOT_IDENTITY_SECRET: ${STEAM_BOT_1_IDENTITY_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - steam-network
+
+  # ============================================
+  # Frontend (Next.js)
+  # ============================================
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://sgomarket.com/api
+        NEXT_PUBLIC_WS_URL: wss://sgomarket.com/ws
+    container_name: steam_frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - steam-network
+
+  # ============================================
+  # Nginx Reverse Proxy (SSL Termination)
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: steam_nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - steam-network
+
+  # ============================================
+  # Certbot (SSL Certificates)
+  # ============================================
+  certbot:
+    image: certbot/certbot
+    container_name: steam_certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - steam-network
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  steam-network:
+    driver: bridge

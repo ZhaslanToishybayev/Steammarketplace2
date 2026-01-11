@@ -1,0 +1,162 @@
+{
+  "timestamp": "2025-11-24T17:19:19.420Z",
+  "duration": 41585,
+  "summary": {
+    "total": 7,
+    "passed": 0,
+    "failed": 7,
+    "skipped": 0,
+    "successRate": 0
+  },
+  "phases": {
+    "Environment & Infrastructure": {
+      "status": "fail",
+      "duration": 246,
+      "checks": [
+        {
+          "name": "Environment & Infrastructure Check",
+          "status": "fail",
+          "duration": 246,
+          "details": "Found 0 running Docker services:  | Ports in use: 27017 (expected for running services)",
+          "errors": [
+            "Missing environment variables: STEAM_API_KEY, JWT_SECRET, DATABASE_URL, MONGODB_URI, REDIS_URL",
+            "Docker services not running: postgres, mongodb, redis"
+          ],
+          "recommendations": [
+            "Set missing environment variables in .env files",
+            "Run: docker-compose up -d"
+          ]
+        }
+      ]
+    },
+    "Backend API": {
+      "status": "fail",
+      "duration": 10600,
+      "checks": [
+        {
+          "name": "Backend API Verification",
+          "status": "fail",
+          "duration": 10600,
+          "details": "Backend API validation completed",
+          "errors": [
+            "Backend API verification failed: npm error Lifecycle script `verify:api` failed with error:\nnpm error code 1\nnpm error path /home/zhaslan/Downloads/testsite/apps/backend\nnpm error workspace steam-marketplace-backend@1.0.0\nnpm error location /home/zhaslan/Downloads/testsite/apps/backend\nnpm error command failed\nnpm error command sh -c ts-node ../../scripts/verify-api-endpoints.ts\n",
+            "Backend health endpoint not accessible"
+          ],
+          "recommendations": [
+            "Check backend logs and fix API issues",
+            "Start backend server: npm run dev:backend"
+          ]
+        }
+      ]
+    },
+    "Database Seeding": {
+      "status": "fail",
+      "duration": 2552,
+      "checks": [
+        {
+          "name": "Database Seeding Check",
+          "status": "fail",
+          "duration": 2552,
+          "details": "Database seeding validation completed",
+          "errors": [
+            "Database seeding verification failed: /home/zhaslan/Downloads/testsite/node_modules/ts-node/src/index.ts:859\n    return new TSError(diagnosticText, diagnosticCodes, diagnostics);\n           ^\nTSError: ⨯ Unable to compile TypeScript:\nscripts/verify-database-seeding.ts(901,5): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.\n\n    at createTSError (/home/zhaslan/Downloads/testsite/node_modules/ts-node/src/index.ts:859:12)\n    at reportTSError (/home/zhaslan/Downloads/testsite/node_modules/ts-node/src/index.ts:863:19)\n    at getOutput (/home/zhaslan/Downloads/testsite/node_modules/ts-node/src/index.ts:1077:36)\n    at Object.compile (/home/zhaslan/Downloads/testsite/node_modules/ts-node/src/index.ts:1433:41)\n    at Module.m._compile (/home/zhaslan/Downloads/testsite/node_modules/ts-node/src/index.ts:1617:30)\n    at node:internal/modules/cjs/loader:1839:10\n    at Object.require.extensions.<computed> [as .ts] (/home/zhaslan/Downloads/testsite/node_modules/ts-node/src/index.ts:1621:12)\n    at Module.load (node:internal/modules/cjs/loader:1441:32)\n    at Function._load (node:internal/modules/cjs/loader:1263:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:322:14) {\n  diagnosticCodes: [ 1343 ]\n}\n"
+          ],
+          "recommendations": [
+            "Run database seeding: npm run db:seed"
+          ]
+        }
+      ]
+    },
+    "Steam Integration": {
+      "status": "fail",
+      "duration": 2101,
+      "checks": [
+        {
+          "name": "Steam Integration Verification",
+          "status": "fail",
+          "duration": 2101,
+          "details": "Steam integration validation completed",
+          "errors": [
+            "Steam integration verification failed: "
+          ],
+          "recommendations": [
+            "Check Steam API configuration and credentials"
+          ]
+        }
+      ]
+    },
+    "Frontend & Integration": {
+      "status": "fail",
+      "duration": 26079,
+      "checks": [
+        {
+          "name": "Frontend & Integration Check",
+          "status": "fail",
+          "duration": 26079,
+          "details": "Frontend validation completed",
+          "errors": [
+            "Frontend server not accessible",
+            "Frontend-backend integration check failed: "
+          ],
+          "recommendations": [
+            "Start frontend server: npm run dev:frontend",
+            "Check frontend configuration and API proxy settings"
+          ]
+        }
+      ]
+    },
+    "Real-Time Features": {
+      "status": "fail",
+      "duration": 0,
+      "checks": [
+        {
+          "name": "Real-Time Features Check",
+          "status": "fail",
+          "duration": 0,
+          "details": "Real-time features validation completed",
+          "errors": [
+            "WebSocket connection failed: Cannot find module 'socket.io-client'\nRequire stack:\n- /home/zhaslan/Downloads/testsite/scripts/verify-complete-system.ts"
+          ],
+          "recommendations": [
+            "Check Socket.io server configuration and ensure backend is running"
+          ]
+        }
+      ]
+    },
+    "Performance": {
+      "status": "fail",
+      "duration": 4,
+      "checks": [
+        {
+          "name": "Performance Check",
+          "status": "fail",
+          "duration": 4,
+          "details": "Performance test results: ",
+          "errors": [
+            "Health endpoint failed: Request failed with status code 404",
+            "Steam auth endpoint failed: Request failed with status code 404",
+            "Frontend homepage failed: connect ECONNREFUSED 127.0.0.1:3000"
+          ]
+        }
+      ]
+    }
+  },
+  "systemInfo": {
+    "nodeVersion": "v22.20.0",
+    "platform": "linux",
+    "dockerVersion": "Docker version 29.0.2, build 8108357",
+    "dockerServices": [
+      "steam-marketplace-mongo",
+      "steam-marketplace-postgres",
+      "steam-marketplace-redis",
+      "unitysphere-fnclub-1",
+      "unitysphere-fnclub-db-1",
+      "tbgroup-nginx",
+      "tbgroup-web",
+      "tbgroup-admin",
+      "tbgroup-api",
+      "tbgroup-postgres",
+      "tbgroup-redis"
+    ]
+  }
+}

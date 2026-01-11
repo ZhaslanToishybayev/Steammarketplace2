@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with optimizations
+  postgres:
+    image: postgres:15-alpine
+    container_name: steam-marketplace-db
+    environment:
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database_schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U steam_user -d steam_marketplace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+    restart: unless-stopped
+    command: postgres -c shared_preload_libraries=pg_stat_statements -c max_connections=200 -c shared_buffers=256MB -c effective_cache_size=1GB -c maintenance_work_mem=64MB -c checkpoint_completion_target=0.9 -c wal_buffers=16MB -c default_statistics_target=100 -c random_page_cost=1.1 -c effective_io_concurrency=200 -c work_mem=4MB -c min_wal_size=1GB -c max_wal_size=4GB
+
+  # Redis with optimizations
+  redis:
+    image: redis:7-alpine
+    container_name: steam-marketplace-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+
+  # Backend API with optimizations
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-backend
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      RUN_WORKER: "false"
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: b180bbe5fdc629903c2d9f95ff9aa203
+
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+
+      # Session
+      SESSION_SECRET: 383969d5183e154fbebcf65314939e431410b5ef9380adc93d59d1f4c0834a81
+
+      # Steam API (REAL CREDENTIALS)
+      STEAM_API_KEY: E1FC69B3707FF57C6267322B0271A86B
+
+      # JWT
+      JWT_SECRET: 383969d5183e154fbebcf65314939e431410b5ef9380adc93d59d1f4c0834a81
+
+      # Frontend URL
+      FRONTEND_URL: https://localhost:3000
+
+      # DNS Servers for Steam API
+      DOCKER_DNS: 8.8.8.8,8.8.4.4
+
+      # Steam Bot Credentials
+      BOT_ACCOUNT_NAME: Sgovt1
+      BOT_PASSWORD: Szxc123!
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - steam-network
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  # Frontend with optimizations
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3001
+        - NEXT_PUBLIC_STEAM_LOGIN_URL=http://localhost:3001/api/auth/steam
+    container_name: steam-marketplace-frontend
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: https://localhost:3001
+      NEXT_PUBLIC_STEAM_LOGIN_URL: https://localhost:3001/api/auth/steam
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - steam-network
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+
+  # Nginx with CDN optimization
+  nginx:
+    image: nginx:alpine
+    container_name: steam-marketplace-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-main.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx-server-only.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - steam-network
+    restart: unless-stopped
+
+  # Portainer for monitoring
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: steam-marketplace-portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - steam-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  portainer_data:
+
+networks:
+  steam-network:
+    driver: bridge

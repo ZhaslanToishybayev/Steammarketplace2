@@ -1,0 +1,104 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Steam specific
+steam-trade-manager-debug.log
+steam-bot-debug.log
+steam-marketplace-debug.log
+
+# Database
+*.sqlite
+*.db
+mongodb.log
+
+# Temporary files
+.tmp/
+temp/
+.tmp
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Testing
+test-results/
+playwright-report/
+
+# Steam API Keys (if accidentally created)
+steam-api-keys.txt
+api-keys.json
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+
+# Backup files
+*.backup
+*.bak
+
+# Docker data (exclude for clean repo)
+docker/mongo-data/
+docker/postgres-data/
+docker/redis-data/
+docker/*/data/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+steam-trade-manager-debug.log
+steam-bot-debug.log
+steam-marketplace-debug.log

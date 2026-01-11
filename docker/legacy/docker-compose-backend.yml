@@ -1,0 +1,94 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: steam-marketplace-db
+    environment:
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U steam_user -d steam_marketplace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+
+  # Redis for sessions and job queues
+  redis:
+    image: redis:7-alpine
+    container_name: steam-marketplace-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      RUN_WORKER: "false"
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+
+      # Session
+      SESSION_SECRET: 383969d5183e154fbebcf65314939e431410b5ef9380adc93d59d1f4c0834a81
+
+      # Steam API (required)
+      STEAM_API_KEY: your_steam_api_key_here
+
+      # JWT
+      JWT_SECRET: 383969d5183e154fbebcf65314939e431410b5ef9380adc93d59d1f4c0834a81
+
+      # Frontend URL for CORS
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - steam-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  steam-network:
+    external: true

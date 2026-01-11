@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Backend - Improved Health Check
+  backend:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Даем больше времени на запуск
+
+  # Worker - Improved Health Check
+  worker:
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://steam_backend:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # Даем больше времени на запуск ботов
+
+  # Frontend - Improved Health Check
+  frontend:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s  # Даем время на запуск Next.js

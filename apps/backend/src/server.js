@@ -30,12 +30,17 @@ const app = express();
 const server = http.createServer(app);
 
 // ========== SOCKET.IO SETUP ==========
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  },
-});
+// Socket.io CORS configuration for production domain
+  const frontendOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+  const origins = frontendOrigin.split(',').map(o => o.trim());
+
+  const io = new Server(server, {
+    cors: {
+      origin: true, // Allow any origin with credentials (for dev)
+      credentials: true,
+      methods: ["GET", "POST"]
+    },
+  });
 
 // Socket.io Redis adapter for horizontal scaling
 io.adapter(createAdapter(pubClient, subClient));
@@ -45,9 +50,16 @@ logger.info('Socket.io Redis adapter configured');
 io.use((socket, next) => {
   // In production: verify JWT token
   const token = socket.handshake.auth.token;
+  // Allow passing steamId directly in query for simplicity in this setup
+  const steamId = socket.handshake.query.steamId || socket.handshake.auth.steamId;
+
   if (token) {
-    // Verify token and attach user
+    // Verify token and attach user (Mock logic here, replace with real JWT verify if needed)
     socket.user = { steamId: 'mock-steam-id' };
+  } else if (steamId) {
+      // Trust the client-provided steamId (INSECURE for prod, but OK for MVP/Localhost with cookie auth on endpoints)
+      // Ideally we should parse the cookie 'connect.sid' here using passport.socketio, but that's heavy.
+      socket.user = { steamId };
   }
   next();
 });
@@ -85,7 +97,7 @@ app.set('trust proxy', 1);
 
 // ========== НАСТРОЙКИ ==========
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: origins,
   credentials: true
 }));
 
@@ -117,7 +129,10 @@ app.use('/api/', apiLimiter);
 
 // Redis Session Store (replaces PostgreSQL for better performance)
 app.use(session({
-  store: new RedisStore({ client: redisClient }),
+  store: new RedisStore({
+    client: redisClient,
+    database: parseInt(process.env.REDIS_SESSIONS_DB || '0')
+  }),
   secret: process.env.SESSION_SECRET || 'steam-marketplace-local',
   resave: false,
   saveUninitialized: false,
@@ -165,17 +180,23 @@ setupSteamStrategy(passport);
 
 // ========== РОУТЫ ==========
 const authRoutes = require('./routes/auth');
+const mockAuthRoutes = require('./routes/mock-auth');
 const inventoryRoutes = require('./routes/inventory');
 const profileRoutes = require('./routes/profile');
 const escrowRoutes = require('./routes/escrow');
 const instantRoutes = require('./routes/instant');
+const steamCacheRoutes = require('./routes/steam-cache.routes');
+const steamManagerRoutes = require("./routes/steam-manager.routes");
 
 app.use('/api/auth', authRoutes);
+app.use('/api/mock-auth', mockAuthRoutes); // Mock auth for testing
 app.use('/auth', authRoutes); // Fallback for compatibility
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/escrow', escrowRoutes);
 app.use('/api/instant', instantRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/steam', steamCacheRoutes);
+app.use("/api/steam-optimized", steamManagerRoutes);
 app.use('/api/wallet', require('./routes/wallet'));
 app.use('/api/queue', require('./routes/queue'));
 app.use('/api/admin', require('./routes/admin'));
@@ -187,6 +208,7 @@ app.use('/api/referral', require('./routes/referral'));
 app.use('/api/watchlist', require('./routes/watchlist'));
 app.use('/api/p2p', require('./routes/p2p'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/bots', require('./routes/bots'));
 
 // ========== HEALTH CHECK ENDPOINTS ==========
 
@@ -377,7 +399,6 @@ async function startServer() {
       console.log(`🛒 Escrow API: http://localhost:3000/api/escrow`);
       console.log(`📡 WebSocket: ws://localhost:${PORT}`);
       console.log(`🧪 Test: http://localhost:${PORT}/test-steam`);
-
       console.log(`✅ Готово! Escrow trade system активирован.`);
     });
   } catch (err) {
@@ -400,7 +421,10 @@ const gracefulShutdown = async (signal) => {
 
     // Stop all bots
     logger.info('🤖 Stopping bots...');
-    botManager.stopAll();
+    const { botManager } = require('./config/bots.config');
+    if (botManager) {
+      botManager.stopAll();
+    }
     logger.info('✅ Bots stopped');
 
     // Close Redis connections

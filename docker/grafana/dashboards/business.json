@@ -1,0 +1,237 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Steam Marketplace - Business Metrics",
+    "tags": ["steam", "marketplace", "business"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Trades by Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum by (status) (trades_total{status=~\"pending|completed|failed\"})",
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Trade Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(trades_total{status=\"completed\"}) / sum(trades_total) * 100",
+            "legendFormat": "Success Rate %",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "green",
+                  "value": 95
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Average Trade Value",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(trade_value_usd)",
+            "legendFormat": "Average Value $",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Bots",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(bots_total{status=\"active\"})",
+            "legendFormat": "Active Bots",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 0
+        }
+      },
+      {
+        "id": 5,
+        "title": "User Registrations (24h)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(users_total[1d])",
+            "legendFormat": "New Users/24h",
+            "refId": "A"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Users",
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 4
+        }
+      },
+      {
+        "id": 6,
+        "title": "Revenue (USD)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(transaction_amount_usd{type=~\"deposit|trade_credit\"}[1h]))",
+            "legendFormat": "Revenue Rate",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(transaction_amount_usd{type=\"withdrawal\"}[1h]))",
+            "legendFormat": "Withdrawals",
+            "refId": "B"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "USD/hour",
+            "min": 0
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 4
+        }
+      },
+      {
+        "id": 7,
+        "title": "Inventory Sync Status by Game",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "sum by (game) (inventory_items_total)",
+            "legendFormat": "{{game}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "id": 8,
+        "title": "Price Update Lag",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "time() - avg(price_last_updated_timestamp)",
+            "legendFormat": "Avg Lag (seconds)",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 12
+        }
+      },
+      {
+        "id": 9,
+        "title": "Top Items by Volume",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, sum by (item_name) (trade_volume_total))",
+            "legendFormat": "{{item_name}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 18,
+          "y": 12
+        }
+      },
+      {
+        "id": 10,
+        "title": "User Activity Heatmap",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "sum by (hour) (rate(user_activity_total[1h]))",
+            "legendFormat": "Activity",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 20
+        }
+      }
+    ],
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    },
+    "refresh": "1m",
+    "schemaVersion": 27,
+    "version": 1
+  }
+}

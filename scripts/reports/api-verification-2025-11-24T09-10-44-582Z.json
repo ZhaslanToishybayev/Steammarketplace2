@@ -1,0 +1,160 @@
+{
+  "timestamp": "2025-11-24T09:10:44.582Z",
+  "baseUrl": "http://localhost:3001",
+  "frontendOrigin": "http://localhost:3000",
+  "summary": {
+    "total": 18,
+    "passed": 0,
+    "failed": 18,
+    "warnings": 0
+  },
+  "results": [
+    {
+      "name": "Health Check",
+      "passed": false,
+      "status": 0,
+      "responseTime": 276,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Main health check endpoint"
+    },
+    {
+      "name": "Health Ready",
+      "passed": false,
+      "status": 0,
+      "responseTime": 7,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Readiness health check"
+    },
+    {
+      "name": "Health Live",
+      "passed": false,
+      "status": 0,
+      "responseTime": 2,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Liveness health check"
+    },
+    {
+      "name": "Health Detailed",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Detailed health check with diagnostics"
+    },
+    {
+      "name": "API Documentation",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Swagger documentation endpoint"
+    },
+    {
+      "name": "Metrics",
+      "passed": false,
+      "status": 0,
+      "responseTime": 2,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Prometheus metrics endpoint"
+    },
+    {
+      "name": "Status Dashboard",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "API status dashboard"
+    },
+    {
+      "name": "CORS Health Preflight",
+      "passed": false,
+      "status": 0,
+      "responseTime": 2,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "CORS preflight request for health endpoint"
+    },
+    {
+      "name": "CORS Auth Preflight",
+      "passed": false,
+      "status": 0,
+      "responseTime": 3,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "CORS preflight request for auth endpoint"
+    },
+    {
+      "name": "CORS with Origin Header",
+      "passed": false,
+      "status": 0,
+      "responseTime": 3,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Request with Origin header for CORS testing"
+    },
+    {
+      "name": "Steam OAuth Initiation",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Steam OAuth initiation should redirect to Steam"
+    },
+    {
+      "name": "Get Current User (No Auth)",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Protected endpoint should return 401 without authentication"
+    },
+    {
+      "name": "Refresh Token (No Auth)",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Refresh endpoint should return 401 without authentication"
+    },
+    {
+      "name": "Get User Inventory",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Inventory endpoint should require authentication"
+    },
+    {
+      "name": "Sync Inventory",
+      "passed": false,
+      "status": 0,
+      "responseTime": 3,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Inventory sync should require authentication"
+    },
+    {
+      "name": "Get Item Price",
+      "passed": false,
+      "status": 0,
+      "responseTime": 3,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Pricing endpoint should require authentication"
+    },
+    {
+      "name": "Get Bot Management",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Bot management should require authentication"
+    },
+    {
+      "name": "Get Trade History",
+      "passed": false,
+      "status": 0,
+      "responseTime": 1,
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Trade history should require authentication"
+    }
+  ],
+  "details": {
+    "backendInfo": null
+  }
+}

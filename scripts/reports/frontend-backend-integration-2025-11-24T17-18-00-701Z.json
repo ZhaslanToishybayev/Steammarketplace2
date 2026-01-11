@@ -1,0 +1,93 @@
+{
+  "timestamp": "2025-11-24T17:18:00.701Z",
+  "duration": 28116,
+  "summary": {
+    "total": 6,
+    "passed": 0,
+    "failed": 5,
+    "skipped": 1
+  },
+  "checks": [
+    {
+      "name": "Frontend Server Check",
+      "status": "fail",
+      "duration": 9113,
+      "details": "Frontend server validation completed",
+      "errors": [
+        "Frontend server check failed: connect ECONNREFUSED 127.0.0.1:3000"
+      ],
+      "recommendations": [
+        "Start frontend server: npm run dev:frontend"
+      ]
+    },
+    {
+      "name": "API Proxy Check",
+      "status": "fail",
+      "duration": 6011,
+      "details": "API proxy validation completed",
+      "errors": [
+        "Frontend API proxy failed: connect ECONNREFUSED 127.0.0.1:3000"
+      ],
+      "recommendations": [
+        "Check next.config.js rewrites configuration"
+      ]
+    },
+    {
+      "name": "Page Load Tests",
+      "status": "fail",
+      "duration": 12722,
+      "details": "Page load validation completed",
+      "errors": [
+        "Failed to load pages: Home, Login, Inventory, Market, Trade, Dashboard, Admin",
+        "  Home: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/\", waiting until \"networkidle\"\u001b[22m\n",
+        "  Login: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/auth/login\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/auth/login\", waiting until \"networkidle\"\u001b[22m\n",
+        "  Inventory: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/inventory\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/inventory\", waiting until \"networkidle\"\u001b[22m\n",
+        "  Market: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/market\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/market\", waiting until \"networkidle\"\u001b[22m\n",
+        "  Trade: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/trade\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/trade\", waiting until \"networkidle\"\u001b[22m\n",
+        "  Dashboard: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/dashboard\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/dashboard\", waiting until \"networkidle\"\u001b[22m\n",
+        "  Admin: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/admin\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/admin\", waiting until \"networkidle\"\u001b[22m\n"
+      ],
+      "recommendations": [
+        "Check frontend routing, API connectivity, and server configuration"
+      ]
+    },
+    {
+      "name": "API Call Simulation",
+      "status": "fail",
+      "duration": 130,
+      "details": "API call simulation completed",
+      "errors": [
+        "API call simulation failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/\", waiting until \"networkidle\"\u001b[22m\n"
+      ],
+      "recommendations": [
+        "Install Playwright and check frontend API configuration"
+      ]
+    },
+    {
+      "name": "WebSocket Connection Test",
+      "status": "skip",
+      "duration": 0,
+      "details": "Socket.io-client not available, skipping WebSocket tests",
+      "recommendations": [
+        "Install socket.io-client for WebSocket testing: npm install socket.io-client"
+      ]
+    },
+    {
+      "name": "State Management Check",
+      "status": "fail",
+      "duration": 138,
+      "details": "State management validation completed",
+      "errors": [
+        "State management check failed: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/inventory\nCall log:\n\u001b[2m  - navigating to \"http://localhost:3000/inventory\", waiting until \"networkidle\"\u001b[22m\n"
+      ],
+      "recommendations": [
+        "Install Playwright and check frontend state management configuration"
+      ]
+    }
+  ],
+  "systemInfo": {
+    "frontendUrl": "http://localhost:3000",
+    "backendUrl": "http://localhost:3001",
+    "nodeVersion": "v22.20.0"
+  }
+}

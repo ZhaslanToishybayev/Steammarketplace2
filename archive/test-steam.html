@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Steam Login Test</title>
+</head>
+<body>
+    <h1>Steam Login Test</h1>
+    <button id="steam-login">Login with Steam</button>
+
+    <script>
+        document.getElementById('steam-login').addEventListener('click', function() {
+            window.location.href = '/api/auth/steam';
+        });
+    </script>
+</body>
+</html>

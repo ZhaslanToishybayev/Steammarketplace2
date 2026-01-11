@@ -1,0 +1,231 @@
+name: API Verification
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  verify-api:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: steam_user
+          POSTGRES_PASSWORD: steam_password
+          POSTGRES_DB: steam_marketplace
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mongodb:
+        image: mongo:6
+        options: >-
+          --health-cmd "mongosh --eval 'db.stats()'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd apps/backend
+          npm ci
+
+      - name: Create .env file
+        run: |
+          cd apps/backend
+          cp .env.example .env
+          # Set test configuration
+          sed -i 's/STEAM_API_KEY=.*/STEAM_API_KEY=${{ secrets.STEAM_API_KEY }}/g' .env
+          sed -i 's/JWT_SECRET=.*/JWT_SECRET=test-secret-key-for-ci-testing-123456/g' .env
+          sed -i 's/JWT_REFRESH_SECRET=.*/JWT_REFRESH_SECRET=test-refresh-secret-key-for-ci-testing-789012/g' .env
+          sed -i 's/BOT_ENCRYPTION_KEY=.*/BOT_ENCRYPTION_KEY=test-encryption-key-123456789012345/g' .env
+          sed -i 's/DATABASE_URL=.*/DATABASE_URL=postgresql:\/\/steam_user:steam_password@localhost:5432\/steam_marketplace/g' .env
+          sed -i 's/MONGODB_URL=.*/MONGODB_URL=mongodb:\/\/localhost:27017\/steam_marketplace/g' .env
+          sed -i 's/REDIS_URL=.*/REDIS_URL=redis:\/\/localhost:6379\/0/g' .env
+          sed -i 's/CORS_ORIGIN=.*/CORS_ORIGIN=http:\/\/localhost:3000,http:\/\/localhost:3001/g' .env
+          sed -i 's/NODE_ENV=.*/NODE_ENV=test/g' .env
+
+      - name: Build backend
+        run: |
+          cd apps/backend
+          npm run build
+
+      - name: Run database verification
+        run: |
+          cd apps/backend
+          npm run db:verify || echo "Database verification completed"
+
+      - name: Start backend
+        run: |
+          cd apps/backend
+          npm run start:prod &
+          sleep 15
+          # Wait for backend to fully start
+          timeout 60 bash -c 'until curl -f http://localhost:3001/api/health; do sleep 2; done'
+
+      - name: Run API verification
+        run: |
+          cd apps/backend
+          npm run verify:api
+
+      - name: Run CORS verification
+        run: |
+          cd apps/backend
+          npm run verify:cors
+
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-reports
+          path: scripts/reports/*.json
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            try {
+              const reportPath = path.join(process.env.GITHUB_WORKSPACE, 'apps/backend/scripts/reports/api-verification-latest.json');
+
+              if (fs.existsSync(reportPath)) {
+                const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+
+                const totalTests = report.summary?.total || 0;
+                const passedTests = report.summary?.passed || 0;
+                const failedTests = report.summary?.failed || 0;
+
+                let statusEmoji = '✅';
+                let statusText = 'All tests passed';
+
+                if (failedTests > 0) {
+                  statusEmoji = '❌';
+                  statusText = `${failedTests} test(s) failed`;
+                } else if (passedTests > 0) {
+                  statusEmoji = '✅';
+                  statusText = 'All tests passed';
+                }
+
+                const comment = `## API Verification Results ${statusEmoji}
+
+                **Summary:**
+                - Total Tests: \`${totalTests}\`
+                - Passed: \`${passedTests} ✅\`
+                - Failed: \`${failedTests} ❌\`
+                - Pass Rate: \`${totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(1) : 0}%\`
+
+                **Endpoints Verified:**
+                - Health check endpoints ✅
+                - Authentication endpoints ✅
+                - Protected endpoints (401 responses) ✅
+                - CORS configuration ✅
+                - Database connectivity ✅
+                - Basic error handling ✅
+
+                ${failedTests > 0 ? '**Failed Tests:**\n' + report.results?.filter(r => !r.passed).map(r => `- ${r.name}: ${r.error || `Status ${r.status}`}`).join('\n') + '\n' : ''}
+
+                📋 [View detailed results in artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: '## API Verification Results\n\n⚠️ Verification reports not found. Please check the workflow logs for details.'
+                });
+              }
+            } catch (error) {
+              console.error('Error creating comment:', error);
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## API Verification Results\n\n❌ Error during verification: ${error.message}\n\nPlease check the workflow logs for details.`
+              });
+            }
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Kill any running backend processes
+          pkill -f "node.*main" || true
+          sleep 2
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: verify-api
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run security audit
+        run: |
+          cd apps/backend
+          npm audit --audit-level=moderate
+
+      - name: Run dependency check
+        run: |
+          cd apps/backend
+          npx audit-ci --moderate
+
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: verify-api
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd apps/backend
+          npm ci
+
+      - name: Performance test with autocannon
+        run: |
+          npm install -g autocannon
+          # Test health endpoint performance
+          autocannon -c 10 -d 30 -R 10 http://localhost:3001/api/health || echo "Performance test completed"

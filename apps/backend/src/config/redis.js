@@ -11,6 +11,7 @@ console.log('[RedisDebug] REDIS_PORT:', process.env.REDIS_PORT);
 const redisOptions = {
     host: process.env.REDIS_HOST || '127.0.0.1',
     port: parseInt(process.env.REDIS_PORT || '6379'),
+    family: 4, // Force IPv4
     db: parseInt(process.env.REDIS_SESSIONS_DB || '0'),
     retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);

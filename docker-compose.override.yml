@@ -1,0 +1,24 @@
+# Development override configuration with default secrets
+# This file provides default values for development only
+# For production, create a separate .env file with strong secrets
+
+services:
+  # PostgreSQL Database - Development defaults
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: steam_password_dev
+
+  # Redis Cache - Development defaults
+  redis:
+    environment:
+      REDIS_PASSWORD: redis_password_dev
+
+  # Backend API - Development defaults
+  backend:
+    environment:
+      JWT_SECRET: dev-jwt-secret-key-change-in-production
+      JWT_REFRESH_SECRET: dev-jwt-refresh-secret-key-change-in-production
+      # STEAM_API_KEY removed - using real key from .env
+      CORS_ORIGIN: http://localhost:3000,http://localhost:3001,https://localhost:3000,https://localhost:3001
+  # Note: grafana, postgres-exporter, redis-exporter are not defined in docker-compose.yml
+  # Add these services to docker-compose.yml if monitoring is needed

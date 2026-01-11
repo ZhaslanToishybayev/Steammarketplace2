@@ -1,0 +1,183 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: steam-marketplace-db
+    environment:
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U steam_user -d steam_marketplace" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+
+  # Redis for sessions and job queues
+  redis:
+    image: redis:7-alpine
+    container_name: steam-marketplace-redis
+    ports:
+      - "6385:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - steam-network
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-backend
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      # Worker mode (false = API only, worker runs separately)
+      RUN_WORKER: "false"
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+
+      # Session
+      SESSION_SECRET: rKXBIAV1MBLyY6iaLi7iQsy/IvGeRXGoZVYPnKTouCU=
+
+      # Steam API (required)
+      STEAM_API_KEY: E1FC69B3707FF57C6267322B0271A86B
+
+      # JWT
+      JWT_SECRET: WlTQF7w5ZFWBR1vT4iwfVlNYJ5y22QnvLiaYKQPBxWeRVEDrtENLfsieYgkFJjFtBbFkwfRwub/3RBwb+tAPSg==
+
+      # Bot credentials (required for validation)
+      BOT_ACCOUNT_NAME: Sgovt1
+      BOT_PASSWORD: Szxc123!
+      STEAM_BOT_1_USERNAME: Sgovt1
+      STEAM_BOT_1_PASSWORD: Szxc123!
+      STEAM_BOT_1_SHARED_SECRET: LVke3WPKHWzT8pCNSemh2FMuJ90=
+      STEAM_BOT_1_IDENTITY_SECRET: fzCjA+NZa0b3yOeEMhln81qgNM4=
+
+      # Frontend URL for CORS (Nginx runs on port 80)
+      FRONTEND_URL: http://localhost
+      CORS_ORIGIN: http://localhost,http://localhost:3000
+
+      # Telegram Notifications
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - steam-network
+    restart: unless-stopped
+
+  # Worker (Steam Bots & Trade Queue)
+  worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-worker
+    command: [ "node", "src/worker.js" ]
+    environment:
+      NODE_ENV: production
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+
+      # Steam API and Bot credentials (must be set in .env)
+      STEAM_API_KEY: ${STEAM_API_KEY}
+      STEAM_BOT_1_USERNAME: ${STEAM_BOT_1_USERNAME}
+      STEAM_BOT_1_PASSWORD: ${STEAM_BOT_1_PASSWORD}
+      STEAM_BOT_1_SHARED_SECRET: ${STEAM_BOT_1_SHARED_SECRET}
+      STEAM_BOT_1_IDENTITY_SECRET: ${STEAM_BOT_1_IDENTITY_SECRET}
+      BOT_ENCRYPTION_KEY: ${BOT_ENCRYPTION_KEY}
+
+      # Telegram Notifications
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "node", "-e", "process.exit(0)" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - steam-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_BACKEND_URL: http://backend:3001
+      HOSTNAME: "0.0.0.0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - steam-network
+    restart: unless-stopped
+
+  # Nginx Gateway (Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: steam-marketplace-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - steam-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  steam-network:
+    driver: bridge
