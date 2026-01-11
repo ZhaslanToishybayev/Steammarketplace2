@@ -27,6 +27,7 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/package*.json ./
 
 # Create directories for sessions and logs
