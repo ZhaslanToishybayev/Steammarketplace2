@@ -33,10 +33,10 @@ jobs:
         echo "DB is ready."
 
         echo "Waiting for Backend API..."
-        # Loop until backend responds with "alive"
+        # Loop until backend responds with "ready"
         timeout=120
         counter=0
-        until curl -s --max-time 5 http://127.0.0.1:3001/health/live | grep "alive"; do
+        until curl -s --max-time 5 http://127.0.0.1:3001/health/ready | grep "ready"; do
           if [ $counter -ge $timeout ]; then
             echo "Backend timed out!"
             docker logs steam-marketplace-backend
