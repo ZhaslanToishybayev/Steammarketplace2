@@ -2,9 +2,9 @@ const axios = require('axios');
 const { CookieJar } = require('tough-cookie');
 const { wrapper } = require('axios-cookiejar-support');
 
-// Config
-const API_URL = 'http://localhost:3001/api';
-const MOCK_AUTH_URL = 'http://localhost:3001/api/mock-auth/steam/mock';
+// Config - Use 127.0.0.1 for CI compatibility
+const API_URL = process.env.API_URL || 'http://127.0.0.1:3001/api';
+const MOCK_AUTH_URL = process.env.MOCK_AUTH_URL || 'http://127.0.0.1:3001/api/mock-auth/steam/mock';
 
 // Utils
 async function createSession(steamId) {

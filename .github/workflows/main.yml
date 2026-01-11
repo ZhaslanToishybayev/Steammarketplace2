@@ -34,9 +34,9 @@ jobs:
 
         echo "Waiting for Backend API..."
         # Loop until backend responds with 200 OK
-        timeout=60
+        timeout=120
         counter=0
-        until curl -s http://localhost:3001/api/health | grep "ok"; do
+        until curl -s http://127.0.0.1:3001/api/health | grep "ok"; do
           if [ $counter -ge $timeout ]; then
             echo "Backend timed out!"
             docker logs steam-marketplace-backend
