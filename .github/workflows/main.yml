@@ -23,14 +23,32 @@ jobs:
     - name: Start Docker Containers
       run: docker compose up -d --build
 
-    - name: Wait for Database
+    - name: Wait for Services (DB & Backend)
       run: |
-        echo "Waiting for postgres..."
+        echo "Waiting for PostgreSQL..."
         until docker exec steam-marketplace-db pg_isready -U steam_user; do
+          echo "."
           sleep 2
         done
-        echo "Database ready!"
-        sleep 5 # Extra safety buffer
+        echo "DB is ready."
+
+        echo "Waiting for Backend API..."
+        # Loop until backend responds with 200 OK
+        timeout=60
+        counter=0
+        until curl -s http://localhost:3001/api/health | grep "ok"; do
+          if [ $counter -ge $timeout ]; then
+            echo "Backend timed out!"
+            docker logs steam-marketplace-backend
+            exit 1
+          fi
+          echo "Waiting for backend ($counter/$timeout)..."
+          sleep 2
+          counter=$((counter+1))
+        done
+        echo "Backend is ready."
+
+    - name: Seed Database
 
     - name: Check Containers Logs (Debug)
       if: failure()
