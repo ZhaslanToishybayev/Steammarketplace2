@@ -23,8 +23,14 @@ jobs:
     - name: Start Docker Containers
       run: docker compose up -d --build
 
-    - name: Wait for Services
-      run: sleep 30
+    - name: Wait for Database
+      run: |
+        echo "Waiting for postgres..."
+        until docker exec steam-marketplace-db pg_isready -U steam_user; do
+          sleep 2
+        done
+        echo "Database ready!"
+        sleep 5 # Extra safety buffer
 
     - name: Check Containers Logs (Debug)
       if: failure()
