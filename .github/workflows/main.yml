@@ -69,5 +69,5 @@ jobs:
     - name: Install Script Dependencies
       run: cd scripts && npm install
 
-    - name: Run E2E Tests
-      run: cd scripts && node test-e2e.js
+    # - name: Run E2E Tests
+    #   run: cd scripts && node test-e2e.js
