@@ -107,11 +107,22 @@ export function MarketplaceGrid({ initialListings }: MarketplaceGridProps) {
             });
         }
 
-        // Type filter
+        // Type filter - determine weapon type from item name
         if (itemType) {
-            result = result.filter(item =>
-                item.item?.type?.name?.toLowerCase().includes(itemType)
-            );
+            const typeMap: Record<string, string[]> = {
+                'knife': ['knife', 'karambit', 'bayonet', 'bowie', 'butterfly', 'falchion', 'flip', 'gut', 'huntsman', 'm9', 'navaja', 'paracord', 'shadow daggers', 'skeleton', 'stiletto', 'talon', 'ursus', 'classic knife', 'nomad', 'survival'],
+                'rifle': ['ak-47', 'm4a4', 'm4a1-s', 'aug', 'sg 553', 'ssg 08', 'awp', 'famas', 'galil', 'scar-20', 'g3sg1'],
+                'pistol': ['glock', 'usp-s', 'p2000', 'p250', 'five-seven', 'tec-9', 'cz75', 'dual berettas', 'desert eagle', 'r8 revolver'],
+                'smg': ['mp9', 'mac-10', 'mp7', 'mp5-sd', 'ump-45', 'p90', 'pp-bizon'],
+                'shotgun': ['nova', 'xm1014', 'mag-7', 'sawed-off'],
+                'machinegun': ['m249', 'negev'],
+                'glove': ['gloves', 'wraps', 'specialist', 'moto', 'sport', 'hydra', 'bloodhound', 'driver', 'hand wraps']
+            };
+            const typeTerms = typeMap[itemType] || [];
+            result = result.filter(item => {
+                const itemName = (item.item?.name || item.item?.marketHashName || '').toLowerCase();
+                return typeTerms.some(term => itemName.includes(term));
+            });
         }
 
         // Sorting
@@ -217,8 +228,8 @@ export function MarketplaceGrid({ initialListings }: MarketplaceGridProps) {
                     <button
                         onClick={() => setShowFilters(!showFilters)}
                         className={`flex items-center gap-2 px-6 h-12 rounded-xl font-semibold transition-all ${showFilters || hasActiveFilters
-                                ? 'bg-[#FF8C00] text-white shadow-lg shadow-[#FF8C00]/25'
-                                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-[#FF8C00]/20'
+                            ? 'bg-[#FF8C00] text-white shadow-lg shadow-[#FF8C00]/25'
+                            : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-[#FF8C00]/20'
                             }`}
                     >
                         <SlidersHorizontal className="w-5 h-5" />

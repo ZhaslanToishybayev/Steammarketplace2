@@ -7,12 +7,13 @@ import { useWallet } from '../../lib/useWallet';
 import { Button } from '../ui';
 import { CartButton, CartDrawer } from '../CartDrawer';
 import { NotificationCenter } from '../NotificationCenter';
-import { Menu, X, LogOut, Store, Tag, ArrowLeftRight } from 'lucide-react';
+import { Menu, X, LogOut, Store, Tag, ArrowLeftRight, BarChart3 } from 'lucide-react';
 
 const navLinks = [
     { href: '/marketplace', label: 'Marketplace', icon: Store },
     { href: '/sell', label: 'Sell Items', icon: Tag },
     { href: '/my-trades', label: 'My Trades', icon: ArrowLeftRight },
+    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];
 
 export function Navbar() {

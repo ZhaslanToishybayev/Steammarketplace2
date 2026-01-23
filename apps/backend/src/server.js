@@ -31,16 +31,16 @@ const server = http.createServer(app);
 
 // ========== SOCKET.IO SETUP ==========
 // Socket.io CORS configuration for production domain
-  const frontendOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
-  const origins = frontendOrigin.split(',').map(o => o.trim());
+const frontendOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+const origins = frontendOrigin.split(',').map(o => o.trim());
 
-  const io = new Server(server, {
-    cors: {
-      origin: true, // Allow any origin with credentials (for dev)
-      credentials: true,
-      methods: ["GET", "POST"]
-    },
-  });
+const io = new Server(server, {
+  cors: {
+    origin: true, // Allow any origin with credentials (for dev)
+    credentials: true,
+    methods: ["GET", "POST"]
+  },
+});
 
 // Socket.io Redis adapter for horizontal scaling
 io.adapter(createAdapter(pubClient, subClient));
@@ -57,9 +57,9 @@ io.use((socket, next) => {
     // Verify token and attach user (Mock logic here, replace with real JWT verify if needed)
     socket.user = { steamId: 'mock-steam-id' };
   } else if (steamId) {
-      // Trust the client-provided steamId (INSECURE for prod, but OK for MVP/Localhost with cookie auth on endpoints)
-      // Ideally we should parse the cookie 'connect.sid' here using passport.socketio, but that's heavy.
-      socket.user = { steamId };
+    // Trust the client-provided steamId (INSECURE for prod, but OK for MVP/Localhost with cookie auth on endpoints)
+    // Ideally we should parse the cookie 'connect.sid' here using passport.socketio, but that's heavy.
+    socket.user = { steamId };
   }
   next();
 });
@@ -209,6 +209,8 @@ app.use('/api/watchlist', require('./routes/watchlist'));
 app.use('/api/p2p', require('./routes/p2p'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/bots', require('./routes/bots'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/admin', require('./routes/admin-extended')); // Extended admin routes
 
 // ========== HEALTH CHECK ENDPOINTS ==========
 
@@ -270,7 +272,7 @@ app.get('/health/ready', async (req, res) => {
 app.get('/api/health', async (req, res) => {
   const steamService = require('./config/steam');
   const isSteamConnected = await steamService.testConnection();
-  
+
   res.json({
     status: 'OK',
     service: 'Steam Marketplace API',

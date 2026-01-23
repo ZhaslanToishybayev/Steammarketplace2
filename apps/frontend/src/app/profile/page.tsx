@@ -7,7 +7,7 @@ import { apiClient, InventoryItem, ProfileResponse } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { Button, Input } from '@/components/ui';
 import { motion } from 'framer-motion';
-import { Settings, ExternalLink, Package, Gamepad2, User, Moon, Sun, Link2 } from 'lucide-react';
+import { Settings, ExternalLink, Package, Gamepad2, User, Moon, Sun, Link2, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -56,6 +56,13 @@ export default function ProfilePage() {
       }
     };
     load();
+
+    // Auto-refresh inventory every 30 seconds
+    const interval = setInterval(() => {
+      load();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [selectedGame, router]);
 
   if (loading) {
@@ -147,7 +154,19 @@ export default function ProfilePage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
+                {/* Admin Panel Button - Only for ENTER user */}
+                {profile?.username === 'ENTER' && (
+                  <Link href="/admin">
+                    <Button
+                      variant="outline"
+                      className="border-[#8B5CF6]/30 text-[#8B5CF6] hover:bg-[#8B5CF6]/10"
+                    >
+                      <Shield className="w-5 h-5 mr-2" />
+                      Admin Panel
+                    </Button>
+                  </Link>
+                )}
                 <Button
                   onClick={() => setShowTradeUrl(true)}
                   variant="outline"
@@ -182,50 +201,50 @@ export default function ProfilePage() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#22C55E]/5 rounded-full blur-[80px] pointer-events-none" />
 
             <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-[#22C55E]/10 flex items-center justify-center border border-[#22C55E]/20">
-                    <Link2 className="w-6 h-6 text-[#22C55E]" />
-                </div>
-                <div>
-                    <h3 className="text-2xl font-bold text-white">Connect Steam Trade</h3>
-                    <p className="text-sm text-gray-400">Required to send and receive skins</p>
-                </div>
+              <div className="w-12 h-12 rounded-xl bg-[#22C55E]/10 flex items-center justify-center border border-[#22C55E]/20">
+                <Link2 className="w-6 h-6 text-[#22C55E]" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Connect Steam Trade</h3>
+                <p className="text-sm text-gray-400">Required to send and receive skins</p>
+              </div>
             </div>
 
             <div className="mb-8">
               <label className="block text-sm font-semibold text-gray-300 mb-3 ml-1">Paste your Trade URL</label>
               <div className="relative">
                 <Input
-                    value={tradeUrl}
-                    onChange={(e) => setTradeUrl(e.target.value.trim())}
-                    onPaste={(e: any) => {
-                        const text = e.clipboardData.getData('text');
-                        const match = text.match(/https?:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=\d+&token=[a-zA-Z0-9_-]+/);
-                        if (match) {
-                            e.preventDefault();
-                            setTradeUrl(match[0]);
-                            toast.success('✨ Link auto-detected!');
-                        }
-                    }}
-                    placeholder="https://steamcommunity.com/tradeoffer/new/?partner=..."
-                    className="bg-black/30 border-[#22C55E]/20 text-white placeholder:text-gray-600 h-14 rounded-xl px-4 text-sm font-mono focus:border-[#22C55E]/50 transition-all"
+                  value={tradeUrl}
+                  onChange={(e) => setTradeUrl(e.target.value.trim())}
+                  onPaste={(e: any) => {
+                    const text = e.clipboardData.getData('text');
+                    const match = text.match(/https?:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=\d+&token=[a-zA-Z0-9_-]+/);
+                    if (match) {
+                      e.preventDefault();
+                      setTradeUrl(match[0]);
+                      toast.success('✨ Link auto-detected!');
+                    }
+                  }}
+                  placeholder="https://steamcommunity.com/tradeoffer/new/?partner=..."
+                  className="bg-black/30 border-[#22C55E]/20 text-white placeholder:text-gray-600 h-14 rounded-xl px-4 text-sm font-mono focus:border-[#22C55E]/50 transition-all"
                 />
               </div>
-              
+
               <div className="mt-4 p-4 rounded-xl bg-[#22C55E]/5 border border-[#22C55E]/10 flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#22C55E]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-[#22C55E] text-xs font-bold">?</span>
-                  </div>
-                  <div>
-                      <p className="text-sm text-gray-300 mb-2">Don't know where to find it?</p>
-                      <a
-                        href="https://steamcommunity.com/id/me/tradeoffers/privacy#trade_offer_access_url"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22C55E] hover:text-[#4ADE80] transition-colors uppercase tracking-wide"
-                      >
-                        Open Steam Settings <ExternalLink className="w-3 h-3" />
-                      </a>
-                  </div>
+                <div className="w-5 h-5 rounded-full bg-[#22C55E]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[#22C55E] text-xs font-bold">?</span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-300 mb-2">Don't know where to find it?</p>
+                  <a
+                    href="https://steamcommunity.com/id/me/tradeoffers/privacy#trade_offer_access_url"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#22C55E] hover:text-[#4ADE80] transition-colors uppercase tracking-wide"
+                  >
+                    Open Steam Settings <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
               </div>
             </div>
 
@@ -241,8 +260,8 @@ export default function ProfilePage() {
               <Button
                 onClick={async () => {
                   if (!tradeUrl.match(/partner=\d+&token=/)) {
-                       toast.error('That doesn\'t look like a valid Trade URL');
-                       return;
+                    toast.error('That doesn\'t look like a valid Trade URL');
+                    return;
                   }
                   setSaving(true);
                   try {

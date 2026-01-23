@@ -55,6 +55,13 @@ export default function SellPage() {
             if (user.tradeUrl) {
                 setTradeUrl(user.tradeUrl);
             }
+
+            // Auto-refresh inventory every 30 seconds
+            const interval = setInterval(() => {
+                loadInventory();
+            }, 30000);
+
+            return () => clearInterval(interval);
         }
     }, [user]);
 
@@ -248,26 +255,14 @@ export default function SellPage() {
                                     animate={{ opacity: 1, x: 0 }}
                                     className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
                                 >
-                                    <div className="p-6 border-b border-white/10 flex items-center justify-between">
+                                    <div className="p-6 border-b border-white/10">
                                         <div>
                                             <h2 className="text-xl font-bold text-white">Your Inventory</h2>
-                                            <p className="text-gray-400 text-sm mt-1">{inventory.length} tradable items</p>
+                                            <p className="text-gray-400 text-sm mt-1">
+                                                {loadingInventory ? 'Loading...' : `${inventory.length} tradable items`}
+                                                <span className="text-xs text-gray-500 ml-2">(auto-refresh every 30s)</span>
+                                            </p>
                                         </div>
-                                        <Button
-                                            onClick={loadInventory}
-                                            disabled={loadingInventory}
-                                            className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25"
-                                        >
-                                            {loadingInventory ? (
-                                                <span className="flex items-center gap-2">
-                                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                                    </svg>
-                                                    Loading...
-                                                </span>
-                                            ) : '🔄 Refresh Inventory'}
-                                        </Button>
                                     </div>
 
                                     <div className="p-6 h-[500px] overflow-y-auto custom-scrollbar">
@@ -469,9 +464,9 @@ export default function SellPage() {
                                                         <div className="w-16 h-16 bg-black/30 rounded-xl overflow-hidden">
                                                             <img
                                                                 src={`/image-proxy?url=${encodeURIComponent(
-                                                                    listing.item_icon_url.startsWith('http') 
-                                                                    ? listing.item_icon_url 
-                                                                    : `https://steamcommunity-a.akamaihd.net/economy/image/${listing.item_icon_url}`
+                                                                    listing.item_icon_url.startsWith('http')
+                                                                        ? listing.item_icon_url
+                                                                        : `https://steamcommunity-a.akamaihd.net/economy/image/${listing.item_icon_url}`
                                                                 )}`}
                                                                 alt={listing.item_name}
                                                                 className="w-full h-full object-contain"

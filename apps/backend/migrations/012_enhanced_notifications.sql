@@ -1,32 +1,32 @@
--- Enhanced Notification System Database Schema
--- Table for storing user notifications with fallback mechanism
+-- Enhanced Notification System
+-- Adapted to existing notifications table structure
 
-CREATE TABLE IF NOT EXISTS notifications (
-    id SERIAL PRIMARY KEY,
-    steam_id VARCHAR(20) NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    data JSONB NOT NULL,
-    status VARCHAR(20) DEFAULT 'pending',
-    -- Status: pending, delivered, read
-    created_at TIMESTAMP DEFAULT NOW(),
-    delivered_at TIMESTAMP,
-    read_at TIMESTAMP,
+-- The notifications table already exists with columns:
+-- id, user_steam_id, type, title, message, data, is_read, created_at
 
-    INDEX idx_notifications_steam_id (steam_id),
-    INDEX idx_notifications_status (status),
-    INDEX idx_notifications_type (type),
-    INDEX idx_notifications_created_at (created_at)
-);
+-- Add missing columns if they don't exist
+DO $$
+BEGIN
+    -- Add delivered_at column if missing
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'notifications' AND column_name = 'delivered_at'
+    ) THEN
+        ALTER TABLE notifications ADD COLUMN delivered_at TIMESTAMP;
+    END IF;
+    
+    -- Add read_at column if missing
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'notifications' AND column_name = 'read_at'
+    ) THEN
+        ALTER TABLE notifications ADD COLUMN read_at TIMESTAMP;
+    END IF;
+END $$;
 
--- Add foreign key constraint if users table exists
-ALTER TABLE notifications
-ADD CONSTRAINT fk_notifications_steam_id
-FOREIGN KEY (steam_id) REFERENCES users(steam_id)
-ON DELETE CASCADE;
-
--- Create index for faster queries
-CREATE INDEX IF NOT EXISTS idx_notifications_user_status
-ON notifications (steam_id, status, created_at);
+-- Create additional indexes if not exist
+CREATE INDEX IF NOT EXISTS idx_notifications_user_read 
+ON notifications(user_steam_id, is_read);
 
 -- Function to cleanup old notifications
 CREATE OR REPLACE FUNCTION cleanup_old_notifications()
@@ -42,17 +42,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- View for notification statistics
-CREATE OR REPLACE VIEW notification_stats AS
+-- View for notification statistics (adapted to actual schema)
+DROP VIEW IF EXISTS notification_stats;
+CREATE VIEW notification_stats AS
 SELECT
     COUNT(*) as total,
-    COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
-    COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered,
-    COUNT(CASE WHEN status = 'read' THEN 1 END) as read,
+    COUNT(CASE WHEN is_read = false THEN 1 END) as unread,
+    COUNT(CASE WHEN is_read = true THEN 1 END) as read,
     COUNT(CASE WHEN created_at > NOW() - INTERVAL '1 hour' THEN 1 END) as last_hour,
     COUNT(CASE WHEN created_at > NOW() - INTERVAL '1 day' THEN 1 END) as last_day
 FROM notifications;
 
-COMMENT ON TABLE notifications IS 'User notifications with fallback storage';
-COMMENT ON COLUMN notifications.status IS 'Notification delivery status: pending, delivered, read';
-COMMENT ON COLUMN notifications.data IS 'JSON data for the notification content';
+-- Log completion
+DO $$
+BEGIN
+    RAISE NOTICE 'Enhanced notifications migration completed!';
+END $$;
