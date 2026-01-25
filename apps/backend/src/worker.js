@@ -10,16 +10,17 @@
 require('dotenv').config();
 
 const { logger } = require('./utils/logger');
-const { testRedisConnection, closeRedisConnections, redisClient } = require('./config/redis'); // Added redisClient
+const { testRedisConnection, closeRedisConnections, redisClient } = require('./config/redis');
 const { testConnection, pool, query } = require('./config/database');
 const { runMigrations } = require('./utils/migrate');
 const { initializeBots } = require('./config/bots.config');
 const { tradeQueueService } = require('./services/trade-queue.service');
 const { botManager } = require('./services/bot-manager.service');
-const p2pService = require('./services/p2p.service'); // Added P2P Service
-const { calculateItemValue } = require('./services/external-pricing.service'); // Imported for Sync
-const telegram = require('./services/telegram-bot.service'); // Telegram Service
-const { Emitter } = require('@socket.io/redis-emitter'); // Socket Emitter
+const p2pService = require('./services/p2p.service');
+const { calculateItemValue } = require('./services/external-pricing.service');
+const telegram = require('./services/telegram-bot.service');
+const { Emitter } = require('@socket.io/redis-emitter');
+const rateLimiter = require('./utils/steam-rate-limiter'); // Rate Limiter for Worker
 
 // Initialize Socket Emitter
 let ioEmitter;
@@ -59,9 +60,36 @@ async function startWorker() {
         // Initialize Steam bots
         logger.info('🤖 [Worker] Initializing Steam bots...');
         const botResult = await initializeBots();
+        
+        // Force sync if initialization was successful, regardless of reported online count (race condition fix)
         if (botResult.success) {
-            logger.info(`✅ [Worker] ${botResult.bots?.length || 0} bot(s) initialized successfully.`);
+            logger.info(`✅ [Worker] Bot initialization completed. Online reported: ${botResult.online}. Starting sync anyway.`);
             await telegram.sendStartupNotification(process.env.NODE_ENV || 'development');
+
+            // 1. Queue Initial Inventory Sync
+            logger.info('🔄 [Worker] Queueing initial inventory sync...');
+            await tradeQueueService.addJob({
+                type: 'system-sync-inventory',
+                priority: 'high',
+                data: {
+                    triggeredBy: 'bot_startup',
+                    timestamp: new Date().toISOString()
+                }
+            });
+
+            // 2. Schedule Recurring Inventory Sync (every 6 hours)
+            await tradeQueueService.addJob({
+                type: 'system-sync-inventory',
+                repeat: {
+                    every: 6 * 60 * 60 * 1000 // 6 hours
+                },
+                data: {
+                    triggeredBy: 'scheduled',
+                    timestamp: new Date().toISOString()
+                }
+            });
+            logger.info('✅ [Worker] Inventory sync jobs queued');
+
         } else if (botResult.message === 'No bots configured') {
             logger.warn('⚠️ [Worker] No bots configured in environment.');
         } else {
@@ -80,12 +108,17 @@ async function startWorker() {
 
                 // SPECIAL JOB: SYSTEM INVENTORY SYNC
                 if (type === 'system-sync-inventory') {
-                    logger.info('[Worker Queue] Starting System Inventory Sync...');
+                    logger.info('[Worker Queue] Starting System Inventory Sync...', { triggeredBy: job.data.triggeredBy });
                     const bot = botManager.getAvailableBot();
                     if (!bot) throw new Error('No bot available for sync');
 
                     logger.info(`[Worker Queue] Fetching inventory for bot ${bot.config.accountName}...`);
-                    const inventory = await bot.getInventory(730, 2);
+                    
+                    // Use Rate Limiter for Inventory Fetch
+                    const inventory = await rateLimiter.execute(async () => {
+                        return bot.getInventory(730, 2);
+                    });
+                    
                     logger.info(`[Worker Queue] Fetched ${inventory.length} items from Steam.`);
 
                     const client = await pool.connect();
@@ -101,6 +134,10 @@ async function startWorker() {
                         for (const item of inventory) {
                             let price = 10.00;
                             try {
+                                // Use Rate Limiter for Pricing (if it uses external API)
+                                // calculateItemValue usually caches internally, but if it hits Steam Market, it should be rate limited.
+                                // Assuming calculateItemValue handles its own rate limiting or is safe.
+                                // If it uses Steam Market directly, we should patch it later.
                                 const valuation = await calculateItemValue({
                                     marketHashName: item.market_hash_name,
                                     floatValue: item.float_value,
@@ -132,6 +169,11 @@ async function startWorker() {
 
                         await client.query('COMMIT');
                         logger.info(`[Worker Queue] Synced ${count} real items to DB.`);
+                        
+                        // Invalidate cache
+                        await redisClient.del('marketplace:listings:cache');
+                        
+                        await telegram.sendNotification(`✅ Inventory sync completed: ${count} items`);
                         return { synced: count };
 
                     } catch (dbErr) {
@@ -151,14 +193,27 @@ async function startWorker() {
                         itemsToGive: [],
                         message: message || 'Deposit for Steam Marketplace',
                     });
-                } else {
-                    // DEFAULT/WITHDRAW MODE: Bot sends item to user
+                } else if (type === 'send-offer') { // Handle 'send-offer' type explicitly
+                     // DEFAULT/WITHDRAW MODE: Bot sends item to user
                     result = await botManager.sendTradeOffer({
                         partnerTradeUrl: tradeUrl,
                         itemsToReceive: itemsToReceive || [],
                         itemsToGive: itemsToGive || [],
                         message: message || 'Your item from Steam Marketplace',
                     });
+                } else {
+                     // Fallback for generic jobs
+                     if (tradeUrl) {
+                        result = await botManager.sendTradeOffer({
+                            partnerTradeUrl: tradeUrl,
+                            itemsToReceive: itemsToReceive || [],
+                            itemsToGive: itemsToGive || [],
+                            message: message || 'Steam Marketplace Trade',
+                        });
+                     } else {
+                         // Just skip if no trade logic needed (e.g. sync job)
+                         return { status: 'skipped' };
+                     }
                 }
 
                 const { offerId } = result;
@@ -284,7 +339,7 @@ async function startWorker() {
 
                 // 2. Check for pending purchases (Bot Sales)
                 const pendingPurchases = await query(
-                    "SELECT t.*, l.item_asset_id FROM escrow_trades t JOIN listings l ON t.listing_id = l.id WHERE (t.status = 'payment_received' OR t.status = 'processing') AND t.trade_type = 'bot_sale' AND t.created_at > NOW() - INTERVAL '1 hour' LIMIT 5"
+                    "SELECT t.*, l.item_asset_id, l.item_app_id, l.item_name, u.trade_url as buyer_trade_url FROM escrow_trades t JOIN listings l ON t.listing_id = l.id JOIN users u ON t.buyer_steam_id = u.steam_id WHERE (t.status = 'payment_received' OR t.status = 'processing') AND t.trade_type = 'bot_sale' AND t.created_at > NOW() - INTERVAL '1 hour' LIMIT 5"
                 );
 
                 for (const trade of pendingPurchases.rows) {

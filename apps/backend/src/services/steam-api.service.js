@@ -1,15 +1,11 @@
 const axios = require('axios');
+const rateLimiter = require('../utils/steam-rate-limiter');
 
 class SteamApiService {
     constructor() {
         // Cache: steamId -> { timestamp, data }
         this.cache = new Map();
         this.CACHE_TTL = 300000; // 5 minutes in ms
-
-        // Rate Limiter: simple window
-        this.requests = [];
-        this.RATE_LIMIT = 30; // requests per minute
-        this.RATE_WINDOW = 60000; // 1 minute in ms
     }
 
     async getInventory(steamId, appId = 730, contextId = 2) {
@@ -26,10 +22,7 @@ class SteamApiService {
             return cached.data;
         }
 
-        // 3. Rate Limit Check
-        await this.waitForRateLimit();
-
-        // 4. Request to Steam
+        // 3. Request to Steam using Global Rate Limiter
         console.log(`[SteamApi] Validation passed. Requesting inventory for ${steamId}...`);
         const url = `https://steamcommunity.com/inventory/${steamId}/${appId}/${contextId}`;
 
@@ -43,8 +36,11 @@ class SteamApiService {
                 timeout: 5000 // reasonable timeout
             };
 
-            // Using direct request (no proxies, as per user description)
-            const response = await axios.get(url, config);
+            // Using Global Rate Limiter for request
+            const response = await rateLimiter.execute(async () => {
+                return axios.get(url, config);
+            });
+            
             const data = response.data;
 
             // Check for explicit private status OR the "Ghost Item" state (Count > 0 but Assets = 0)
@@ -103,11 +99,14 @@ class SteamApiService {
         const url = `https://steamcommunity.com/profiles/${steamId}/inventory/`;
 
         try {
-            const response = await axios.get(url, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-                }
+            // Rate Limit HTML scrape too
+            const response = await rateLimiter.execute(async () => {
+                return axios.get(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+                    }
+                });
             });
 
             const html = response.data;
@@ -128,12 +127,6 @@ class SteamApiService {
                 return [];
             }
 
-            // In HTML view, the items are often in g_rgInventory (assets) and g_rgDescriptions
-            // Wait, g_rgAppContextData usually just has context info. 
-            // The ITEMS are in 'var g_rgInventory = ...'
-            // and descriptions in 'var g_rgDescriptions = ...'
-            // Let's look for those.
-
             const inventoryMatch = html.match(/var g_rgInventory = ({.*?});/s);
             const descriptionMatch = html.match(/var g_rgDescriptions = ({.*?});/s);
 
@@ -148,10 +141,6 @@ class SteamApiService {
             // Convert object to array for compatible processing
             const assets = Object.values(inventoryData[appId][contextId]);
             const descriptions = Object.values(descriptionData[appId][contextId]);
-
-            // Reuse existing processor but adapt format manually since scrape format differs slightly
-            // Scraped assets have 'id' instead of 'assetid' sometimes, depending on version.
-            // Let's map manually to be safe based on standard Steam scraping.
 
             // Map descriptions
             const descMap = new Map();
@@ -186,21 +175,6 @@ class SteamApiService {
             console.error(`[SteamApi] HTML Scrape Error: ${err.message}`);
             return [];
         }
-    }
-
-    async waitForRateLimit() {
-        const now = Date.now();
-        // Remove old requests
-        this.requests = this.requests.filter(time => now - time < this.RATE_WINDOW);
-
-        if (this.requests.length >= this.RATE_LIMIT) {
-            const oldest = this.requests[0];
-            const waitTime = this.RATE_WINDOW - (now - oldest) + 1000;
-            console.log(`[SteamApi] Rate limit hit. Waiting ${waitTime}ms...`);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-        }
-
-        this.requests.push(Date.now());
     }
 
     processInventoryResponse(data) {

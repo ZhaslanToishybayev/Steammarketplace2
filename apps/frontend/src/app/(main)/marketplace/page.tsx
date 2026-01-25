@@ -39,25 +39,6 @@ function formatListing(listing: any) {
     };
 }
 
-// Format Steam Market items 
-function formatSteamItem(item: any) {
-    return {
-        id: item.id,
-        price: item.price,
-        createdAt: new Date().toISOString(),
-        item: {
-            name: item.name,
-            marketHashName: item.market_hash_name,
-            iconUrl: item.icon_url ? `/image-proxy?url=${encodeURIComponent(item.icon_url)}` : '',
-            image: item.icon_url ? `/image-proxy?url=${encodeURIComponent(item.icon_url)}` : '',
-            rarity: { name: item.rarity },
-            quality: { name: item.exterior },
-            type: { name: 'Weapon' }
-        },
-        source: 'steam_market'
-    };
-}
-
 async function getListings() {
     const apiUrl = process.env.INTERNAL_API_URL || 'http://backend:3001/api';
     const controller = new AbortController();
@@ -81,32 +62,10 @@ async function getListings() {
             }
         }
 
-        // If no listings, get items from Steam Market API
-        console.log('[Marketplace] No listings in DB, fetching from Steam Market API...');
-
-        const steamController = new AbortController();
-        const steamTimeoutId = setTimeout(() => steamController.abort(), 30000);
-
-        try {
-            const steamRes = await fetch(`${apiUrl}/analytics/steam-market-items?limit=24`, {
-                cache: 'no-store',
-                signal: steamController.signal,
-                headers: { 'Content-Type': 'application/json' },
-            });
-            clearTimeout(steamTimeoutId);
-
-            if (steamRes.ok) {
-                const steamData = await steamRes.json();
-                if (steamData?.data && Array.isArray(steamData.data)) {
-                    console.log(`[Marketplace] Got ${steamData.data.length} items from Steam Market`);
-                    return steamData.data.map(formatSteamItem);
-                }
-            }
-        } catch (steamError) {
-            console.error('Failed to fetch Steam Market items:', steamError);
-        }
-
+        // If no listings, return empty array (DO NOT use fallback to Steam Market)
+        console.log('[Marketplace] No listings found. Bot inventory may not be synced yet.');
         return [];
+
     } catch (error) {
         clearTimeout(timeoutId);
         console.error('Failed to fetch listings:', error);
@@ -116,6 +75,40 @@ async function getListings() {
 
 export default async function MarketplacePage() {
     const listings = await getListings();
+    
+    // If empty, show sync message (client-side component handles UI if passed empty)
+    // Actually MarketplaceGrid might handle empty state, let's check or inject a wrapper
+    if (listings.length === 0) {
+        // Return a server-side empty state or client component that handles polling
+        // For simplicity, we return empty list to MarketplaceGrid, assuming it handles empty state nicely.
+        // But per spec, we want a "Syncing..." UI.
+        
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center p-8">
+                <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mb-6">
+                    <svg className="w-12 h-12 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                    Синхронизация инвентаря...
+                </h2>
+                <p className="text-gray-400 text-center max-w-md mb-6">
+                    Бот загружает предметы в маркетплейс. Обычно это занимает 30-60 секунд после запуска сервера.
+                </p>
+                {/* Client-side refresh button would require a client component wrapper */}
+                <form action="">
+                    <button 
+                        type="submit"
+                        className="px-6 py-3 bg-amber-500 hover:bg-amber-600 rounded-lg font-semibold transition text-white"
+                    >
+                        Обновить страницу
+                    </button>
+                </form>
+            </div>
+        );
+    }
+
     return <MarketplaceGrid initialListings={listings} />;
 }
-

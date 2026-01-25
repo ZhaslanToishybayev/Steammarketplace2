@@ -175,6 +175,10 @@ const nextConfig = {
         source: '/socket.io/:path*',
         destination: 'http://steam-marketplace-backend:3001/socket.io/:path*', // Docker container name
       },
+      {
+        source: '/api/:path*',
+        destination: 'http://steam-marketplace-backend:3001/api/:path*', // Docker container name
+      },
     ];
   },
   webpack: (config) => {
