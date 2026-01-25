@@ -211,6 +211,7 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/bots', require('./routes/bots'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/admin', require('./routes/admin-extended')); // Extended admin routes
+app.use('/api/admin/alerts', require('./routes/alerts')); // Alertmanager webhook
 
 // ========== HEALTH CHECK ENDPOINTS ==========
 

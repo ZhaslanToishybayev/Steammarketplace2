@@ -1,0 +1,20 @@
+groups:
+  - name: steam_bot_alerts
+    interval: 30s
+    rules:
+      - alert: BotOffline
+        expr: steam_bot_online == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Steam bot {{ $labels.bot_name }} is offline"
+          description: "Bot has been offline for 5 minutes"
+
+      - alert: RateLimitHit
+        expr: increase(steam_api_rate_limit_hits[5m]) > 5
+        labels:
+          severity: warning
+        annotations:
+          summary: "Steam API rate limit hit"
+          description: "Rate limiter blocked {{ $value }} requests in 5m"

@@ -78,4 +78,7 @@ class SteamRateLimiter {
 }
 
 // Export singleton
-module.exports = new SteamRateLimiter();
+const instance = new SteamRateLimiter();
+// Attach class definition for testing
+instance.SteamRateLimiter = SteamRateLimiter;
+module.exports = instance;

@@ -23,11 +23,17 @@ services:
       POSTGRES_PASSWORD: steam_password
       # STEAM_API_KEY removed - using real key from .env
       CORS_ORIGIN: http://localhost:3000,http://localhost:3001,https://localhost:3000,https://localhost:3001
+      # Telegram Configuration
+      TELEGRAM_BOT_TOKEN: 8062945491:AAEEqdCc2YeT07bRKbHAJBanpIi_GIgyqTk
+      # TELEGRAM_CHAT_ID: <Set this in .env or here after running scripts/get-telegram-id.js>
 
   # Worker - Development defaults
   worker:
     volumes:
       - ./apps/backend/src:/app/src
+    environment:
+      TELEGRAM_BOT_TOKEN: 8062945491:AAEEqdCc2YeT07bRKbHAJBanpIi_GIgyqTk
+
 
   # Note: grafana, postgres-exporter, redis-exporter are not defined in docker-compose.yml
   # Add these services to docker-compose.yml if monitoring is needed
