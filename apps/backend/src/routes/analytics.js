@@ -1,8 +1,8 @@
 // ==================== STEAM MARKET FEATURED ITEMS ====================
 
+const express = require('express');
+const router = express.Router();
 const axios = require('axios');
-const rateLimiter = require('../services/utils/steam-rate-limiter'); // Adjust path if needed
-// Actually, path should be relative to this file: ../utils/steam-rate-limiter
 const steamRateLimiter = require('../utils/steam-rate-limiter');
 const { redisClient } = require('../config/redis');
 
@@ -175,3 +175,16 @@ router.get('/popular-items', async (req, res) => {
             SELECT market_hash_name, game_id, total_sales, avg_price, 
                    volume_24h, price_trend, image_url, rarity
             FROM popular_items_cache
+            WHERE 1=1
+        `;
+        
+        // Mock response for now as we don't have this table populated yet
+        res.json({ success: true, data: [] });
+
+    } catch (err) {
+        console.error('Popular items error:', err);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+module.exports = router;

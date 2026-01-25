@@ -15,12 +15,20 @@ services:
 
   # Backend API - Development defaults
   backend:
+    volumes:
+      - ./apps/backend/src:/app/src
     environment:
       JWT_SECRET: dev-jwt-secret-key-change-in-production
       JWT_REFRESH_SECRET: dev-jwt-refresh-secret-key-change-in-production
       POSTGRES_PASSWORD: steam_password
       # STEAM_API_KEY removed - using real key from .env
       CORS_ORIGIN: http://localhost:3000,http://localhost:3001,https://localhost:3000,https://localhost:3001
+
+  # Worker - Development defaults
+  worker:
+    volumes:
+      - ./apps/backend/src:/app/src
+
   # Note: grafana, postgres-exporter, redis-exporter are not defined in docker-compose.yml
   # Add these services to docker-compose.yml if monitoring is needed
 

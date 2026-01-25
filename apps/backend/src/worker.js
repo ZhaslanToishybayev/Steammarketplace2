@@ -64,28 +64,45 @@ async function startWorker() {
         // Force sync if initialization was successful, regardless of reported online count (race condition fix)
         if (botResult.success) {
             logger.info(`✅ [Worker] Bot initialization completed. Online reported: ${botResult.online}. Starting sync anyway.`);
+
+            // Register bots in DB so they appear in API
+            const bots = botManager.getAllBots();
+            for (const bot of bots) {
+                 if (bot.isReady && bot.config.steamId) {
+                     try {
+                        await query(`
+                            INSERT INTO bots (steam_id, account_name, status, last_online_at, updated_at)
+                            VALUES ($1, $2, 'online', NOW(), NOW())
+                            ON CONFLICT (steam_id) 
+                            DO UPDATE SET status = 'online', last_online_at = NOW(), updated_at = NOW()
+                        `, [bot.config.steamId, bot.config.accountName]);
+                        logger.info(`[Worker] Registered bot ${bot.config.accountName} in DB.`);
+                     } catch (err) {
+                        logger.error(`[Worker] Failed to register bot ${bot.config.accountName} in DB: ${err.message}`);
+                     }
+                 }
+            }
+
             await telegram.sendStartupNotification(process.env.NODE_ENV || 'development');
 
             // 1. Queue Initial Inventory Sync
             logger.info('🔄 [Worker] Queueing initial inventory sync...');
-            await tradeQueueService.addJob({
+            await tradeQueueService.addTradeJob({
                 type: 'system-sync-inventory',
-                priority: 'high',
-                data: {
-                    triggeredBy: 'bot_startup',
-                    timestamp: new Date().toISOString()
-                }
+                triggeredBy: 'bot_startup',
+                timestamp: new Date().toISOString()
+            }, {
+                priority: 1 // High priority
             });
 
             // 2. Schedule Recurring Inventory Sync (every 6 hours)
-            await tradeQueueService.addJob({
+            await tradeQueueService.addTradeJob({
                 type: 'system-sync-inventory',
+                triggeredBy: 'scheduled',
+                timestamp: new Date().toISOString()
+            }, {
                 repeat: {
                     every: 6 * 60 * 60 * 1000 // 6 hours
-                },
-                data: {
-                    triggeredBy: 'scheduled',
-                    timestamp: new Date().toISOString()
                 }
             });
             logger.info('✅ [Worker] Inventory sync jobs queued');
@@ -173,7 +190,7 @@ async function startWorker() {
                         // Invalidate cache
                         await redisClient.del('marketplace:listings:cache');
                         
-                        await telegram.sendNotification(`✅ Inventory sync completed: ${count} items`);
+                        await telegram.sendMessage(`Inventory sync completed: ${count} items`, 'success');
                         return { synced: count };
 
                     } catch (dbErr) {

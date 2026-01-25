@@ -52,7 +52,8 @@ async function initializeBots() {
     try {
         const results = await botManager.startAll();
 
-        const successful = results.filter(r => r.status === 'fulfilled' && r.value?.success).length;
+        // Fix: startAll returns array of objects, not Promise.allSettled results
+        const successful = results.filter(r => r.success).length;
         const failed = results.length - successful;
 
         if (successful > 0) {
