@@ -1,5 +1,11 @@
 const axios = require('axios');
 const rateLimiter = require('../utils/steam-rate-limiter');
+let metrics;
+try {
+    metrics = require('./metrics.service');
+} catch (e) {
+    // Optional dependency
+}
 
 class SteamApiService {
     constructor() {
@@ -37,9 +43,13 @@ class SteamApiService {
             };
 
             // Using Global Rate Limiter for request
+            const start = Date.now();
             const response = await rateLimiter.execute(async () => {
                 return axios.get(url, config);
             });
+            const duration = (Date.now() - start) / 1000;
+
+            if (metrics) metrics.recordSteamApiCall('inventory', 'success', duration);
             
             const data = response.data;
 
@@ -87,6 +97,9 @@ class SteamApiService {
 
         } catch (error) {
             console.error(`[SteamApi] Request failed: ${error.message}`);
+            
+            if (metrics) metrics.recordSteamApiCall('inventory', 'error', 0);
+
             if (error.response?.status === 429) {
                 console.warn('[SteamApi] Rate Limited (429)');
             }
@@ -100,6 +113,7 @@ class SteamApiService {
 
         try {
             // Rate Limit HTML scrape too
+            const start = Date.now();
             const response = await rateLimiter.execute(async () => {
                 return axios.get(url, {
                     headers: {
@@ -108,6 +122,8 @@ class SteamApiService {
                     }
                 });
             });
+            const duration = (Date.now() - start) / 1000;
+            if (metrics) metrics.recordSteamApiCall('inventory_html', 'success', duration);
 
             const html = response.data;
             if (typeof html !== 'string') return [];

@@ -69,11 +69,12 @@ export function Navbar() {
                                     <NotificationCenter steamId={user.steamId} />
                                     <CartButton onClick={() => setCartOpen(true)} />
 
-                                    {/* Balance - Hidden on small mobile */}
-                                    <div className="hidden sm:flex items-center gap-1 bg-[#4CAF50]/10 text-[#4CAF50] px-3 py-1.5 rounded-lg font-mono font-bold border border-[#4CAF50]/20 text-sm">
+                                    {/* Balance - Visible on all devices, clickable */}
+                                    <Link href="/wallet" className="flex items-center gap-1 bg-[#4CAF50]/10 hover:bg-[#4CAF50]/20 transition-colors text-[#4CAF50] px-3 py-1.5 rounded-lg font-mono font-bold border border-[#4CAF50]/20 text-sm">
                                         <span className="text-[#4CAF50]/60">$</span>
                                         {balance.toFixed(2)}
-                                    </div>
+                                        <span className="ml-1 text-[10px] bg-[#4CAF50] text-[#0D0D12] px-1 rounded-sm">+</span>
+                                    </Link>
 
                                     {/* User Avatar - Desktop */}
                                     <Link

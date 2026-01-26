@@ -235,27 +235,6 @@ class SteamBot extends EventEmitter {
     return new Promise((resolve, reject) => {
       const { partnerSteamId, partnerTradeUrl, itemsToGive, itemsToReceive, message } = options;
 
-      // MOCK SIMULATION
-      const isMock = itemsToGive && itemsToGive.some(i => String(i.assetid).startsWith('mock_'));
-      if (isMock) {
-        console.log(`[Bot ${this.config.accountName}] Simulating MOCK Trade Offer...`);
-        const mockId = `MOCK-${Date.now()}`;
-
-        // Simulate "Trade Sent"
-        setTimeout(() => {
-          // Simulate "User Accepted" after 5 seconds
-          console.log(`[Bot ${this.config.accountName}] Auto-completing MOCK trade ${mockId}`);
-          this.emit('sentOfferChanged', {
-            id: mockId,
-            oldState: TradeOfferManager.ETradeOfferState.Active,
-            newState: TradeOfferManager.ETradeOfferState.Accepted,
-            stateName: 'Accepted'
-          });
-        }, 5000);
-
-        return resolve(mockId);
-      }
-
       if (!this.isReady) {
         return reject(new Error('Bot is not ready'));
       }
@@ -419,21 +398,6 @@ class SteamBot extends EventEmitter {
    */
   async getTradeOfferStatus(offerId) {
     return new Promise((resolve, reject) => {
-      // MOCK INTERCEPT
-      if (typeof offerId === 'string' && offerId.startsWith('MOCK-')) {
-        return resolve({
-          id: offerId,
-          state: 3, // Accepted
-          stateName: 'Accepted',
-          isOurOffer: true,
-          partner: null,
-          itemsToGive: [],
-          itemsToReceive: [],
-          created: new Date(),
-          updated: new Date()
-        });
-      }
-
       this.manager.getOffer(offerId, (err, offer) => {
         if (err) return reject(err);
 
@@ -480,78 +444,8 @@ class SteamBot extends EventEmitter {
       stateName: TradeOfferManager.ETradeOfferState[offer.state]
     });
 
-    // MOCK: If this was a mock offer, we don't have DB logic here usually, handled by external service listening to event.
-    // BUT for real integration, we should update the DB here or ensure the listener does it.
-
-    // Check if we need to update DB directly (Service Layer Pattern usually handles this via event)
-    // However, to ensure "Bot verifies", let's import the DB query here or emit a specific event the Escrow Service listens to.
-
-    // For now, let's keep it emitting. The EscrowService already monitors 'trade-queue' or similar?
-    // Actually, EscrowService needs to listen to these bot events.
-    // Let's add direct DB update here to be safe and immediate.
-
-    try {
-      const { query } = require('../config/database');
-
-      let newStatus = null;
-      if (offer.state === TradeOfferManager.ETradeOfferState.Accepted) {
-        newStatus = 'completed'; // For bot sale, accepted means user got item
-      } else if (offer.state === TradeOfferManager.ETradeOfferState.Declined) {
-        newStatus = 'cancelled';
-      } else if (offer.state === TradeOfferManager.ETradeOfferState.Canceled) {
-        newStatus = 'cancelled';
-      }
-
-      if (newStatus) {
-        // Update trade status in DB
-        await query(`
-                UPDATE escrow_trades 
-                SET status = $1, updated_at = NOW()
-                WHERE buyer_trade_offer_id = $2
-            `, [newStatus, offer.id]);
-        console.log(`[Bot ${this.config.accountName}] Updated DB trade status to ${newStatus} for offer ${offer.id}`);
-
-        // === REAL-TIME WEBSOCKET NOTIFICATION ===
-        try {
-          const { notifyTradeUpdate } = require('./ws-notifier');
-
-          // Get buyer/seller SteamID from DB for targeted notification
-          const tradeResult = await query(
-            'SELECT buyer_steam_id, seller_steam_id FROM escrow_trades WHERE buyer_trade_offer_id = $1',
-            [offer.id]
-          );
-
-          if (tradeResult.rows.length > 0) {
-            const { buyer_steam_id, seller_steam_id } = tradeResult.rows[0];
-
-            const tradeData = {
-              offerId: offer.id,
-              status: newStatus,
-              stateName: TradeOfferManager.ETradeOfferState[offer.state],
-              message: newStatus === 'completed'
-                ? 'Trade Accepted! Item delivered successfully.'
-                : 'Trade was cancelled or declined.'
-            };
-
-            // Notify buyer
-            if (buyer_steam_id) {
-              await notifyTradeUpdate(buyer_steam_id, tradeData);
-              console.log(`[Bot ${this.config.accountName}] Real-time notification sent to buyer: ${buyer_steam_id}`);
-            }
-
-            // Notify seller
-            if (seller_steam_id) {
-              await notifyTradeUpdate(seller_steam_id, tradeData);
-              console.log(`[Bot ${this.config.accountName}] Real-time notification sent to seller: ${seller_steam_id}`);
-            }
-          }
-        } catch (wsErr) {
-          console.warn(`[Bot ${this.config.accountName}] WebSocket notification failed:`, wsErr.message);
-        }
-      }
-    } catch (err) {
-      console.error(`[Bot ${this.config.accountName}] Failed to update DB on offer change:`, err.message);
-    }
+    // DB updates are handled by EscrowListenerService listening to this event.
+    // We removed direct DB access here to prevent race conditions and circular dependencies.
   }
 
   /**

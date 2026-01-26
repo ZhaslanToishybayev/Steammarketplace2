@@ -98,22 +98,27 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
 
     try {
+        console.log(`[AdminLogin] Attempting login for: ${username}`);
         const result = await pool.query(
             'SELECT id, username, password_hash, role, is_active FROM admins WHERE username = $1',
             [username]
         );
 
         if (result.rows.length === 0) {
+            console.log('[AdminLogin] User not found');
             return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
 
         const admin = result.rows[0];
+        console.log(`[AdminLogin] User found: ${admin.username}, Hash: ${admin.password_hash}`);
 
         if (!admin.is_active) {
             return res.status(401).json({ success: false, error: 'Account disabled' });
         }
 
         const validPassword = await bcrypt.compare(password, admin.password_hash);
+        console.log(`[AdminLogin] Password valid? ${validPassword}`);
+        
         if (!validPassword) {
             return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
@@ -163,7 +168,7 @@ router.get('/dashboard', adminAuth, async (req, res) => {
             pool.query('SELECT COUNT(*) as count FROM users'),
             pool.query('SELECT COUNT(*) as count FROM listings WHERE status = $1', ['active']),
             pool.query('SELECT COUNT(*) as count FROM escrow_trades'),
-            pool.query('SELECT COUNT(*) as count FROM bots WHERE is_online = true'),
+            pool.query("SELECT COUNT(*) as count FROM bots WHERE status = 'online'"),
             pool.query(`SELECT COALESCE(SUM(CAST(price AS DECIMAL)), 0) as volume 
                        FROM escrow_trades WHERE status = 'completed'`),
             pool.query(`SELECT COUNT(*) as count FROM escrow_trades 
@@ -488,8 +493,12 @@ router.post('/trades/:id/process-withdrawal', adminAuth, async (req, res) => {
 router.get('/bots', adminAuth, async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT id, account_name, steam_id, is_online, inventory_count, 
-                   active_trades, last_login_at, created_at
+            SELECT id, account_name, steam_id, 
+                   CASE WHEN status = 'online' THEN true ELSE false END as is_online,
+                   inventory_count, 
+                   active_trades_count as active_trades, 
+                   last_online_at as last_login_at, 
+                   created_at
             FROM bots
             ORDER BY id
         `);
@@ -608,7 +617,7 @@ router.get('/analytics/top-items', adminAuth, async (req, res) => {
 // GET /admin/analytics/bots - Bot status
 router.get('/analytics/bots', adminAuth, async (req, res) => {
     try {
-        const bots = analyticsService.getBotStats();
+        const bots = await analyticsService.getBotStats();
         res.json({ success: true, data: bots });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });

@@ -40,8 +40,6 @@ export default function SellPage() {
     const [loadingListings, setLoadingListings] = useState(false);
     const [sellMode, setSellMode] = useState<'listing' | 'instant'>('instant');
 
-    // Mock instant price calculation (real world would fetch from backend)
-    // For now, let's assume Instant Price is ~70% of user input or a fixed mock if unknown
     const instantPriceEstimate = selectedItem ? (parseFloat(price || '10') * 0.70).toFixed(2) : '0.00';
 
     useEffect(() => {
@@ -56,7 +54,6 @@ export default function SellPage() {
                 setTradeUrl(user.tradeUrl);
             }
 
-            // Auto-refresh inventory every 30 seconds
             const interval = setInterval(() => {
                 loadInventory();
             }, 30000);
@@ -115,9 +112,6 @@ export default function SellPage() {
         setSubmitting(true);
         try {
             if (sellMode === 'instant') {
-                // Instant Sell Flow
-                // We need to fetch the REAL instant price from backend ideally, but here we will send what we have
-                // The backend 'instant.js' re-calculates price anyway.
                 await sellItems({
                     items: [{
                         assetId: selectedItem.assetid,
@@ -127,11 +121,9 @@ export default function SellPage() {
                     }],
                     tradeUrl: tradeUrl
                 });
-                // Note: sellItems hook handles success toast
                 setSelectedItem(null);
                 setInventory(inventory.filter(i => i.assetid !== selectedItem.assetid));
             } else {
-                // P2P Listing Flow
                 const response = await apiClient.createListing({
                     assetId: selectedItem.assetid,
                     name: selectedItem.name,
@@ -150,7 +142,6 @@ export default function SellPage() {
                 }
             }
         } catch (err: any) {
-            // Error handled in hook or here
             if (sellMode === 'listing') toast.error(err.message || 'Failed to create listing');
         } finally {
             setSubmitting(false);
@@ -169,7 +160,6 @@ export default function SellPage() {
         }
     };
 
-    // Loading state
     if (authLoading) {
         return (
             <div className="min-h-screen bg-[var(--bg-primary)]">
@@ -183,7 +173,6 @@ export default function SellPage() {
         );
     }
 
-    // Not logged in
     if (!user) {
         return (
             <div className="min-h-screen bg-[var(--bg-primary)]">
@@ -214,14 +203,12 @@ export default function SellPage() {
     return (
         <div className="min-h-screen bg-[var(--bg-primary)]">
             <div className="relative">
-                {/* Decorative background elements */}
                 <div className="fixed inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#FF8C00]/5 rounded-full blur-[120px]"></div>
                     <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#E67E00]/5 rounded-full blur-[120px]"></div>
                 </div>
 
                 <main className="container mx-auto px-6 py-8">
-                    {/* Page Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -235,7 +222,6 @@ export default function SellPage() {
                         </p>
                     </motion.div>
 
-                    {/* Tab Navigation */}
                     <Tabs defaultValue="sell" className="w-full">
                         <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl mx-auto w-fit mb-10">
                             <TabsTrigger value="sell" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-xl px-8 py-3 font-semibold">
@@ -246,23 +232,32 @@ export default function SellPage() {
                             </TabsTrigger>
                         </TabsList>
 
-                        {/* Sell Tab */}
                         <TabsContent value="sell">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                {/* Inventory Section */}
                                 <motion.div
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
                                 >
-                                    <div className="p-6 border-b border-white/10">
+                                    <div className="p-6 border-b border-white/10 flex justify-between items-start">
                                         <div>
                                             <h2 className="text-xl font-bold text-white">Your Inventory</h2>
                                             <p className="text-gray-400 text-sm mt-1">
-                                                {loadingInventory ? 'Loading...' : `${inventory.length} tradable items`}
-                                                <span className="text-xs text-gray-500 ml-2">(auto-refresh every 30s)</span>
+                                                {loadingInventory ? 'Loading from Steam...' : `${inventory.length} tradable items`}
                                             </p>
                                         </div>
+                                        <Button 
+                                            size="sm" 
+                                            variant="ghost" 
+                                            onClick={loadInventory} 
+                                            disabled={loadingInventory}
+                                            className="text-gray-400 hover:text-white"
+                                        >
+                                            <svg className={`w-4 h-4 mr-2 ${loadingInventory ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Refresh
+                                        </Button>
                                     </div>
 
                                     <div className="p-6 h-[500px] overflow-y-auto custom-scrollbar">
@@ -278,8 +273,17 @@ export default function SellPage() {
                                                         <div className="w-24 h-24 bg-white/5 rounded-2xl flex items-center justify-center mb-6">
                                                             <span className="text-5xl opacity-50">📦</span>
                                                         </div>
-                                                        <h3 className="text-white font-semibold mb-2">No Items Loaded</h3>
-                                                        <p className="text-gray-400 text-sm mb-6">Click the button above to load your CS2 inventory</p>
+                                                        <h3 className="text-white font-semibold mb-2">No Items Found</h3>
+                                                        <p className="text-gray-400 text-sm mb-6 max-w-xs mx-auto">
+                                                            We couldn't find any tradable items. 
+                                                            <br/><br/>
+                                                            • Check if your inventory is <b>Public</b>
+                                                            <br/>
+                                                            • Ensure items are <b>Tradable</b> (7-day lock)
+                                                        </p>
+                                                        <Button onClick={loadInventory} variant="outline" className="border-white/20 hover:bg-white/10">
+                                                            Try Again
+                                                        </Button>
                                                     </>
                                                 )}
                                             </div>
@@ -314,7 +318,6 @@ export default function SellPage() {
                                     </div>
                                 </motion.div>
 
-                                {/* Listing Form */}
                                 <motion.div
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -332,7 +335,6 @@ export default function SellPage() {
                                                 onSubmit={handleSubmit}
                                                 className="space-y-6"
                                             >
-                                                {/* Selected Item Preview */}
                                                 <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-2xl p-5 flex items-center gap-5 border border-amber-500/20">
                                                     <div className="w-24 h-24 bg-black/30 rounded-xl overflow-hidden flex-shrink-0">
                                                         <img
@@ -348,7 +350,6 @@ export default function SellPage() {
                                                     </div>
                                                 </div>
 
-                                                {/* Price / Info Section */}
                                                 <div className="space-y-3 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-amber-200 font-medium">Bot Offer</span>
@@ -359,7 +360,6 @@ export default function SellPage() {
                                                     </p>
                                                 </div>
 
-                                                {/* Trade URL */}
                                                 <div className="space-y-3">
                                                     <label className="text-white font-medium">Steam Trade URL</label>
                                                     <Input
@@ -380,7 +380,6 @@ export default function SellPage() {
                                                     </a>
                                                 </div>
 
-                                                {/* Submit Button */}
                                                 <Button
                                                     type="submit"
                                                     disabled={submitting || isSelling}
@@ -422,7 +421,6 @@ export default function SellPage() {
                             </div>
                         </TabsContent>
 
-                        {/* Listings Tab */}
                         <TabsContent value="listings">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -508,7 +506,6 @@ export default function SellPage() {
                 </main>
             </div>
 
-            {/* Custom scrollbar styles */}
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 8px;

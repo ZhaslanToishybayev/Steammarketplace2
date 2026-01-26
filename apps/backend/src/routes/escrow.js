@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const { query } = require('../config/database');
 const { botManager } = require('../services/bot-manager.service');
 const auditService = require('../services/audit.service');
+const metrics = require('../services/metrics.service');
 
 // Middleware to check authentication
 const requireAuth = (req, res, next) => {
@@ -153,6 +154,11 @@ router.post('/buy/:listingId', requireAuth, async (req, res) => {
             console.log(`[Marketplace] Deducting balance for user ${buyerSteamId}`);
             await client.query("UPDATE users SET balance = balance - $1 WHERE steam_id = $2", [price, buyerSteamId]);
             
+            // Record financial metrics
+            metrics.recordTradeVolume(price);
+            metrics.recordPlatformFee(platformFee);
+            metrics.updateBalanceMetrics(); // Update total balance metric
+
             // Mark listing as sold
             console.log(`[Marketplace] Marking listing ${listingId} as sold`);
             await client.query("UPDATE listings SET status = 'sold', updated_at = NOW() WHERE id = $1", [listingId]);

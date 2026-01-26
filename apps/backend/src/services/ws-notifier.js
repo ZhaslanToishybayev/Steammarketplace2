@@ -1,35 +1,57 @@
 /**
- * Singleton WebSocket Notifier
- * Initialized by server.js, used by other services
+ * Socket.IO Notifier (Unified)
+ * Uses the main Socket.IO instance to send real-time updates
  */
 
-let wsNotificationService = null;
+let ioInstance = null;
 
-function setWsNotificationService(service) {
-    wsNotificationService = service;
-    console.log('[WsNotifier] Service registered');
+function setIoInstance(io) {
+    ioInstance = io;
+    console.log('[WsNotifier] Socket.IO instance registered');
 }
 
-function getWsNotificationService() {
-    return wsNotificationService;
+function getIoInstance() {
+    return ioInstance;
 }
 
-// Convenience Methods
+/**
+ * Notify user about trade update
+ * @param {string} steamId 
+ * @param {object} tradeData 
+ */
 async function notifyTradeUpdate(steamId, tradeData) {
-    if (wsNotificationService) {
-        await wsNotificationService.notifyTradeUpdate(steamId, tradeData);
+    if (ioInstance) {
+        // Emit to user's personal room
+        ioInstance.to(`user:${steamId}`).emit('trade:update', tradeData);
+        
+        // Also emit to specific trade room
+        if (tradeData.tradeUuid) {
+            ioInstance.to(`trade:${tradeData.tradeUuid}`).emit('trade:update', tradeData);
+        }
+        
+        console.log(`[WsNotifier] Sent trade update to ${steamId}`);
+    } else {
+        console.warn('[WsNotifier] Socket.IO not initialized, skipping notification');
     }
 }
 
+/**
+ * Send system notification
+ */
 async function notifySystem(steamId, title, message) {
-    if (wsNotificationService) {
-        await wsNotificationService.notifySystem(steamId, title, message);
+    if (ioInstance) {
+        ioInstance.to(`user:${steamId}`).emit('notification', {
+            type: 'system',
+            title,
+            message,
+            timestamp: Date.now()
+        });
     }
 }
 
 module.exports = {
-    setWsNotificationService,
-    getWsNotificationService,
+    setIoInstance,
+    getIoInstance,
     notifyTradeUpdate,
     notifySystem
 };

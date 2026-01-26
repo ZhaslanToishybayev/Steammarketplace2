@@ -2,6 +2,17 @@ groups:
   - name: steam_bot_alerts
     interval: 30s
     rules:
+      # === SYSTEM ALERTS ===
+      - alert: WorkerDown
+        expr: up{job="worker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Worker instance is down"
+          description: "Worker container is not reachable for 1 minute"
+
+      # === EXISTING ALERTS ===
       - alert: BotOffline
         expr: steam_bot_online == 0
         for: 5m
@@ -13,8 +24,91 @@ groups:
 
       - alert: RateLimitHit
         expr: increase(steam_api_rate_limit_hits[5m]) > 5
+        for: 5m
         labels:
           severity: warning
         annotations:
           summary: "Steam API rate limit hit"
           description: "Rate limiter blocked {{ $value }} requests in 5m"
+
+      # === NEW ALERTS ===
+
+      # 1. High Error Rate (5xx errors)
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "{{ $value | humanize }} errors/sec for 2 minutes"
+
+      # 2. Slow Trade Completion
+      - alert: SlowTradeCompletion
+        expr: histogram_quantile(0.95, rate(trade_completion_duration_seconds_bucket[10m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow trade completion"
+          description: "P95 trade completion time is {{ $value | humanize }}s (>5min)"
+
+      # 3. Bot Inventory Empty
+      - alert: BotInventoryLow
+        expr: bot_inventory_size < 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Bot {{ $labels.bot_name }} inventory low"
+          description: "Only {{ $value }} items left in inventory"
+
+      # 4. High Trade Failure Rate
+      - alert: HighTradeFailureRate
+        expr: rate(trade_failure_total[10m]) / (rate(trade_success_total[10m]) + 0.001) > 0.2
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High trade failure rate"
+          description: "{{ $value | humanizePercentage }} of trades are failing"
+
+      # 5. Redis Cache Issues
+      - alert: LowCacheHitRate
+        expr: rate(redis_cache_hits_total[5m]) / (rate(redis_cache_hits_total[5m]) + rate(redis_cache_misses_total[5m]) + 0.001) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low Redis cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+
+      # 6. Steam API Errors
+      - alert: SteamApiErrors
+        expr: rate(steam_api_calls_total{status="error"}[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Steam API errors detected"
+          description: "{{ $value | humanize }} Steam API errors/sec"
+
+      # 7. Active Listings Low
+      - alert: LowActiveListings
+        expr: active_listings_total < 3
+        for: 15m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low number of active listings"
+          description: "Only {{ $value }} active listings available"
+
+      # 8. High Database Latency
+      - alert: HighDatabaseLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{route=~".*api.*"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database latency"
+          description: "P95 API response time is {{ $value | humanize }}s"

@@ -21,6 +21,8 @@ const { calculateItemValue } = require('./services/external-pricing.service');
 const telegram = require('./services/telegram-bot.service');
 const { Emitter } = require('@socket.io/redis-emitter');
 const rateLimiter = require('./utils/steam-rate-limiter'); // Rate Limiter for Worker
+const metrics = require('./services/metrics.service');
+const express = require('express');
 
 // Initialize Socket Emitter
 let ioEmitter;
@@ -33,6 +35,16 @@ try {
 // Initialize Listeners that depend on bots
 require('./services/deposit.service');
 require('./services/escrow-listener.service');
+
+// Start Metrics Server (for Prometheus)
+const app = express();
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', metrics.register.contentType);
+    res.end(await metrics.register.metrics());
+});
+app.listen(3001, () => {
+    logger.info('📊 [Worker] Metrics server listening on port 3001');
+});
 
 async function startWorker() {
     logger.info('🔧 Starting Worker Process...');
@@ -56,6 +68,7 @@ async function startWorker() {
 
         // Run migrations (idempotent, safe to run in worker too)
         await runMigrations();
+        await metrics.initializeMetrics();
 
         // Initialize Steam bots
         logger.info('🤖 [Worker] Initializing Steam bots...');
@@ -137,6 +150,9 @@ async function startWorker() {
                     });
                     
                     logger.info(`[Worker Queue] Fetched ${inventory.length} items from Steam.`);
+                    
+                    // Update Metrics
+                    metrics.updateBotInventoryMetrics(bot.config.accountName, inventory.length);
 
                     const client = await pool.connect();
                     try {
@@ -267,6 +283,9 @@ async function startWorker() {
             } catch (err) {
                 logger.error(`[Worker Queue] Job ${job.id} failed: ${err.message}`);
                 
+                // Record Metric
+                metrics.recordTradeError(type || 'unknown');
+
                 // SMART RECONCILIATION: Auto-Refund on Send Failure
                 if (tradeUuid) {
                     try {

@@ -10,6 +10,8 @@ const EventEmitter = require('events');
 const SteamUser = require('steam-user');
 const SteamTotp = require('steam-totp');
 const { logger } = require('../utils/logger'); // Ensure logger is used
+const metrics = require('./metrics.service');
+const telegram = require('./telegram-bot.service');
 
 /**
  * Helper: Sleep function
@@ -74,29 +76,39 @@ class BotManager extends EventEmitter {
 
     /**
      * Start all bots with staggered startup and retry logic
+     * Parallel execution with concurrency limit to prevent blocking
      */
     async startAll() {
-        console.log(`[BotManager] Starting ${this.bots.size} bots with staggered startup...`);
+        console.log(`[BotManager] Starting ${this.bots.size} bots...`);
         const results = [];
-
-        // Convert map values to array
         const botsList = Array.from(this.bots.values());
+        
+        // Split into chunks of 3 to avoid hammering Steam API too hard simultaneously
+        const chunk = (arr, size) => Array.from({ length: Math.ceil(arr.length / size) }, (v, i) => arr.slice(i * size, i * size + size));
+        const batches = chunk(botsList, 3);
 
-        for (const bot of botsList) {
-            try {
-                // Login with Retry Logic
-                await this._loginWithRetry(bot);
-                results.push({ success: true, bot: bot.config.accountName });
-                
-                // Stagger: Wait 10 seconds between bots to avoid 429
-                if (botsList.indexOf(bot) < botsList.length - 1) {
-                    console.log(`[BotManager] Waiting 10s before starting next bot...`);
-                    await sleep(10000);
+        for (const batch of batches) {
+            console.log(`[BotManager] Starting batch of ${batch.length} bots...`);
+            
+            // Start batch in parallel, but wait for results
+            const batchResults = await Promise.allSettled(batch.map(async (bot) => {
+                try {
+                    await this._loginWithRetry(bot);
+                    return { success: true, bot: bot.config.accountName };
+                } catch (err) {
+                    console.error(`[BotManager] Failed to start bot ${bot.config.accountName}:`, err.message);
+                    return { success: false, bot: bot.config.accountName, error: err.message };
                 }
+            }));
 
-            } catch (err) {
-                console.error(`[BotManager] Failed to start bot ${bot.config.accountName}:`, err.message);
-                results.push({ success: false, bot: bot.config.accountName, error: err.message });
+            batchResults.forEach(res => {
+                if (res.status === 'fulfilled') results.push(res.value);
+                else results.push({ success: false, error: 'Unknown error' }); // Should not happen with inner try/catch
+            });
+
+            // Small delay between batches
+            if (batches.indexOf(batch) < batches.length - 1) {
+                await sleep(5000);
             }
         }
 
@@ -124,6 +136,8 @@ class BotManager extends EventEmitter {
                 await bot.initialize();
                 
                 console.log(`[Bot ${bot.config.accountName}] ✅ Logged in successfully`);
+                const stats = this.getStatistics();
+                metrics.updateBotMetrics(stats.onlineBots, stats.totalBots);
                 return; // Success
 
             } catch (error) {
@@ -143,6 +157,9 @@ class BotManager extends EventEmitter {
                     await sleep(10000);
                 } else {
                     // Final failure
+                    const msg = `Bot ${bot.config.accountName} failed to login after ${maxRetries} attempts. Error: ${error.message}`;
+                    console.error(`[BotManager] ❌ ${msg}`);
+                    await telegram.sendCriticalError('Bot Login', msg);
                     throw error;
                 }
             }
@@ -230,13 +247,18 @@ class BotManager extends EventEmitter {
         for (const [accountName, bot] of this.bots) {
             if (!bot.isOnline) {
                 console.log(`[BotManager] Bot ${accountName} is offline, attempting reconnect...`);
+                // Notify admin about offline bot
+                await telegram.sendMessage(`⚠️ Bot **${accountName}** detected offline. Attempting auto-reconnect...`, 'warning');
+                
                 // Use the retry logic for health check reconnects too!
                 this._loginWithRetry(bot).catch(err => {
                     console.error(`[BotManager] Failed to reconnect ${accountName}:`, err.message);
                 });
             }
         }
-        this.emit('healthCheck', this.getStatistics());
+        const stats = this.getStatistics();
+        metrics.updateBotMetrics(stats.onlineBots, stats.totalBots);
+        this.emit('healthCheck', stats);
     }
 }
 

@@ -3,10 +3,17 @@
 import { useParams } from 'next/navigation';
 import { useTrade, useCancelTrade, usePayTrade, getTradeStatusInfo, TradeStatusLabels } from '../../../../hooks/stableEscrow';
 import { apiClient as api } from '../../../../lib/api';
+import { useSocket } from '@/hooks/useSocket';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function TradeDetailPage() {
     const params = useParams();
     const tradeUuid = params.tradeUuid as string;
+    const queryClient = useQueryClient();
+    const { socket } = useSocket();
+    const [isRetrying, setIsRetrying] = useState(false);
 
     const { data: tradeResponse, isLoading, error } = useTrade(tradeUuid);
     const cancelMutation = useCancelTrade();
@@ -14,14 +21,52 @@ export default function TradeDetailPage() {
 
     const trade = (tradeResponse as any)?.data;
 
+    // Real-time updates
+    useEffect(() => {
+        if (!socket || !tradeUuid) return;
+
+        // Join trade room
+        socket.emit('trade:subscribe', tradeUuid);
+
+        // Listen for updates
+        const handleUpdate = (data: any) => {
+            console.log('Trade update received:', data);
+            queryClient.invalidateQueries({ queryKey: ['escrow', 'trade', tradeUuid] });
+            
+            if (data.status === 'completed') toast.success('Сделка завершена!');
+            if (data.status === 'cancelled') toast.error('Сделка отменена');
+        };
+
+        socket.on('trade:update', handleUpdate);
+
+        return () => {
+            socket.off('trade:update', handleUpdate);
+            socket.emit('trade:unsubscribe', tradeUuid);
+        };
+    }, [socket, tradeUuid, queryClient]);
+
     const handleCancel = async () => {
         if (confirm('Вы уверены, что хотите отменить сделку?')) {
             try {
                 await cancelMutation.mutateAsync({ tradeUuid, reason: 'User cancelled' });
-                alert('Сделка отменена');
+                toast.success('Сделка отменена');
             } catch (err) {
-                alert('Ошибка при отмене');
+                toast.error('Ошибка при отмене');
             }
+        }
+    };
+
+    const handleRetry = async () => {
+        setIsRetrying(true);
+        try {
+            await api.escrow.retryTrade(trade.trade_uuid);
+            toast.success('Попытка отправки...');
+            // Invalidate to update status to "processing" if backend supports immediate update
+            queryClient.invalidateQueries({ queryKey: ['escrow', 'trade', tradeUuid] });
+        } catch (e) {
+            toast.error('Ошибка повторной отправки. Steam перегружен.');
+        } finally {
+            setIsRetrying(false);
         }
     };
 
@@ -155,17 +200,11 @@ export default function TradeDetailPage() {
                     {trade.status === 'error_sending' && (
                         <div className="flex flex-col sm:flex-row gap-3 mt-4">
                             <button
-                                onClick={async () => {
-                                    try {
-                                        await api.escrow.retryTrade(trade.trade_uuid);
-                                        window.location.reload();
-                                    } catch (e) {
-                                        alert('Retry failed. Steam might be down.');
-                                    }
-                                }}
-                                className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                                onClick={handleRetry}
+                                disabled={isRetrying}
+                                className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                             >
-                                🔄 Повторить отправку
+                                {isRetrying ? '⏳ Отправка...' : '🔄 Повторить отправку'}
                             </button>
                             <button
                                 onClick={async () => {

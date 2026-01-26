@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAdminApi } from '../../../hooks/useAdminAuth';
 
 interface DashboardStats {
     trades: {
@@ -61,10 +62,9 @@ interface DashboardStats {
     }>;
 }
 
-const API_BASE = '';
-
 export default function AdminDashboard() {
     const router = useRouter();
+    const { apiCall } = useAdminApi();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -73,36 +73,24 @@ export default function AdminDashboard() {
 
     const fetchStats = useCallback(async () => {
         try {
-            const token = localStorage.getItem('adminToken');
-            if (!token) {
-                router.push('/admin/login');
-                return;
-            }
-
-            const res = await fetch(`${API_BASE}/api/admin/analytics/dashboard`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.status === 401) {
-                localStorage.removeItem('adminToken');
-                router.push('/admin/login');
-                return;
-            }
-
-            const data = await res.json();
+            const data = await apiCall('/analytics/dashboard');
+            
             if (data.success) {
                 setStats(data.data);
                 setLastUpdate(new Date());
                 setError(null);
             } else {
-                setError(data.error);
+                setError(data.error || 'Failed to load stats');
+                if (data.status === 401) {
+                    router.push('/admin/login');
+                }
             }
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || 'Network error');
         } finally {
             setLoading(false);
         }
-    }, [router]);
+    }, [apiCall, router]);
 
     useEffect(() => {
         fetchStats();

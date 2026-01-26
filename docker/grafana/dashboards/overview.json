@@ -270,6 +270,189 @@
           "x": 18,
           "y": 12
         }
+      },
+      {
+        "id": 9,
+        "title": "Steam API - Row",
+        "type": "row",
+        "collapsed": false,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 20
+        }
+      },
+      {
+        "id": 10,
+        "title": "Steam Inventory Fetch Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(steam_inventory_fetch_total{status=\"success\"}[5m])",
+            "legendFormat": "Success ({{via}})",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(steam_inventory_fetch_total{status=\"rate_limited\"}[5m])",
+            "legendFormat": "Rate Limited ({{via}})",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(steam_inventory_fetch_total{status=\"error\"}[5m])",
+            "legendFormat": "Error ({{via}})",
+            "refId": "C"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec",
+            "min": 0
+          }
+        ],
+        "xAxis": {
+          "show": true
+        },
+        "legend": {
+          "show": true
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 21
+        }
+      },
+      {
+        "id": 11,
+        "title": "Steam API Rate Limit Hits",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "increase(steam_api_rate_limit_hits[1h])",
+            "legendFormat": "Rate Limit Hits (1h)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "min": 0,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 10
+                },
+                {
+                  "color": "red",
+                  "value": 50
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 21
+        }
+      },
+      {
+        "id": 12,
+        "title": "Steam Inventory Fetch Total",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(steam_inventory_fetch_total[1h]))",
+            "legendFormat": "Total Fetches (1h)",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "min": 0,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "blue",
+                  "value": null
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 21
+        }
+      },
+      {
+        "id": 13,
+        "title": "Steam Fetch Success Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "sum(rate(steam_inventory_fetch_total{status=\"success\"}[5m])) / sum(rate(steam_inventory_fetch_total[5m])) * 100",
+            "legendFormat": "Success Rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "green",
+                  "value": 95
+                }
+              ]
+            }
+          }
+        },
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 12,
+          "y": 25
+        }
+      },
+      {
+        "id": 14,
+        "title": "Steam Fetch by Method",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(increase(steam_inventory_fetch_total[1h])) by (via)",
+            "legendFormat": "{{via}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {
+          "h": 4,
+          "w": 6,
+          "x": 18,
+          "y": 25
+        }
       }
     ],
     "time": {

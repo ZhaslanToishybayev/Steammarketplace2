@@ -5,6 +5,7 @@ const router = express.Router();
 const axios = require('axios');
 const steamRateLimiter = require('../utils/steam-rate-limiter');
 const { redisClient } = require('../config/redis');
+const metrics = require('../services/metrics.service');
 
 /**
  * GET /api/analytics/steam-market-items
@@ -22,6 +23,7 @@ router.get('/steam-market-items', async (req, res) => {
         const cached = await redisClient.get(CACHE_KEY);
         if (cached) {
             console.log('[Analytics] Cache HIT for steam-market-items');
+            metrics.recordCacheHit(CACHE_KEY);
             return res.json({
                 ...JSON.parse(cached),
                 source: 'redis_cache',
@@ -30,6 +32,7 @@ router.get('/steam-market-items', async (req, res) => {
         }
 
         console.log('[Analytics] Cache MISS - fetching from Steam Market API');
+        metrics.recordCacheMiss(CACHE_KEY);
 
         // Popular CS2 skin names to fetch from Steam Market
         const FEATURED_SKINS = [

@@ -10,6 +10,12 @@
 
 const { redisClient } = require('../config/redis');
 const { logger } = require('../utils/logger');
+let metrics;
+try {
+    metrics = require('../services/metrics.service');
+} catch (e) {
+    // Optional dependency (avoid circular issues if any)
+}
 
 class SteamRateLimiter {
     constructor() {
@@ -54,6 +60,8 @@ class SteamRateLimiter {
                 const msUntilNextWindow = this.windowMs - (now % this.windowMs);
                 logger.info(`[SteamRateLimiter] Limit exceeded (${count}/${this.maxRequests}). Waiting ${msUntilNextWindow}ms...`);
                 
+                if (metrics) metrics.recordRateLimitHit();
+
                 await new Promise(resolve => setTimeout(resolve, msUntilNextWindow + 1000));
                 
                 // Loop continues, tries again in new window

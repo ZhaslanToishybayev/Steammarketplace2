@@ -16,7 +16,7 @@ const { redisClient, pubClient, subClient, testRedisConnection, closeRedisConnec
 const { logger, requestLoggerMiddleware } = require('./utils/logger');
 const { requestIdMiddleware } = require('./middleware/request-id');
 const { apiLimiter, authLimiter, sensitiveOperationsLimiter } = require('./middleware/rate-limiter');
-const { register, metricsMiddleware, updateBotMetrics } = require('./services/metrics.service');
+const { register, metricsMiddleware, updateBotMetrics, initializeMetrics } = require('./services/metrics.service');
 const { runMigrations } = require('./utils/migrate');
 
 // Database and Bot initialization
@@ -337,6 +337,7 @@ async function startServer() {
       // Run pending migrations
       await runMigrations();
       await initializeTables();
+      await initializeMetrics();
     } else {
       logger.warn('⚠️ Database not available. Some features may not work.');
     }
@@ -346,15 +347,10 @@ async function startServer() {
     notificationService.initialize(io);
     console.log('🔔 Notification service initialized');
 
-    // Initialize WebSocket Notification Service (Real-Time Updates)
-    const WebSocketNotificationService = require('./services/websocket-notification.service');
-    const wsNotificationService = new WebSocketNotificationService(server);
-    wsNotificationService.startHeartbeat();
-
-    // Register with singleton for cross-service access
-    const { setWsNotificationService } = require('./services/ws-notifier');
-    setWsNotificationService(wsNotificationService);
-    console.log('📡 WebSocket Real-Time Notification Service initialized');
+    // Initialize Unified Socket.IO Notifier
+    const { setIoInstance } = require('./services/ws-notifier');
+    setIoInstance(io);
+    console.log('📡 WebSocket Real-Time Notification Service initialized (Socket.IO)');
 
     // Initialize Steam bots (only if running inline, not in separate worker)
     if (RUN_WORKER_INLINE) {

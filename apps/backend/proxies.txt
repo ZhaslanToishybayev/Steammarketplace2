@@ -1,8 +1,12 @@
-43.225.148.210:1120
-190.97.230.98:999
-178.128.157.114:443
-179.57.215.99:999
-63.151.67.7:8080
-115.127.179.170:2026
-89.110.80.195:10149
-62.133.63.236:1111
+# Steam Marketplace Proxy Configuration
+# =====================================
+# Proxies disabled - using direct requests with rate limiting
+# All requests go via local IP with SteamRateLimiter protection
+#
+# To enable proxies, add working proxies below in format:
+# ip:port
+# user:pass@ip:port
+# http://user:pass@ip:port
+#
+# Note: Free public proxies rarely work with Steam (blocked by Akamai CDN)
+# Recommended: Use residential proxies from Bright Data, Smartproxy, etc.

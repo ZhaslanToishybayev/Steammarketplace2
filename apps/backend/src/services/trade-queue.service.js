@@ -8,6 +8,7 @@
 const Bull = require('bull');
 const Redis = require('ioredis');
 const { v4: uuidv4 } = require('uuid');
+const telegram = require('./telegram-bot.service');
 
 /**
  * Trade Queue Service
@@ -55,6 +56,37 @@ class TradeQueueService {
         this.priceQueue = new Bull('price-updates', bullOptions);
 
         this._setupEventHandlers();
+        this.startWatchdog();
+    }
+
+    /**
+     * Start Queue Watchdog
+     * Monitors queue health and alerts on stagnation
+     */
+    startWatchdog() {
+        // Check every 5 minutes
+        setInterval(async () => {
+            try {
+                const stats = await this.getStats();
+                
+                // Alert if backlog is high (potential stuck worker)
+                if (stats.trade.waiting > 50) {
+                    await telegram.sendCriticalError('Trade Queue', `Queue BACKLOG CRITICAL: ${stats.trade.waiting} jobs waiting!`);
+                } else if (stats.trade.waiting > 10) {
+                    await telegram.sendMessage(`⚠️ Trade Queue Warning: ${stats.trade.waiting} jobs waiting.`, 'warning');
+                }
+
+                // Alert on high failure rate
+                if (stats.trade.failed > 20) {
+                     await telegram.sendMessage(`⚠️ High Trade Failure Rate: ${stats.trade.failed} failed jobs. Check logs.`, 'warning');
+                }
+
+            } catch (err) {
+                console.error('[Queue Watchdog] Check failed:', err.message);
+            }
+        }, 5 * 60 * 1000);
+        
+        console.log('[Queue] Watchdog started');
     }
 
     /**

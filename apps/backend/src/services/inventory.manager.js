@@ -2,12 +2,14 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const NodeCache = require('node-cache');
 const { botManager } = require('./bot-manager.service');
-const { proxyService } = require('./proxy.service'); // Assuming proxy service exists
+const { proxyService } = require('./proxy.service');
+const rateLimiter = require('../utils/steam-rate-limiter');
+const metrics = require('./metrics.service');
 
 class InventoryManager {
     constructor() {
-        this.cache = new NodeCache({ stdTTL: 300, checkperiod: 60 }); // 5 min cache
-        this.cacheHtml = new NodeCache({ stdTTL: 600 }); // 10 min for HTML fallback
+        this.cache = new NodeCache({ stdTTL: 900, checkperiod: 120 }); // 15 min cache (was 5 min)
+        this.cacheHtml = new NodeCache({ stdTTL: 900 }); // 15 min for HTML fallback (was 10 min)
     }
 
     /**
@@ -97,6 +99,7 @@ class InventoryManager {
 
     /**
      * Strategy 1: Ask a Steam Bot to fetch
+     * No rate limit needed - uses authenticated bot connection
      */
     async fetchViaBot(steamId, appId, contextId) {
         // Reset ghost status tracker
@@ -107,7 +110,10 @@ class InventoryManager {
 
         return new Promise((resolve, reject) => {
             bot.manager.getUserInventoryContents(steamId, appId, contextId, true, (err, inventory) => {
-                if (err) return reject(err);
+                if (err) {
+                    metrics.recordInventoryFetch('bot', 'error');
+                    return reject(err);
+                }
 
                 // Convert steam-tradeoffer-manager items to our format
                 const items = inventory.map(item => ({
@@ -122,7 +128,8 @@ class InventoryManager {
                     amount: item.amount
                 }));
 
-                console.log(`[InventoryManager] Bot found ${items.length} items`);
+                console.log(`[InventoryManager] Bot found ${items.length} items [via: bot]`);
+                metrics.recordInventoryFetch('bot', 'success');
                 resolve(items);
             });
         });
@@ -131,114 +138,166 @@ class InventoryManager {
     /**
      * Strategy 2: Direct Axios Call to Public API
      * Returns { items: [], isPrivate: boolean, isGhost: boolean }
+     * Uses rate limiter and metrics tracking
      */
     async fetchViaDirectApi(steamId, appId, contextId) {
         const url = `https://steamcommunity.com/inventory/${steamId}/${appId}/${contextId}`;
         const config = {
             params: { l: 'english', count: 75 }, // Keep count low
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://steamcommunity.com'
             },
-            timeout: 5000
+            timeout: 10000 // Increased timeout
         };
 
-        const response = await axios.get(url, config);
-        const data = response.data;
+        // Use rate limiter to prevent 429 errors
+        return await rateLimiter.execute(async () => {
+            try {
+                const response = await axios.get(url, config);
+                const data = response.data;
 
-        if (data && data.success && data.total_inventory_count > 0) {
-            // Check for Ghost Inventory (Count > 0, but no assets)
-            if (!data.assets || data.assets.length === 0) {
-                this.lastGhostStatus = true;
-                return { items: [], isPrivate: false, isGhost: true };
+                // Record successful fetch
+                metrics.recordInventoryFetch('direct', 'success');
+                console.log(`[InventoryManager] API fetch success [via: direct IP]`);
+
+                if (data && data.success && data.total_inventory_count > 0) {
+                    // Check for Ghost Inventory (Count > 0, but no assets)
+                    if (!data.assets || data.assets.length === 0) {
+                        this.lastGhostStatus = true;
+                        return { items: [], isPrivate: false, isGhost: true };
+                    }
+
+                    // Parse valid items
+                    const processed = this.processApiData(data);
+                    return { items: processed, isPrivate: false, isGhost: false };
+                }
+
+                if (data && data.rwgrsn === -2) {
+                    return { items: [], isPrivate: true, isGhost: false };
+                }
+
+                return { items: [], isPrivate: false, isGhost: false };
+            } catch (err) {
+                // Handle rate limiting
+                if (err.response?.status === 429) {
+                    console.warn('[InventoryManager] Rate limited by Steam (429) [via: direct IP]');
+                    metrics.recordInventoryFetch('direct', 'rate_limited');
+                    metrics.recordRateLimitHit();
+                    throw err; // Re-throw to trigger retry/circuit breaker
+                }
+                
+                // Log other errors
+                metrics.recordInventoryFetch('direct', 'error');
+                console.error(`[InventoryManager] API fetch error [via: direct IP]: ${err.message}`);
+                throw err;
             }
-
-            // Parse valid items
-            const processed = this.processApiData(data);
-            return { items: processed, isPrivate: false, isGhost: false };
-        }
-
-        if (data && data.rwgrsn === -2) {
-            return { items: [], isPrivate: true, isGhost: false };
-        }
-
-        return { items: [], isPrivate: false, isGhost: false };
+        });
     }
 
     /**
      * Strategy 3: HTML Scraping via Cheerio
+     * Uses rate limiter and metrics tracking
      */
     async fetchViaHtml(steamId, appId, contextId) {
         console.log(`[InventoryManager] Scraping HTML for ${steamId}...`);
         const url = `https://steamcommunity.com/profiles/${steamId}/inventory/`;
 
-        const response = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        // Use rate limiter to prevent 429 errors
+        return await rateLimiter.execute(async () => {
+            try {
+                const response = await axios.get(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                        'Referer': 'https://steamcommunity.com'
+                    },
+                    timeout: 10000
+                });
+
+                const html = response.data;
+                if (typeof html !== 'string') {
+                    metrics.recordInventoryFetch('direct', 'error');
+                    return [];
+                }
+
+                // Check for "Private" text visible to human
+                if (html.includes('This inventory is private')) {
+                    console.warn('[InventoryManager] HTML confirms: Inventory is Private [via: direct IP]');
+                    metrics.recordInventoryFetch('direct', 'success');
+                    return [];
+                }
+
+                // Try extract g_rgInventory
+                const inventoryMatch = html.match(/var g_rgInventory = ({.*?});/s);
+                const descriptionMatch = html.match(/var g_rgDescriptions = ({.*?});/s);
+
+                if (!inventoryMatch) {
+                    console.warn('[InventoryManager] HTML Scrape: g_rgInventory not found (Ghost/Private) [via: direct IP]');
+                    metrics.recordInventoryFetch('direct', 'success');
+                    return [];
+                }
+
+                const inventoryData = JSON.parse(inventoryMatch[1]);
+                const descriptionData = descriptionMatch ? JSON.parse(descriptionMatch[1]) : {};
+
+                // Data structure in HTML: inventoryData[appId][contextId] = { assetid: { ... }, ... }
+                const appInv = inventoryData[appId] && inventoryData[appId][contextId];
+                if (!appInv) {
+                    metrics.recordInventoryFetch('direct', 'success');
+                    return [];
+                }
+
+                const assets = Object.values(appInv);
+                const appDesc = descriptionData[appId] && descriptionData[appId][contextId];
+
+                // Map descriptions
+                const descMap = new Map();
+                if (appDesc) {
+                    Object.values(appDesc).forEach(desc => {
+                        const key = `${desc.classid}_${desc.instanceid}`;
+                        descMap.set(key, desc);
+                    });
+                }
+
+                console.log(`[InventoryManager] HTML scrape success [via: direct IP]`);
+                metrics.recordInventoryFetch('direct', 'success');
+
+                return assets.map(asset => {
+                    const key = `${asset.classid}_${asset.instanceid}`;
+                    const desc = descMap.get(key);
+
+                    if (!desc) return null;
+
+                    return {
+                        assetid: asset.id || asset.assetid,
+                        classid: asset.classid,
+                        instanceid: asset.instanceid,
+                        amount: asset.amount,
+                        name: desc.market_name || desc.name,
+                        market_hash_name: desc.market_hash_name,
+                        icon_url: desc.icon_url,
+                        tradable: desc.tradable ? true : false,
+                        marketable: desc.marketable ? true : false,
+                        type: desc.type,
+                        descriptions: desc.descriptions,
+                        tags: desc.tags
+                    };
+                }).filter(i => i !== null);
+            } catch (err) {
+                // Handle rate limiting
+                if (err.response?.status === 429) {
+                    console.warn('[InventoryManager] Rate limited by Steam (429) [via: direct IP]');
+                    metrics.recordInventoryFetch('direct', 'rate_limited');
+                    metrics.recordRateLimitHit();
+                    throw err;
+                }
+                
+                metrics.recordInventoryFetch('direct', 'error');
+                console.error(`[InventoryManager] HTML fetch error [via: direct IP]: ${err.message}`);
+                throw err;
             }
         });
-
-        const html = response.data;
-        if (typeof html !== 'string') return [];
-
-        // Check for "Private" text visible to human
-        if (html.includes('This inventory is private')) {
-            console.warn('[InventoryManager] HTML confirms: Inventory is Private');
-            // We could throw specific error here to tell frontend
-            return [];
-        }
-
-        // Try extract g_rgInventory
-        const inventoryMatch = html.match(/var g_rgInventory = ({.*?});/s);
-        const descriptionMatch = html.match(/var g_rgDescriptions = ({.*?});/s);
-
-        if (!inventoryMatch) {
-            console.warn('[InventoryManager] HTML Scrape: g_rgInventory not found (Ghost/Private)');
-            return [];
-        }
-
-        const inventoryData = JSON.parse(inventoryMatch[1]);
-        const descriptionData = descriptionMatch ? JSON.parse(descriptionMatch[1]) : {};
-
-        // Data structure in HTML: inventoryData[appId][contextId] = { assetid: { ... }, ... }
-        // Note: It might be an array or object depending on user. Usually object.
-
-        const appInv = inventoryData[appId] && inventoryData[appId][contextId];
-        if (!appInv) return [];
-
-        const assets = Object.values(appInv);
-        const appDesc = descriptionData[appId] && descriptionData[appId][contextId];
-
-        // Map descriptions
-        const descMap = new Map();
-        if (appDesc) {
-            Object.values(appDesc).forEach(desc => {
-                const key = `${desc.classid}_${desc.instanceid}`;
-                descMap.set(key, desc);
-            });
-        }
-
-        return assets.map(asset => {
-            const key = `${asset.classid}_${asset.instanceid}`;
-            const desc = descMap.get(key);
-
-            if (!desc) return null;
-
-            return {
-                assetid: asset.id || asset.assetid,
-                classid: asset.classid,
-                instanceid: asset.instanceid,
-                amount: asset.amount,
-                name: desc.market_name || desc.name,
-                market_hash_name: desc.market_hash_name,
-                icon_url: desc.icon_url,
-                tradable: desc.tradable ? true : false,
-                marketable: desc.marketable ? true : false,
-                type: desc.type,
-                descriptions: desc.descriptions,
-                tags: desc.tags
-            };
-        }).filter(i => i !== null);
     }
 
     processApiData(data) {

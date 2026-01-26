@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAdminApi } from '../../../hooks/useAdminAuth';
 
 interface DashboardStats {
     trades: {
@@ -47,6 +48,7 @@ interface HourlyData {
 }
 
 export default function AnalyticsPage() {
+    const { apiCall } = useAdminApi();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -57,23 +59,28 @@ export default function AnalyticsPage() {
     }, []);
 
     const fetchAnalytics = async () => {
+        setLoading(true);
+        setError('');
         try {
-            const [dashRes, tradesRes] = await Promise.all([
-                fetch('/api/admin/analytics/dashboard', { credentials: 'include' }),
-                fetch('/api/admin/analytics/trades', { credentials: 'include' })
+            const [dashData, tradesData] = await Promise.all([
+                apiCall('/analytics/dashboard'),
+                apiCall('/analytics/trades')
             ]);
 
-            if (!dashRes.ok || !tradesRes.ok) {
-                throw new Error('Failed to fetch analytics');
+            if (dashData.success) {
+                setStats(dashData.data);
+            } else {
+                throw new Error(dashData.error || 'Failed to load dashboard stats');
             }
 
-            const dashData = await dashRes.json();
-            const tradesData = await tradesRes.json();
-
-            setStats(dashData.data);
-            setHourlyData(tradesData.data?.hourly || []);
+            if (tradesData.success) {
+                setHourlyData(tradesData.data?.hourly || []);
+            }
+            // Note: We don't throw on tradesData failure, just show partial data if dashboard worked
+            
         } catch (err: any) {
-            setError(err.message);
+            console.error('Analytics load error:', err);
+            setError(err.message || 'Failed to fetch analytics');
         } finally {
             setLoading(false);
         }

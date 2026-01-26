@@ -1,0 +1,306 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "steam-enhanced",
+    "title": "Steam Marketplace - Enhanced Monitor",
+    "tags": ["steam", "production", "business", "ops"],
+    "timezone": "browser",
+    "refresh": "5s",
+    "schemaVersion": 30,
+    "version": 0,
+    "panels": [
+      {
+        "type": "row",
+        "title": "System Health",
+        "collapsed": false,
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+      },
+      {
+        "id": 1,
+        "title": "Bot Status",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "bots_online_total / bots_total", "refId": "A" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 1,
+            "color": { "mode": "thresholds" },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "green", "value": 1 }
+              ]
+            },
+            "mappings": [
+              { "type": "value", "options": { "1": { "text": "ONLINE", "color": "green" }, "0": { "text": "OFFLINE", "color": "red" } } }
+            ]
+          }
+        },
+        "gridPos": { "h": 6, "w": 6, "x": 0, "y": 1 }
+      },
+      {
+        "id": 2,
+        "title": "Request Rate",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "rate(http_requests_total[5m])", "legendFormat": "{{method}} {{route}}", "refId": "A" }
+        ],
+        "gridPos": { "h": 6, "w": 6, "x": 6, "y": 1 }
+      },
+      {
+        "id": 3,
+        "title": "Response Time (P95)",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))", "refId": "A" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 0.5 },
+                { "color": "red", "value": 1 }
+              ]
+            }
+          }
+        },
+        "gridPos": { "h": 6, "w": 6, "x": 12, "y": 1 }
+      },
+      {
+        "id": 4,
+        "title": "Error Rate (5xx)",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "rate(http_requests_total{status_code=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100", "refId": "A" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
+              ]
+            }
+          }
+        },
+        "gridPos": { "h": 6, "w": 6, "x": 18, "y": 1 }
+      },
+      
+      {
+        "type": "row",
+        "title": "Business Metrics",
+        "collapsed": false,
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 }
+      },
+      {
+        "id": 5,
+        "title": "Total Revenue (Fees)",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "platform_fee_total", "refId": "A" } ],
+        "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+        "gridPos": { "h": 6, "w": 6, "x": 0, "y": 8 }
+      },
+      {
+        "id": 6,
+        "title": "Trade Volume",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "trade_volume_total", "refId": "A" } ],
+        "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+        "gridPos": { "h": 6, "w": 6, "x": 6, "y": 8 }
+      },
+      {
+        "id": 7,
+        "title": "Trade Success Rate",
+        "type": "gauge",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "trade_success_total / (trade_success_total + trade_failure_total) * 100", "refId": "A" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0, "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "yellow", "value": 80 },
+                { "color": "green", "value": 95 }
+              ]
+            }
+          }
+        },
+        "gridPos": { "h": 6, "w": 6, "x": 12, "y": 8 }
+      },
+      {
+        "id": 8,
+        "title": "Active Listings",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "active_listings_total", "refId": "A" } ],
+        "gridPos": { "h": 6, "w": 6, "x": 18, "y": 8 }
+      },
+
+      {
+        "type": "row",
+        "title": "Trades",
+        "collapsed": false,
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }
+      },
+      {
+        "id": 9,
+        "title": "Trades by Status",
+        "type": "piechart",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "trades_by_status", "legendFormat": "{{status}}", "refId": "A" } ],
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 15 }
+      },
+      {
+        "id": 10,
+        "title": "Trade Completion Time",
+        "type": "heatmap",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "rate(trade_completion_duration_seconds_bucket[1h])", "format": "heatmap", "refId": "A" } ],
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 15 }
+      },
+      {
+        "id": 11,
+        "title": "Hourly Volume",
+        "type": "barchart",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "increase(trade_volume_total[1h])", "refId": "A" } ],
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 15 }
+      },
+
+      {
+        "type": "row",
+        "title": "Steam API",
+        "collapsed": false,
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 }
+      },
+      {
+        "id": 12,
+        "title": "API Calls / sec",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "rate(steam_api_calls_total[5m])", "legendFormat": "{{endpoint}} {{status}}", "refId": "A" } ],
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 }
+      },
+      {
+        "id": 13,
+        "title": "Rate Limit Hits",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "steam_api_rate_limit_hits", "refId": "A" } ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 5 },
+                { "color": "red", "value": 20 }
+              ]
+            }
+          }
+        },
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 }
+      },
+      {
+        "id": 14,
+        "title": "API Latency",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "histogram_quantile(0.95, rate(steam_api_duration_seconds_bucket[5m]))", "legendFormat": "P95 {{endpoint}}", "refId": "A" },
+          { "expr": "histogram_quantile(0.50, rate(steam_api_duration_seconds_bucket[5m]))", "legendFormat": "P50 {{endpoint}}", "refId": "B" }
+        ],
+        "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 }
+      },
+
+      {
+        "type": "row",
+        "title": "Cache & Database",
+        "collapsed": false,
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 }
+      },
+      {
+        "id": 15,
+        "title": "Cache Hit Rate",
+        "type": "gauge",
+        "datasource": "Prometheus",
+        "targets": [
+          { "expr": "rate(redis_cache_hits_total[5m]) / (rate(redis_cache_hits_total[5m]) + rate(redis_cache_misses_total[5m])) * 100", "refId": "A" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "yellow", "value": 50 },
+                { "color": "green", "value": 80 }
+              ]
+            }
+          }
+        },
+        "gridPos": { "h": 6, "w": 8, "x": 0, "y": 33 }
+      },
+      {
+        "id": 16,
+        "title": "Bot Inventory",
+        "type": "timeseries",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "bot_inventory_size", "legendFormat": "{{bot_name}}", "refId": "A" } ],
+        "gridPos": { "h": 6, "w": 8, "x": 8, "y": 33 }
+      },
+      {
+        "id": 17,
+        "title": "User Balances",
+        "type": "stat",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "user_balance_total", "refId": "A" } ],
+        "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+        "gridPos": { "h": 6, "w": 8, "x": 16, "y": 33 }
+      },
+
+      {
+        "type": "row",
+        "title": "Alerts & Logs",
+        "collapsed": false,
+        "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 }
+      },
+      {
+        "id": 18,
+        "title": "Active Alerts",
+        "type": "alertlist",
+        "datasource": "Prometheus",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 }
+      },
+      {
+        "id": 19,
+        "title": "Trade Errors",
+        "type": "table",
+        "datasource": "Prometheus",
+        "targets": [ { "expr": "trade_offer_errors_total", "format": "table", "instant": true, "refId": "A" } ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 }
+      }
+    ]
+  }
+}

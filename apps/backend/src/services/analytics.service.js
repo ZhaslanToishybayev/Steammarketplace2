@@ -16,13 +16,15 @@ class AnalyticsService {
             userStats,
             listingStats,
             revenueStats,
-            recentActivity
+            recentActivity,
+            botStats
         ] = await Promise.all([
             this.getTradeSummary(),
             this.getUserStats(),
             this.getListingStats(),
             this.getRevenueStats(),
-            this.getRecentActivity(10)
+            this.getRecentActivity(10),
+            this.getBotStats()
         ]);
 
         return {
@@ -30,7 +32,7 @@ class AnalyticsService {
             users: userStats,
             listings: listingStats,
             revenue: revenueStats,
-            bots: this.getBotStats(),
+            bots: botStats,
             recentActivity,
             timestamp: new Date().toISOString()
         };
@@ -110,23 +112,34 @@ class AnalyticsService {
     }
 
     /**
-     * Get bot stats from bot manager
+     * Get bot stats from database
      */
-    getBotStats() {
-        const bots = botManager.getAllBots();
+    async getBotStats() {
+        const result = await query(`
+            SELECT 
+                account_name, 
+                steam_id, 
+                status, 
+                active_trades_count, 
+                last_online_at
+            FROM bots
+        `);
+
+        const bots = result.rows.map(b => ({
+            name: b.account_name,
+            steamId: b.steam_id,
+            isOnline: b.status === 'online',
+            isReady: b.status === 'online',
+            activeTrades: b.active_trades_count || 0,
+            lastLoginAt: b.last_online_at
+        }));
+
         return {
             total: bots.length,
             online: bots.filter(b => b.isOnline).length,
             ready: bots.filter(b => b.isReady).length,
-            activeTrades: bots.reduce((sum, b) => sum + (b.activeTrades || 0), 0),
-            bots: bots.map(b => ({
-                name: b.accountName,
-                steamId: b.steamId,
-                isOnline: b.isOnline,
-                isReady: b.isReady,
-                activeTrades: b.activeTrades || 0,
-                lastLoginAt: b.lastLoginAt
-            }))
+            activeTrades: bots.reduce((sum, b) => sum + b.activeTrades, 0),
+            bots
         };
     }
 

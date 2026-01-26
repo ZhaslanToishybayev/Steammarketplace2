@@ -7,8 +7,9 @@ services:
       POSTGRES_USER: steam_user
       POSTGRES_PASSWORD: steam_password
       POSTGRES_DB: steam_marketplace
-    ports:
-      - "5435:5432"
+    # Ports removed for security. Access only via internal network.
+    # ports:
+    #   - "5435:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,13 +19,15 @@ services:
       retries: 5
     networks:
       - steam-network
+    restart: always
 
   # Redis for sessions and job queues
   redis:
     image: redis:7-alpine
     container_name: steam-marketplace-redis
-    ports:
-      - "6385:6379"
+    # Ports removed for security.
+    # ports:
+    #   - "6385:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -34,6 +37,7 @@ services:
       retries: 5
     networks:
       - steam-network
+    restart: always
 
   backend:
     build:
@@ -41,59 +45,49 @@ services:
       dockerfile: Dockerfile
     container_name: steam-marketplace-backend
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 3001
-      # Worker mode (false = API only, worker runs separately)
       RUN_WORKER: "false"
-
-      # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
-
-      # Database
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: steam_user
       POSTGRES_PASSWORD: steam_password
       POSTGRES_DB: steam_marketplace
-
-      # Session
       SESSION_SECRET: rKXBIAV1MBLyY6iaLi7iQsy/IvGeRXGoZVYPnKTouCU=
-
-      # Steam API (required)
-      STEAM_API_KEY: E1FC69B3707FF57C6267322B0271A86B
-
-      # JWT
-      JWT_SECRET: WlTQF7w5ZFWBR1vT4iwfVlNYJ5y22QnvLiaYKQPBxWeRVEDrtENLfsieYgkFJjFtBbFkwfRwub/3RBwb+tAPSg==
-
-      # Bot credentials (required for validation)
-      BOT_ACCOUNT_NAME: Sgovt1
-      BOT_PASSWORD: Szxc123!
-      STEAM_BOT_1_USERNAME: Sgovt1
-      STEAM_BOT_1_PASSWORD: Szxc123!
-      STEAM_BOT_1_SHARED_SECRET: LVke3WPKHWzT8pCNSemh2FMuJ90=
-      STEAM_BOT_1_IDENTITY_SECRET: fzCjA+NZa0b3yOeEMhln81qgNM4=
-
-      # Frontend URL for CORS (Nginx runs on port 80)
-      FRONTEND_URL: http://localhost
-      CORS_ORIGIN: http://localhost,http://localhost:3000
-
-      # Telegram Notifications
+      STEAM_API_KEY: ${STEAM_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      BOT_ACCOUNT_NAME: ${BOT_ACCOUNT_NAME}
+      BOT_PASSWORD: ${BOT_PASSWORD}
+      STEAM_BOT_1_USERNAME: ${STEAM_BOT_1_USERNAME}
+      STEAM_BOT_1_PASSWORD: ${STEAM_BOT_1_PASSWORD}
+      STEAM_BOT_1_SHARED_SECRET: ${STEAM_BOT_1_SHARED_SECRET}
+      STEAM_BOT_1_IDENTITY_SECRET: ${STEAM_BOT_1_IDENTITY_SECRET}
+      FRONTEND_URL: https://sgomarket.com
+      CORS_ORIGIN: https://sgomarket.com
+      STEAM_RETURN_URL: https://sgomarket.com/api/auth/steam/return
+      STEAM_REALM: https://sgomarket.com/
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
-    ports:
-      - "3001:3001"
+    # Ports removed. Gateway handles external access.
+    # ports:
+    #   - "3001:3001"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
+    volumes:
+      - ./apps/backend/proxies.txt:/app/proxies.txt:ro
     networks:
       - steam-network
-    restart: unless-stopped
+    restart: always
 
   # Worker (Steam Bots & Trade Queue)
   worker:
@@ -104,27 +98,19 @@ services:
     command: [ "node", "src/worker.js" ]
     environment:
       NODE_ENV: production
-
-      # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379
-
-      # Database
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: steam_user
       POSTGRES_PASSWORD: steam_password
       POSTGRES_DB: steam_marketplace
-
-      # Steam API and Bot credentials (must be set in .env)
       STEAM_API_KEY: ${STEAM_API_KEY}
       STEAM_BOT_1_USERNAME: ${STEAM_BOT_1_USERNAME}
       STEAM_BOT_1_PASSWORD: ${STEAM_BOT_1_PASSWORD}
       STEAM_BOT_1_SHARED_SECRET: ${STEAM_BOT_1_SHARED_SECRET}
       STEAM_BOT_1_IDENTITY_SECRET: ${STEAM_BOT_1_IDENTITY_SECRET}
       BOT_ENCRYPTION_KEY: ${BOT_ENCRYPTION_KEY}
-
-      # Telegram Notifications
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     depends_on:
@@ -133,14 +119,16 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "node", "-e", "process.exit(0)" ]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/metrics" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+    volumes:
+      - ./apps/backend/proxies.txt:/app/proxies.txt:ro
     networks:
       - steam-network
-    restart: unless-stopped
+    restart: always
 
   frontend:
     build:
@@ -149,30 +137,45 @@ services:
     container_name: steam-marketplace-frontend
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_BACKEND_URL: http://backend:3001
+      NEXT_PUBLIC_BACKEND_URL: https://sgomarket.com
       HOSTNAME: "0.0.0.0"
-    ports:
-      - "3000:3000"
+    # Ports removed. Gateway handles external access.
+    # ports:
+    #   - "3000:3000"
     depends_on:
       - backend
     networks:
       - steam-network
-    restart: unless-stopped
+    restart: always
 
-  # Nginx Gateway (Reverse Proxy)
+  # Nginx Gateway (Reverse Proxy & SSL)
   nginx:
     image: nginx:alpine
     container_name: steam-marketplace-gateway
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/production.conf:/etc/nginx/conf.d/default.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     depends_on:
       - frontend
       - backend
     networks:
       - steam-network
-    restart: unless-stopped
+    restart: always
+
+  # Certbot for SSL
+  certbot:
+    image: certbot/certbot
+    container_name: steam-marketplace-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - steam-network
 
   # ==================== MONITORING ====================
   prometheus:
@@ -185,11 +188,12 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-    ports:
-      - "9090:9090"
+    # Ports removed
+    # ports:
+    #   - "9090:9090"
     networks:
       - steam-network
-    restart: unless-stopped
+    restart: always
 
   grafana:
     image: grafana/grafana:latest
@@ -197,26 +201,30 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
-    ports:
-      - "3300:3000"
+      - GF_SERVER_ROOT_URL=https://sgomarket.com/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    # Ports removed. Accessed via Nginx /grafana
+    # ports:
+    #   - "3300:3000"
     depends_on:
       - prometheus
     networks:
       - steam-network
-    restart: unless-stopped
+    restart: always
 
   alertmanager:
     image: prom/alertmanager:latest
     container_name: steam-marketplace-alertmanager
     volumes:
       - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-    ports:
-      - "9093:9093"
+    # Ports removed
+    # ports:
+    #   - "9093:9093"
     networks:
       - steam-network
-    restart: unless-stopped
+    restart: always
 
 volumes:
   postgres_data:
