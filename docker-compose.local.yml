@@ -1,0 +1,176 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: sgomarket-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U steam_user -d steam_marketplace"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - steam-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: sgomarket-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - steam-network
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: sgomarket-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      RUN_WORKER: "false"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_SESSIONS_DB: 0
+      FRONTEND_URL: http://localhost:8080
+      CORS_ORIGIN: http://localhost:8080,http://localhost:3000
+      ENCRYPTION_KEY: local_docker_encryption_key_32_bytes!!
+      JWT_SECRET: local_docker_jwt_secret_change_me_32_chars_min
+      JWT_REFRESH_SECRET: local_docker_refresh_secret_change_me
+      SESSION_SECRET: local_docker_session_secret_change_me
+      STEAM_API_KEY: E1FC69B3707FF57C6267322B0271A86B
+      STEAM_RETURN_URL: http://localhost:8080/api/auth/steam/return
+      STEAM_REALM: http://localhost:8080/
+      BOT_ACCOUNT_NAME: ${BOT_ACCOUNT_NAME:-local_docker_bot}
+      BOT_PASSWORD: ${BOT_PASSWORD:-local_docker_bot_password}
+      ENABLE_TRADE_OFFERS: "false"
+      ENABLE_PAYMENT_SYSTEM: "false"
+      P2P_STRICT_VERIFY: "true"
+      P2P_SETTLEMENT_HOLD_DAYS: "7"
+      LOG_LEVEL: info
+    networks:
+      - steam-network
+
+  worker:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: sgomarket-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["node", "src/worker.js"]
+    healthcheck:
+      disable: true
+    environment:
+      NODE_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: steam_password
+      POSTGRES_DB: steam_marketplace
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      ENCRYPTION_KEY: local_docker_encryption_key_32_bytes!!
+      JWT_SECRET: local_docker_jwt_secret_change_me_32_chars_min
+      JWT_REFRESH_SECRET: local_docker_refresh_secret_change_me
+      STEAM_API_KEY: E1FC69B3707FF57C6267322B0271A86B
+      STEAM_RETURN_URL: http://localhost:8080/api/auth/steam/return
+      STEAM_REALM: http://localhost:8080/
+      BOT_ACCOUNT_NAME: ${BOT_ACCOUNT_NAME:-local_docker_bot}
+      BOT_PASSWORD: ${BOT_PASSWORD:-local_docker_bot_password}
+      ENABLE_TRADE_OFFERS: "false"
+      ENABLE_PAYMENT_SYSTEM: "false"
+      P2P_STRICT_VERIFY: "true"
+      P2P_SETTLEMENT_HOLD_DAYS: "7"
+    networks:
+      - steam-network
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080/api
+        NEXT_PUBLIC_WS_URL: ws://localhost:8080
+    container_name: sgomarket-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_BACKEND_URL: http://backend:3001
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+      NEXT_PUBLIC_WS_URL: ws://localhost:8080
+    networks:
+      - steam-network
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: sgomarket-nginx
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/local-docker.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - steam-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sgomarket-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - steam-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sgomarket-grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3300:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - steam-network
+
+networks:
+  steam-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  grafana_data:

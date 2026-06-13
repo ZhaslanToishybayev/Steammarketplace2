@@ -1,0 +1,122 @@
+# 🔫 Steam Marketplace (CS2 & Dota 2)
+
+![Project Status](https://img.shields.io/badge/Status-Production%20Ready-success)
+![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+Современная P2P-платформа для торговли скинами Steam с защитой сделок (Escrow), мгновенными выплатами и Telegram-уведомлениями.
+
+---
+
+## 🚀 Особенности
+
+*   **⚡ Real-Time**: Мгновенные уведомления о сделках и обновление баланса (WebSockets через Nginx Proxy).
+*   **🛡️ Secure Escrow**: Система удерживает средства до подтверждения трейда в Steam.
+*   **🤖 Smart Bots**: Автоматические боты для трейдов с защитой от сбоев (Smart Rollback - авто-возврат денег при ошибке Steam).
+*   **🤝 P2P Trading**: Прямая торговля между пользователями (без передачи скина боту).
+*   **📱 Telegram Alerts**: Уведомления о продажах и статусе системы в Telegram.
+*   **🎨 Modern UI**: Стеклянный дизайн (Glassmorphism), анимации, адаптивность.
+
+---
+
+## 🛠️ Технологический стек
+
+*   **Frontend**: Next.js 14 (App Router), Tailwind CSS, Framer Motion, Socket.io Client.
+*   **Backend**: Node.js, Express, Passport.js (Steam Strategy), Socket.io (Redis Adapter).
+*   **Database**: PostgreSQL 15 (Data), Redis 7 (Sessions & Queues).
+*   **Infrastructure**: Docker Compose, Nginx (Gateway & SSL).
+*   **Monitoring**: Prometheus & Grafana (Metrics), Telegram Bot (Critical Alerts), Audit Logs.
+
+---
+
+## 🏁 Быстрый старт (Localhost)
+
+### 1. Предварительные требования
+*   Docker & Docker Compose
+*   Node.js 18+ (для Playwright тестов)
+
+### 2. Настройка окружения
+Создайте файл `.env` в корне проекта (используйте `.env.example` как шаблон):
+```bash
+cp .env.example .env
+```
+*Обязательно укажите `STEAM_API_KEY`, `TELEGRAM_BOT_TOKEN` и данные бота.*
+
+### 3. Запуск
+```bash
+docker compose up -d
+```
+
+Сайт будет доступен по адресу: **http://localhost** (порт 80).
+
+*   **Админка:** `http://localhost/admin` (Логин: `admin` / `admin123`)
+*   **Графана:** `http://localhost/grafana` (Логин: `admin` / `admin`)
+*   **API:** `http://localhost/api`
+
+---
+
+## 🧪 Тестирование (QA)
+
+Проект покрыт автоматическими E2E тестами (Playwright), гарантирующими стабильность.
+
+```bash
+# Запуск тестов фронтенда и админки
+cd apps/frontend
+npx playwright test
+```
+
+Включены сценарии:
+*   ✅ **Trade Flow:** Проверка покупки/продажи.
+*   ✅ **Admin Panel:** Проверка входа и отображения статистики.
+*   ✅ **Mobile UX:** Проверка адаптивности.
+
+---
+
+## 📂 Структура проекта
+
+```text
+.
+├── apps/
+│   ├── frontend/       # Next.js приложение + E2E Tests
+│   └── backend/        # API и Воркеры
+├── docker/             # Конфигурации Docker
+├── monitoring/         # Prometheus & Grafana конфиги
+├── nginx/              # Конфигурация шлюза (Dev & Prod)
+├── scripts/            # Утилиты
+└── docker-compose.yml  # Основной файл запуска
+```
+
+---
+
+## 🔒 Безопасность и Аудит
+
+*   **Smart Rollback**: Если Steam выдает ошибку при отправке трейда, система автоматически возвращает деньги и восстанавливает лот.
+*   **Audit Logs**: Все финансовые операции и действия админов логируются.
+    *   *Скачать логи*: `Панель Администратора -> Audit -> Export CSV`.
+*   **Secure Admin**: Панель администратора защищена JWT токенами в httpOnly Cookies и имеет защиту от брутфорса.
+
+---
+
+## 🌍 Деплой на VPS (Production)
+
+1.  Арендуйте сервер (Ubuntu 22.04+).
+2.  Скопируйте проект на сервер.
+3.  Настройте `.env`.
+4.  **SSL сертификаты (Первый запуск):**
+    ```bash
+    # Запустите в HTTP режиме для получения сертификатов
+    docker compose up -d
+    
+    # Получите сертификат через Certbot
+    docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot -d ваш-домен.com
+    ```
+5.  **Включите HTTPS:**
+    *   Раскомментируйте SSL блок в `nginx/production.conf`.
+    *   Перезапустите Nginx: `docker compose restart nginx`.
+
+Подробный гайд по деплою смотрите в `OPS.md` (если создан).
+
+---
+
+### Разработано с ❤️ и ☕
+OpenCode Agent (Senior Architect & Frontend Team)

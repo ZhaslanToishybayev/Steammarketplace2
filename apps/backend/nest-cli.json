@@ -1,0 +1,8 @@
+{
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "assets": ["**/*.json"],
+    "watchAssets": true
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "timestamp": "2025-11-24T17:19:36.940Z",
+  "duration": 29,
+  "summary": {
+    "total": 5,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 4
+  },
+  "checks": [
+    {
+      "name": "PostgreSQL Table Checks",
+      "status": "skip",
+      "duration": 0,
+      "details": "PostgreSQL not available for verification",
+      "recommendations": [
+        "Check PostgreSQL connection string and database availability"
+      ]
+    },
+    {
+      "name": "MongoDB Collection Checks",
+      "status": "fail",
+      "duration": 27,
+      "details": "MongoDB collection validation completed",
+      "errors": [
+        "MongoDB collection check failed: command listCollections requires authentication"
+      ],
+      "recommendations": [
+        "Check MongoDB connection and permissions"
+      ],
+      "data": {
+        "collectionCounts": {}
+      }
+    },
+    {
+      "name": "Price Data Validation",
+      "status": "skip",
+      "duration": 0,
+      "details": "PostgreSQL not available for price validation",
+      "recommendations": [
+        "PostgreSQL required for price data validation"
+      ]
+    },
+    {
+      "name": "Materialized Views Check",
+      "status": "skip",
+      "duration": 0,
+      "details": "PostgreSQL not available for views check",
+      "recommendations": [
+        "PostgreSQL required for materialized views check"
+      ]
+    },
+    {
+      "name": "Data Integrity Check",
+      "status": "skip",
+      "duration": 0,
+      "details": "PostgreSQL not available for integrity check",
+      "recommendations": [
+        "PostgreSQL required for data integrity check"
+      ]
+    }
+  ],
+  "databaseInfo": {
+    "mongoVersion": "Available"
+  }
+}

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #333;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border-left: 4px solid #28a745;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #3d1818;
+        }
+        .warning {
+            border-left-color: #ffc107;
+            background: #3d3518;
+        }
+        input, select {
+            background: #404040;
+            color: #fff;
+            border: 1px solid #666;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success { background: #28a745; color: white; }
+        .status.error { background: #dc3545; color: white; }
+        .status.warning { background: #ffc107; color: black; }
+        .status.info { background: #17a2b8; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Marketplace API Test Suite</h1>
+        <p>Test the Steam marketplace functionality with real API calls.</p>
+
+        <div class="section">
+            <h2>🔍 Authentication Status</h2>
+            <button class="button" onclick="checkAuth()">Check Authentication</button>
+            <div id="auth-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Marketplace Listings</h2>
+            <button class="button" onclick="getListings()">Get All Listings</button>
+            <button class="button" onclick="getFeaturedListings()">Get Featured Listings</button>
+            <button class="button" onclick="getTrendingItems()">Get Trending Items</button>
+            <div id="listings-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔎 Search & Analytics</h2>
+            <div>
+                <label for="searchQuery">Search Query:</label>
+                <input type="text" id="searchQuery" value="ak-47" placeholder="Enter search term">
+                <button class="button" onclick="searchListings()">Search Listings</button>
+            </div>
+            <div>
+                <label for="itemClassId">Item Class ID:</label>
+                <input type="text" id="itemClassId" value="123456" placeholder="Enter item class ID">
+                <button class="button" onclick="getPriceAnalytics()">Get Price Analytics</button>
+            </div>
+            <div>
+                <button class="button" onclick="getMarketplaceStats()">Get Marketplace Stats</button>
+            </div>
+            <div id="analytics-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>👤 User Operations</h2>
+            <button class="button" onclick="getUserListings()">Get My Listings</button>
+            <div id="user-result" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Test Summary</h2>
+            <div id="test-summary" class="result">
+                Ready to test marketplace API endpoints...
+                <br><br>
+                <strong>Available Tests:</strong>
+                <ul>
+                    <li>Authentication status check</li>
+                    <li>Get marketplace listings</li>
+                    <li>Search functionality</li>
+                    <li>Price analytics</li>
+                    <li>Marketplace statistics</li>
+                    <li>User-specific operations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3002/marketplace';
+
+        async function apiCall(endpoint, options = {}) {
+            const url = `${API_BASE}${endpoint}`;
+            const config = {
+                method: options.method || 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            };
+
+            try {
+                const response = await fetch(url, config);
+                const data = await response.json();
+
+                return {
+                    success: response.status >= 200 && response.status < 300,
+                    status: response.status,
+                    data: data,
+                    headers: response.headers
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message,
+                    status: 0
+                };
+            }
+        }
+
+        function displayResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            if (isError) {
+                element.className = 'result error';
+                element.textContent = `Error: ${JSON.stringify(data, null, 2)}`;
+            } else {
+                element.className = 'result';
+                element.textContent = JSON.stringify(data, null, 2);
+            }
+        }
+
+        async function checkAuth() {
+            try {
+                const result = await apiCall('/listings');
+                displayResult('auth-result', result);
+            } catch (error) {
+                displayResult('auth-result', { error: error.message }, true);
+            }
+        }
+
+        async function getListings() {
+            try {
+                const result = await apiCall('/listings?limit=10');
+                displayResult('listings-result', result);
+            } catch (error) {
+                displayResult('listings-result', { error: error.message }, true);
+            }
+        }
+
+        async function getFeaturedListings() {
+            try {
+                const result = await apiCall('/featured?limit=5');
+                displayResult('listings-result', result);
+            } catch (error) {
+                displayResult('listings-result', { error: error.message }, true);
+            }
+        }
+
+        async function getTrendingItems() {
+            try {
+                const result = await apiCall('/trending?limit=10');
+                displayResult('listings-result', result);
+            } catch (error) {
+                displayResult('listings-result', { error: error.message }, true);
+            }
+        }
+
+        async function searchListings() {
+            const query = document.getElementById('searchQuery').value;
+            if (!query) {
+                displayResult('analytics-result', { error: 'Please enter a search query' }, true);
+                return;
+            }
+
+            try {
+                const result = await apiCall(`/search?q=${encodeURIComponent(query)}&limit=10`);
+                displayResult('analytics-result', result);
+            } catch (error) {
+                displayResult('analytics-result', { error: error.message }, true);
+            }
+        }
+
+        async function getPriceAnalytics() {
+            const itemClassId = document.getElementById('itemClassId').value;
+            if (!itemClassId) {
+                displayResult('analytics-result', { error: 'Please enter an item class ID' }, true);
+                return;
+            }
+
+            try {
+                const result = await apiCall(`/analytics/price/${itemClassId}?days=30`);
+                displayResult('analytics-result', result);
+            } catch (error) {
+                displayResult('analytics-result', { error: error.message }, true);
+            }
+        }
+
+        async function getMarketplaceStats() {
+            try {
+                const result = await apiCall('/stats');
+                displayResult('analytics-result', result);
+            } catch (error) {
+                displayResult('analytics-result', { error: error.message }, true);
+            }
+        }
+
+        async function getUserListings() {
+            try {
+                const result = await apiCall('/my-listings');
+                displayResult('user-result', result);
+            } catch (error) {
+                displayResult('user-result', { error: error.message }, true);
+            }
+        }
+
+        // Test all endpoints on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const summary = document.getElementById('test-summary');
+                summary.textContent = 'Testing marketplace API connectivity...';
+                checkAuth();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

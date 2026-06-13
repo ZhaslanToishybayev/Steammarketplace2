@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres-sisyphus
+    container_name: steam-marketplace-db
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - steam-network
+
+  redis:
+    image: redis-sisyphus
+    container_name: steam-marketplace-redis
+    networks:
+      - steam-network
+
+  backend:
+    image: node-sisyphus
+    container_name: steam-marketplace-backend
+    volumes:
+      - ./apps/backend:/app
+    depends_on:
+      - postgres
+      - redis
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - REDIS_URL=redis://redis:6379
+    command: ["sh", "-c", "npm start"]
+    networks:
+      - steam-network
+
+  worker:
+    image: node-sisyphus
+    container_name: steam-marketplace-worker
+    volumes:
+      - ./apps/backend:/app
+    depends_on:
+      - postgres
+      - redis
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - REDIS_URL=redis://redis:6379
+    command: ["sh", "-c", "node src/worker.js"]
+    networks:
+      - steam-network
+
+  frontend:
+    image: node-sisyphus
+    container_name: steam-marketplace-frontend
+    volumes:
+      - ./apps/frontend:/app
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+    command: ["sh", "-c", "npm start"]
+    networks:
+      - steam-network
+
+  nginx:
+    image: nginx-sisyphus
+    container_name: steam-marketplace-gateway
+    volumes:
+      - ./nginx/sgomarket.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - steam-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: steam-marketplace-certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - steam-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: steam-marketplace-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - steam-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: steam-marketplace-grafana
+    ports:
+      - "3300:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - steam-network
+
+networks:
+  steam-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

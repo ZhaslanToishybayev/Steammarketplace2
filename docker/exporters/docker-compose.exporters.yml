@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - backend-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9187"
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter
+    environment:
+      REDIS_ADDR: "redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+    ports:
+      - "9121:9121"
+    networks:
+      - backend-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9121"
+
+  # Nginx Exporter
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx-exporter
+    command:
+      - -nginx.scrape-uri=http://nginx:8080/nginx-status
+      - -nginx.ssl-verify=false
+    ports:
+      - "9113:9113"
+    networks:
+      - backend-network
+    depends_on:
+      - nginx
+    restart: unless-stopped
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9113"
+
+  # Node Exporter
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitoring-network
+    restart: unless-stopped
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9100"
+
+  # MongoDB Exporter
+  mongodb-exporter:
+    image: percona/mongodb_exporter:latest
+    container_name: mongodb-exporter
+    environment:
+      MONGODB_URI: "mongodb://mongo_user:mongo_password@mongodb:27017/admin"
+    ports:
+      - "9216:9216"
+    networks:
+      - backend-network
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9216"
+
+  # Grafana Exporter (if using Grafana Cloud)
+  grafana-exporter:
+    image: grafana/prometheus-exporter:latest
+    container_name: grafana-exporter
+    environment:
+      GRAFANA_URL: "http://grafana:3001"
+      GRAFANA_API_KEY: "${GRAFANA_API_KEY}"
+    ports:
+      - "9102:9102"
+    networks:
+      - monitoring-network
+    depends_on:
+      - grafana
+    restart: unless-stopped
+    labels:
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9102"
+
+networks:
+  backend-network:
+    external: true
+  monitoring-network:
+    external: true

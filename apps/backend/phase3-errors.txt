@@ -1,0 +1,583 @@
+
+> steam-marketplace-backend@1.0.0 type-check
+> tsc --noEmit
+
+src/common/guards/throttle.guard.ts(93,38): error TS2345: Argument of type 'string[]' is not assignable to parameter of type 'string'.
+src/common/interceptors/cache.interceptor.ts(32,9): error TS2416: Property 'intercept' in type 'CacheInterceptor' is not assignable to the same property in base type 'NestInterceptor<any, any>'.
+  Type '(context: ExecutionContext, next: CallHandler<any>) => Promise<Observable<any>>' is not assignable to type '(context: ExecutionContext, next: CallHandler<any>) => Observable<any> | Promise<Observable<any>>'.
+    Type 'Promise<Observable<any>>' is not assignable to type 'Observable<any> | Promise<Observable<any>>'.
+      Type 'Promise<import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>>' is not assignable to type 'Promise<import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>>'.
+        Type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+          The types of 'operator.call' are incompatible between these types.
+            Type '(subscriber: import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>, source: any) => import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/types").TeardownLogic' is not assignable to type '(subscriber: import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>, source: any) => import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/types").TeardownLogic'.
+              Types of parameters 'subscriber' and 'subscriber' are incompatible.
+                Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>'.
+                  Property 'isStopped' is protected but type 'Subscriber<T>' is not a class derived from 'Subscriber<T>'.
+src/common/interceptors/cache.interceptor.ts(40,7): error TS2322: Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+  The types of 'operator.call' are incompatible between these types.
+    Type '(subscriber: import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>, source: any) => import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/types").TeardownLogic' is not assignable to type '(subscriber: import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>, source: any) => import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/types").TeardownLogic'.
+      Types of parameters 'subscriber' and 'subscriber' are incompatible.
+        Type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Subscriber").Subscriber<any>'.
+          Property 'isStopped' is protected but type 'Subscriber<T>' is not a class derived from 'Subscriber<T>'.
+src/common/interceptors/cache.interceptor.ts(66,7): error TS2322: Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/cache.interceptor.ts(67,9): error TS2345: Argument of type 'MonoTypeOperatorFunction<any>' is not assignable to parameter of type 'OperatorFunction<any, any>'.
+  Types of parameters 'source' and 'source' are incompatible.
+    Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/cache.interceptor.ts(83,7): error TS2322: Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/logging.interceptor.ts(32,3): error TS2416: Property 'intercept' in type 'LoggingInterceptor' is not assignable to the same property in base type 'NestInterceptor<any, any>'.
+  Type '(context: ExecutionContext, next: CallHandler<any>) => Observable<any>' is not assignable to type '(context: ExecutionContext, next: CallHandler<any>) => Observable<any> | Promise<Observable<any>>'.
+    Type 'Observable<any>' is not assignable to type 'Observable<any> | Promise<Observable<any>>'.
+src/common/interceptors/logging.interceptor.ts(40,5): error TS2322: Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/logging.interceptor.ts(41,7): error TS2345: Argument of type 'MonoTypeOperatorFunction<any>' is not assignable to parameter of type 'OperatorFunction<any, any>'.
+src/common/interceptors/metrics.interceptor.ts(23,3): error TS2416: Property 'intercept' in type 'MetricsInterceptor' is not assignable to the same property in base type 'NestInterceptor<any, any>'.
+  Type '(context: ExecutionContext, next: CallHandler<any>) => Observable<any>' is not assignable to type '(context: ExecutionContext, next: CallHandler<any>) => Observable<any> | Promise<Observable<any>>'.
+    Type 'Observable<any>' is not assignable to type 'Observable<any> | Promise<Observable<any>>'.
+src/common/interceptors/metrics.interceptor.ts(30,7): error TS2322: Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/metrics.interceptor.ts(36,5): error TS2322: Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/metrics.interceptor.ts(37,7): error TS2345: Argument of type 'MonoTypeOperatorFunction<any>' is not assignable to parameter of type 'OperatorFunction<any, any>'.
+src/common/interceptors/transform.interceptor.ts(24,3): error TS2416: Property 'intercept' in type 'TransformInterceptor<T>' is not assignable to the same property in base type 'NestInterceptor<T, StandardApiResponse<T>>'.
+  Type '(context: ExecutionContext, next: CallHandler<any>) => Observable<T | StandardApiResponse<T>>' is not assignable to type '(context: ExecutionContext, next: CallHandler<T>) => Observable<StandardApiResponse<T>> | Promise<Observable<StandardApiResponse<...>>>'.
+    Type 'Observable<T | StandardApiResponse<T>>' is not assignable to type 'Observable<StandardApiResponse<T>> | Promise<Observable<StandardApiResponse<T>>>'.
+      Type 'Observable<T | StandardApiResponse<T>>' is not assignable to type 'Observable<StandardApiResponse<T>>'.
+        Types of property 'source' are incompatible.
+          Type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/transform.interceptor.ts(27,5): error TS2322: Type 'Observable<any>' is not assignable to type 'Observable<T | StandardApiResponse<T>>'.
+  Types of property 'source' are incompatible.
+    Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/transform.interceptor.ts(28,7): error TS2345: Argument of type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/types").OperatorFunction<any, any>' is not assignable to parameter of type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/types").OperatorFunction<any, any>'.
+  Types of parameters 'source' and 'source' are incompatible.
+    Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/common/interceptors/transform.interceptor.ts(52,37): error TS2339: Property 'includes' does not exist on type 'string | number | string[]'.
+  Property 'includes' does not exist on type 'number'.
+src/common/modules/health.service.ts(13,22): error TS2307: Cannot find module '../../../modules/auth/entities/user.entity' or its corresponding type declarations.
+src/common/modules/metrics.service.ts(63,10): error TS2540: Cannot assign to 'httpRequestTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(69,10): error TS2540: Cannot assign to 'httpRequestDuration' because it is a read-only property.
+src/common/modules/metrics.service.ts(76,10): error TS2540: Cannot assign to 'httpRequestSize' because it is a read-only property.
+src/common/modules/metrics.service.ts(83,10): error TS2540: Cannot assign to 'httpResponseSize' because it is a read-only property.
+src/common/modules/metrics.service.ts(91,10): error TS2540: Cannot assign to 'usersTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(97,10): error TS2540: Cannot assign to 'inventoriesTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(103,10): error TS2540: Cannot assign to 'tradesTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(109,10): error TS2540: Cannot assign to 'walletBalanceTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(115,10): error TS2540: Cannot assign to 'pricesTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(122,10): error TS2540: Cannot assign to 'botsTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(128,10): error TS2540: Cannot assign to 'botsOnline' because it is a read-only property.
+src/common/modules/metrics.service.ts(134,10): error TS2540: Cannot assign to 'botsActive' because it is a read-only property.
+src/common/modules/metrics.service.ts(140,10): error TS2540: Cannot assign to 'botsBusy' because it is a read-only property.
+src/common/modules/metrics.service.ts(146,10): error TS2540: Cannot assign to 'botsIdle' because it is a read-only property.
+src/common/modules/metrics.service.ts(152,10): error TS2540: Cannot assign to 'botTradeCount' because it is a read-only property.
+src/common/modules/metrics.service.ts(158,10): error TS2540: Cannot assign to 'botUptime' because it is a read-only property.
+src/common/modules/metrics.service.ts(164,10): error TS2540: Cannot assign to 'botErrors' because it is a read-only property.
+src/common/modules/metrics.service.ts(170,10): error TS2540: Cannot assign to 'botTradesCompleted' because it is a read-only property.
+src/common/modules/metrics.service.ts(177,10): error TS2540: Cannot assign to 'queueJobsTotal' because it is a read-only property.
+src/common/modules/metrics.service.ts(183,10): error TS2540: Cannot assign to 'queueJobsActive' because it is a read-only property.
+src/common/modules/metrics.service.ts(189,10): error TS2540: Cannot assign to 'queueJobsCompleted' because it is a read-only property.
+src/common/modules/metrics.service.ts(195,10): error TS2540: Cannot assign to 'queueJobsFailed' because it is a read-only property.
+src/common/modules/metrics.service.ts(201,10): error TS2540: Cannot assign to 'queueJobsRetried' because it is a read-only property.
+src/common/modules/metrics.service.ts(207,10): error TS2540: Cannot assign to 'queueFailureRate' because it is a read-only property.
+src/common/modules/metrics.service.ts(213,10): error TS2540: Cannot assign to 'queueProcessingDuration' because it is a read-only property.
+src/common/modules/metrics.service.ts(221,10): error TS2540: Cannot assign to 'cacheHits' because it is a read-only property.
+src/common/modules/metrics.service.ts(227,10): error TS2540: Cannot assign to 'cacheMisses' because it is a read-only property.
+src/common/modules/metrics.service.ts(233,10): error TS2540: Cannot assign to 'cacheOperations' because it is a read-only property.
+src/common/modules/metrics.service.ts(239,10): error TS2540: Cannot assign to 'cacheSize' because it is a read-only property.
+src/common/modules/metrics.service.ts(246,10): error TS2540: Cannot assign to 'dbConnectionPool' because it is a read-only property.
+src/common/modules/metrics.service.ts(252,10): error TS2540: Cannot assign to 'dbQueryDuration' because it is a read-only property.
+src/common/modules/metrics.service.ts(259,10): error TS2540: Cannot assign to 'dbActiveConnections' because it is a read-only property.
+src/common/modules/metrics.service.ts(266,10): error TS2540: Cannot assign to 'systemCpuUsage' because it is a read-only property.
+src/common/modules/metrics.service.ts(271,10): error TS2540: Cannot assign to 'systemMemoryUsage' because it is a read-only property.
+src/common/modules/metrics.service.ts(277,10): error TS2540: Cannot assign to 'systemUptime' because it is a read-only property.
+src/common/modules/metrics.service.ts(462,5): error TS2322: Type 'Promise<string>' is not assignable to type 'string'.
+src/common/schedulers/metrics.scheduler.ts(13,22): error TS2307: Cannot find module '../../../modules/auth/entities/user.entity' or its corresponding type declarations.
+src/common/schedulers/metrics.scheduler.ts(14,27): error TS2307: Cannot find module '../../../modules/inventory/entities/inventory.entity' or its corresponding type declarations.
+src/common/schedulers/metrics.scheduler.ts(15,23): error TS2307: Cannot find module '../../../modules/trading/entities/trade.entity' or its corresponding type declarations.
+src/common/schedulers/metrics.scheduler.ts(16,27): error TS2307: Cannot find module '../../../modules/pricing/entities/item-price.entity' or its corresponding type declarations.
+src/common/schedulers/metrics.scheduler.ts(34,6): error TS2304: Cannot find name 'InjectConnection'.
+src/common/schedulers/metrics.scheduler.ts(38,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/common/schedulers/metrics.scheduler.ts(41,24): error TS2551: Property 'EVERY_1_MINUTES' does not exist on type 'typeof CronExpression'. Did you mean 'EVERY_10_MINUTES'?
+src/common/schedulers/metrics.scheduler.ts(210,60): error TS2339: Property 'client' does not exist on type 'Store'.
+src/common/schedulers/metrics.scheduler.ts(211,51): error TS2339: Property 'client' does not exist on type 'Store'.
+src/config/bull.config.ts(49,11): error TS2353: Object literal may only specify known properties, and 'rateLimiter' does not exist in type 'JobOptions'.
+src/config/bull.config.ts(63,11): error TS2353: Object literal may only specify known properties, and 'rateLimiter' does not exist in type 'JobOptions'.
+src/config/bull.config.ts(77,11): error TS2353: Object literal may only specify known properties, and 'rateLimiter' does not exist in type 'JobOptions'.
+src/config/database.config.ts(14,3): error TS2322: Type '"error" | "debug"' is not assignable to type '"debug" | "advanced-console" | "simple-console" | "formatted-console" | "file" | Logger'.
+  Type '"error"' is not assignable to type '"debug" | "advanced-console" | "simple-console" | "formatted-console" | "file" | Logger'.
+src/config/redis.config.ts(51,5): error TS2353: Object literal may only specify known properties, and 'keyPrefix' does not exist in type 'RedisClientOptions<RedisModules, RedisFunctions, RedisScripts> & Config'.
+src/database/scripts/db-status.ts(5,10): error TS2305: Module '"winston"' has no exported member 'LoggerService'.
+src/database/scripts/db-status.ts(50,11): error TS2554: Expected 1 arguments, but got 0.
+src/database/scripts/db-status.ts(219,5): error TS2322: Type 'string' is not assignable to type 'number'.
+src/database/scripts/db-status.ts(266,11): error TS2339: Property 'error' does not exist on type '{ totalTrades: number; tradesByStatus: Record<string, number>; latestTrade: string; }'.
+src/database/scripts/verify-db.ts(5,10): error TS2305: Module '"winston"' has no exported member 'LoggerService'.
+src/database/scripts/verify-db.ts(47,11): error TS2554: Expected 1 arguments, but got 0.
+src/database/seeds/market-seeder.ts(90,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/database/seeds/market-seeder.ts(244,9): error TS2345: Argument of type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>' is not assignable to parameter of type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>'.
+src/database/seeds/run-seed.ts(5,10): error TS2305: Module '"winston"' has no exported member 'LoggerService'.
+src/database/seeds/run-seed.ts(21,11): error TS2554: Expected 1 arguments, but got 0.
+src/database/seeds/run-seed.ts(58,7): error TS2353: Object literal may only specify known properties, and 'seedingType' does not exist in type 'SeedOptions'.
+src/modules/admin/controllers/admin-audit.controller.ts(38,60): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-audit.controller.ts(39,61): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-audit.controller.ts(89,7): error TS2741: Property 'data' is missing in type '{ success: false; message: string; }' but required in type '{ success: boolean; data: any; message: string; }'.
+src/modules/admin/controllers/admin-audit.controller.ts(126,7): error TS2741: Property 'data' is missing in type '{ success: false; message: string; }' but required in type '{ success: boolean; data: any; message: string; }'.
+src/modules/admin/controllers/admin-audit.controller.ts(163,5): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-config.controller.ts(37,60): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-config.controller.ts(38,61): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-dashboard.controller.ts(64,5): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-dashboard.controller.ts(95,5): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-dashboard.controller.ts(208,5): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-dashboard.controller.ts(215,5): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-dashboard.controller.ts(247,5): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/admin/controllers/admin-trade.controller.ts(106,75): error TS2554: Expected 1 arguments, but got 2.
+src/modules/admin/controllers/admin-trade.controller.ts(160,94): error TS2554: Expected 2 arguments, but got 3.
+src/modules/admin/controllers/admin-trade.controller.ts(207,61): error TS2554: Expected 3-5 arguments, but got 1.
+src/modules/admin/controllers/admin-user.controller.ts(33,4): error TS2304: Cannot find name 'ApiQuery'.
+src/modules/admin/controllers/admin-user.controller.ts(34,4): error TS2304: Cannot find name 'ApiQuery'.
+src/modules/admin/controllers/admin-user.controller.ts(35,4): error TS2304: Cannot find name 'ApiQuery'.
+src/modules/admin/controllers/admin-user.controller.ts(36,4): error TS2304: Cannot find name 'ApiQuery'.
+src/modules/admin/controllers/admin-user.controller.ts(37,4): error TS2304: Cannot find name 'ApiQuery'.
+src/modules/admin/controllers/admin-user.controller.ts(38,4): error TS2304: Cannot find name 'ApiQuery'.
+src/modules/admin/dto/get-audit-logs.dto.ts(1,56): error TS2305: Module '"class-validator"' has no exported member 'Transform'.
+src/modules/admin/dto/get-configs.dto.ts(1,43): error TS2305: Module '"class-validator"' has no exported member 'Transform'.
+src/modules/admin/entities/trade-dispute.entity.ts(96,4): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<User>), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Object literal may only specify known properties, and 'createJoinColumn' does not exist in type 'RelationOptions'.
+  Overload 2 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<User>), inverseSide?: string | ((object: User) => any), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Object literal may only specify known properties, and 'onDelete' does not exist in type '(object: User) => any'.
+src/modules/admin/entities/trade-dispute.entity.ts(101,4): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<User>), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Object literal may only specify known properties, and 'createJoinColumn' does not exist in type 'RelationOptions'.
+  Overload 2 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<User>), inverseSide?: string | ((object: User) => any), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Object literal may only specify known properties, and 'onDelete' does not exist in type '(object: User) => any'.
+src/modules/admin/interceptors/audit-log.interceptor.ts(33,3): error TS2416: Property 'intercept' in type 'AuditLogInterceptor' is not assignable to the same property in base type 'NestInterceptor<any, any>'.
+  Type '(context: ExecutionContext, next: CallHandler<any>) => Observable<any>' is not assignable to type '(context: ExecutionContext, next: CallHandler<any>) => Observable<any> | Promise<Observable<any>>'.
+    Type 'Observable<any>' is not assignable to type 'Observable<any> | Promise<Observable<any>>'.
+      Type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/modules/admin/interceptors/audit-log.interceptor.ts(34,5): error TS2322: Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/modules/admin/interceptors/audit-log.interceptor.ts(35,7): error TS2345: Argument of type 'MonoTypeOperatorFunction<any>' is not assignable to parameter of type 'OperatorFunction<any, any>'.
+src/modules/admin/processors/admin-operations.processor.ts(1,78): error TS2305: Module '"@nestjs/bull"' has no exported member 'Inject'.
+src/modules/admin/processors/admin-operations.processor.ts(178,40): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'string'.
+src/modules/admin/processors/admin-operations.processor.ts(181,9): error TS2345: Argument of type '{ type: "daily" | "weekly" | "monthly"; date: Date; period: { dateFrom: Date; dateTo: Date; }; statistics: PlatformStatistics; revenueReport: any; disputeStatistics: { ...; }; generatedAt: string; }' is not assignable to parameter of type 'ReportData'.
+  Types of property 'date' are incompatible.
+    Type 'Date' is not assignable to type 'string'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(21,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(47,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(73,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(100,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(131,39): error TS2339: Property 'adminUserService' does not exist on type 'AdminCleanupScheduler'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(134,25): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(166,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(175,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(184,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/schedulers/admin-cleanup.scheduler.ts(192,23): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/services/admin-dashboard.service.ts(7,29): error TS2307: Cannot find module '@liaoliaots/nestjs-redis' or its corresponding type declarations.
+src/modules/admin/services/admin-dashboard.service.ts(158,33): error TS2339: Property 'TRADE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(158,94): error TS2339: Property 'SERVICE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(167,66): error TS2820: Type '"IDLE"' is not assignable to type 'BotStatus | FindOperator<BotStatus>'. Did you mean 'BotStatus.IDLE'?
+src/modules/admin/services/admin-dashboard.service.ts(332,35): error TS2339: Property 'TRADE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(332,62): error TS2339: Property 'SERVICE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(382,24): error TS2367: This comparison appears to be unintentional because the types 'BotStatus' and '"IDLE"' have no overlap.
+src/modules/admin/services/admin-dashboard.service.ts(382,54): error TS2367: This comparison appears to be unintentional because the types 'BotStatus' and '"TRADING"' have no overlap.
+src/modules/admin/services/admin-dashboard.service.ts(386,21): error TS2339: Property 'name' does not exist on type 'Bot'.
+src/modules/admin/services/admin-dashboard.service.ts(392,30): error TS2339: Property 'lastHeartbeat' does not exist on type 'Bot'.
+src/modules/admin/services/admin-dashboard.service.ts(399,44): error TS2367: This comparison appears to be unintentional because the types 'BotStatus' and '"IDLE"' have no overlap.
+src/modules/admin/services/admin-dashboard.service.ts(400,45): error TS2367: This comparison appears to be unintentional because the types 'BotStatus' and '"OFFLINE"' have no overlap.
+src/modules/admin/services/admin-dashboard.service.ts(485,33): error TS2339: Property 'TRADE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(485,60): error TS2339: Property 'SERVICE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(531,37): error TS2339: Property 'TRADE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(531,64): error TS2339: Property 'SERVICE_FEE' does not exist on type 'typeof TransactionType'.
+src/modules/admin/services/admin-dashboard.service.ts(611,67): error TS2820: Type '"OFFLINE"' is not assignable to type 'BotStatus | FindOperator<BotStatus>'. Did you mean 'BotStatus.OFFLINE'?
+src/modules/admin/services/admin-dashboard.service.ts(696,21): error TS2345: Argument of type 'string' is not assignable to parameter of type 'LogEntry'.
+src/modules/admin/services/admin-user.service.ts(9,29): error TS2307: Cannot find module '@liaoliaots/nestjs-redis' or its corresponding type declarations.
+src/modules/admin/services/audit-log.service.ts(7,29): error TS2307: Cannot find module '@liaoliaots/nestjs-redis' or its corresponding type declarations.
+src/modules/admin/services/report.service.ts(8,29): error TS2307: Cannot find module '@liaoliaots/nestjs-redis' or its corresponding type declarations.
+src/modules/admin/services/system-config.service.ts(7,29): error TS2307: Cannot find module '@liaoliaots/nestjs-redis' or its corresponding type declarations.
+src/modules/admin/services/trade-dispute.service.ts(7,29): error TS2307: Cannot find module '@liaoliaots/nestjs-redis' or its corresponding type declarations.
+src/modules/admin/services/trade-dispute.service.ts(321,56): error TS2339: Property 'totalValue' does not exist on type 'Trade'.
+src/modules/admin/services/trade-dispute.service.ts(339,43): error TS2339: Property 'totalValue' does not exist on type 'Trade'.
+src/modules/admin/services/trade-dispute.service.ts(371,9): error TS2561: Object literal may only specify known properties, but 'resolvedBy' does not exist in type 'Partial<TradeDispute>'. Did you mean to write 'resolvedAt'?
+src/modules/auth/auth.controller.ts(148,13): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Record<string, ThrottlerMethodOrControllerOptions>'.
+src/modules/auth/auth.module.ts(16,31): error TS2307: Cannot find module '../common/guards/throttle.guard' or its corresponding type declarations.
+src/modules/auth/auth.module.ts(25,7): error TS2322: Type '(configService: ConfigService) => { secret: string; signOptions: { expiresIn: string; }; }' is not assignable to type '(...args: any[]) => JwtModuleOptions | Promise<JwtModuleOptions>'.
+  Type '{ secret: string; signOptions: { expiresIn: string; }; }' is not assignable to type 'JwtModuleOptions | Promise<JwtModuleOptions>'.
+    Type '{ secret: string; signOptions: { expiresIn: string; }; }' is not assignable to type 'JwtModuleOptions'.
+      The types of 'signOptions.expiresIn' are incompatible between these types.
+        Type 'string' is not assignable to type 'number | StringValue'.
+src/modules/auth/services/auth.service.ts(94,28): error TS2341: Property 'configService' is private and only accessible within class 'JwtTokenService'.
+src/modules/auth/services/auth.service.ts(180,28): error TS2341: Property 'configService' is private and only accessible within class 'JwtTokenService'.
+src/modules/auth/services/jwt.service.ts(16,28): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(payload: string, options?: Omit<JwtSignOptions, keyof SignOptions>): string', gave the following error.
+    Argument of type '{ sub: string; steamId: string; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(payload: Buffer, options?: JwtSignOptions): string', gave the following error.
+    Argument of type '{ sub: string; steamId: string; }' is not assignable to parameter of type 'Buffer'.
+      Type '{ sub: string; steamId: string; }' is missing the following properties from type 'Buffer': slice, subarray, write, toJSON, and 97 more.
+  Overload 3 of 3, '(payload: { sub: string; steamId: string; }, options?: JwtSignOptions): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue'.
+src/modules/auth/services/jwt.service.ts(24,28): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(payload: string, options?: Omit<JwtSignOptions, keyof SignOptions>): string', gave the following error.
+    Argument of type '{ sub: string; steamId: string; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(payload: Buffer, options?: JwtSignOptions): string', gave the following error.
+    Argument of type '{ sub: string; steamId: string; }' is not assignable to parameter of type 'Buffer'.
+      Type '{ sub: string; steamId: string; }' is missing the following properties from type 'Buffer': slice, subarray, write, toJSON, and 97 more.
+  Overload 3 of 3, '(payload: { sub: string; steamId: string; }, options?: JwtSignOptions): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue'.
+src/modules/auth/strategies/steam.strategy.ts(3,20): error TS2305: Module '"passport-steam"' has no exported member 'VerifyCallback'.
+src/modules/events/events.module.ts(11,7): error TS2322: Type '(configService: ConfigService) => { secret: string; signOptions: { expiresIn: string; }; }' is not assignable to type '(...args: any[]) => JwtModuleOptions | Promise<JwtModuleOptions>'.
+  Type '{ secret: string; signOptions: { expiresIn: string; }; }' is not assignable to type 'JwtModuleOptions | Promise<JwtModuleOptions>'.
+    Type '{ secret: string; signOptions: { expiresIn: string; }; }' is not assignable to type 'JwtModuleOptions'.
+      The types of 'signOptions.expiresIn' are incompatible between these types.
+        Type 'string' is not assignable to type 'number | StringValue'.
+src/modules/inventory/dto/get-inventory.dto.ts(4,31): error TS2307: Cannot find module '../../common/dto/pagination.dto' or its corresponding type declarations.
+src/modules/inventory/dto/get-inventory.dto.ts(105,4): error TS2304: Cannot find name 'IsNumber'.
+src/modules/inventory/dto/get-inventory.dto.ts(116,4): error TS2304: Cannot find name 'IsNumber'.
+src/modules/inventory/dto/sync-inventory.dto.ts(13,4): error TS2304: Cannot find name 'IsIn'.
+src/modules/inventory/inventory.controller.ts(13,3): error TS2724: '"@nestjs/common"' has no exported member named 'TooManyRequestsException'. Did you mean 'BadRequestException'?
+src/modules/inventory/inventory.controller.ts(19,30): error TS2307: Cannot find module '../../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+src/modules/inventory/inventory.controller.ts(20,29): error TS2307: Cannot find module '../../auth/decorators/current-user.decorator' or its corresponding type declarations.
+src/modules/inventory/inventory.controller.ts(21,10): error TS2305: Module '"@nestjs/bull"' has no exported member 'Queue'.
+src/modules/inventory/inventory.controller.ts(23,20): error TS2305: Module '"../../common/decorators/cache-key.decorator"' has no exported member 'CacheTTL'.
+src/modules/inventory/inventory.controller.ts(23,30): error TS2305: Module '"../../common/decorators/cache-key.decorator"' has no exported member 'CacheInvalidate'.
+src/modules/inventory/inventory.controller.ts(25,34): error TS2307: Cannot find module '../services/inventory.service' or its corresponding type declarations.
+src/modules/inventory/inventory.controller.ts(26,107): error TS2307: Cannot find module '../exceptions/steam-api.exception' or its corresponding type declarations.
+src/modules/inventory/inventory.controller.ts(33,8): error TS2307: Cannot find module '../dto' or its corresponding type declarations.
+src/modules/inventory/inventory.controller.ts(36,22): error TS2307: Cannot find module '../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/inventory/inventory.controller.ts(59,11): error TS2693: 'PaginatedResponse' only refers to a type, but is being used as a value here.
+src/modules/inventory/schedulers/inventory-sync.scheduler.ts(4,10): error TS2305: Module '"@nestjs/bull"' has no exported member 'Queue'.
+src/modules/inventory/services/inventory.service.ts(1,50): error TS2300: Duplicate identifier 'CACHE_MANAGER'.
+src/modules/inventory/services/inventory.service.ts(1,50): error TS2305: Module '"@nestjs/common"' has no exported member 'CACHE_MANAGER'.
+src/modules/inventory/services/inventory.service.ts(4,10): error TS2300: Duplicate identifier 'CACHE_MANAGER'.
+src/modules/inventory/services/inventory.service.ts(11,31): error TS2307: Cannot find module '../../common/dto/pagination.dto' or its corresponding type declarations.
+src/modules/inventory/services/inventory.service.ts(12,35): error TS2307: Cannot find module '../../common/interfaces/paginated-response.interface' or its corresponding type declarations.
+src/modules/inventory/services/inventory.service.ts(14,20): error TS2305: Module '"../../../common/decorators/cache-key.decorator"' has no exported member 'CacheTTL'.
+src/modules/inventory/services/inventory.service.ts(14,30): error TS2305: Module '"../../../common/decorators/cache-key.decorator"' has no exported member 'CacheInvalidate'.
+src/modules/inventory/services/inventory.service.ts(629,62): error TS2339: Property 'client' does not exist on type 'Store'.
+src/modules/inventory/services/inventory.service.ts(630,53): error TS2339: Property 'client' does not exist on type 'Store'.
+src/modules/inventory/services/item.service.ts(6,31): error TS2307: Cannot find module '../../common/dto/pagination.dto' or its corresponding type declarations.
+src/modules/inventory/services/item.service.ts(7,35): error TS2307: Cannot find module '../../common/interfaces/paginated-response.interface' or its corresponding type declarations.
+src/modules/inventory/services/item.service.ts(74,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/inventory/services/steam-api.service.ts(98,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/pricing/controllers/pricing.controller.ts(13,3): error TS2724: '"@nestjs/common"' has no exported member named 'TooManyRequestsException'. Did you mean 'BadRequestException'?
+src/modules/pricing/controllers/pricing.controller.ts(20,28): error TS2307: Cannot find module '../guards/admin.guard' or its corresponding type declarations.
+src/modules/pricing/controllers/pricing.controller.ts(22,53): error TS2307: Cannot find module '../../common/decorators/cache-key.decorator' or its corresponding type declarations.
+src/modules/pricing/controllers/pricing.controller.ts(23,34): error TS2307: Cannot find module '../../common/interceptors/cache.interceptor' or its corresponding type declarations.
+src/modules/pricing/controllers/pricing.controller.ts(27,29): error TS2305: Module '"../services/price.service"' has no exported member 'ProfitMarginResult'.
+src/modules/pricing/controllers/pricing.controller.ts(30,31): error TS2307: Cannot find module '../../common/dto/pagination.dto' or its corresponding type declarations.
+src/modules/pricing/controllers/pricing.controller.ts(31,35): error TS2307: Cannot find module '../../common/interfaces/paginated-response.interface' or its corresponding type declarations.
+src/modules/pricing/controllers/pricing.controller.ts(63,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(67,87): error TS2693: 'ItemPriceResponse' only refers to a type, but is being used as a value here.
+src/modules/pricing/controllers/pricing.controller.ts(75,66): error TS2367: This comparison appears to be unintentional because the types 'boolean' and 'string' have no overlap.
+src/modules/pricing/controllers/pricing.controller.ts(95,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(100,87): error TS2693: 'ItemPriceResponse' only refers to a type, but is being used as a value here.
+src/modules/pricing/controllers/pricing.controller.ts(132,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(173,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(202,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(219,7): error TS2322: Type 'VolatileItem[]' is not assignable to type 'VolatileItemDto[]'.
+  Property 'currentPrice' is missing in type 'VolatileItem' but required in type 'VolatileItemDto'.
+src/modules/pricing/controllers/pricing.controller.ts(229,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(256,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(267,9): error TS2345: Argument of type 'TradeItemDto[]' is not assignable to parameter of type 'TradeItem[]'.
+  Type 'TradeItemDto' is missing the following properties from type 'TradeItem': id, tradeId, inventoryId, assetId, and 15 more.
+src/modules/pricing/controllers/pricing.controller.ts(294,36): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(321,36): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/controllers/pricing.controller.ts(338,7): error TS2322: Type 'MarketReport' is not assignable to type 'MarketReportDto'.
+  Types of property 'topGainers' are incompatible.
+    Type 'PopularItem[]' is not assignable to type 'MarketTrendDto[]'.
+      Property 'trend' is missing in type 'PopularItem' but required in type 'MarketTrendDto'.
+src/modules/pricing/controllers/pricing.controller.ts(349,37): error TS2353: Object literal may only specify known properties, and 'window' does not exist in type 'ThrottlerMethodOrControllerOptions'.
+src/modules/pricing/dto/calculate-profit.dto.ts(13,4): error TS2552: Cannot find name 'IsString'. Did you mean 'String'?
+src/modules/pricing/dto/market-trend.dto.ts(42,4): error TS2304: Cannot find name 'IsOptional'.
+src/modules/pricing/dto/market-trend.dto.ts(48,4): error TS2304: Cannot find name 'IsOptional'.
+src/modules/pricing/dto/market-trend.dto.ts(54,4): error TS2304: Cannot find name 'IsOptional'.
+src/modules/pricing/entities/item-price.entity.ts(18,8): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string[]' is not assignable to parameter of type 'string'.
+src/modules/pricing/entities/item-price.entity.ts(19,8): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string[]' is not assignable to parameter of type 'string'.
+src/modules/pricing/processors/price-update.processor.ts(40,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/processors/price-update.processor.ts(71,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/processors/price-update.processor.ts(127,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/processors/price-update.processor.ts(185,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/processors/trend-analysis.processor.ts(44,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/processors/trend-analysis.processor.ts(83,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/processors/trend-analysis.processor.ts(130,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/processors/trend-analysis.processor.ts(194,4): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(name: string): MethodDecorator', gave the following error.
+    Argument of type '{ name: string; options: { attempts: number; backoff: { type: string; delay: number; }; removeOnComplete: number; removeOnFail: number; }; }' is not assignable to parameter of type 'string'.
+  Overload 2 of 3, '(options: ProcessOptions): MethodDecorator', gave the following error.
+    Object literal may only specify known properties, and 'options' does not exist in type 'ProcessOptions'.
+src/modules/pricing/schedulers/price-update.scheduler.ts(4,10): error TS2305: Module '"@nestjs/bull"' has no exported member 'Queue'.
+src/modules/pricing/services/price-calculation.service.ts(405,29): error TS2339: Property 'itemId' does not exist on type 'TradeItem'.
+src/modules/pricing/services/price-calculation.service.ts(419,29): error TS2339: Property 'itemId' does not exist on type 'TradeItem'.
+src/modules/pricing/services/price.service.ts(1,30): error TS2305: Module '"@nestjs/common"' has no exported member 'InjectRepository'.
+src/modules/pricing/services/price.service.ts(9,35): error TS2307: Cannot find module './services/pricing-api.service' or its corresponding type declarations.
+src/modules/pricing/services/price.service.ts(10,41): error TS2307: Cannot find module './services/price-calculation.service' or its corresponding type declarations.
+src/modules/pricing/services/price.service.ts(14,8): error TS2307: Cannot find module './exceptions/pricing.exception' or its corresponding type declarations.
+src/modules/pricing/services/price.service.ts(15,20): error TS2305: Module '"../../../common/decorators/cache-key.decorator"' has no exported member 'CacheTTL'.
+src/modules/pricing/services/price.service.ts(15,30): error TS2305: Module '"../../../common/decorators/cache-key.decorator"' has no exported member 'CacheInvalidate'.
+src/modules/pricing/services/price.service.ts(48,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/pricing/services/price.service.ts(74,46): error TS2304: Cannot find name 'staleThreshold'.
+src/modules/pricing/services/price.service.ts(263,72): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/modules/pricing/services/price.service.ts(264,82): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/modules/pricing/services/price.service.ts(266,70): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/modules/pricing/services/price.service.ts(267,79): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+src/modules/pricing/services/pricing-api.service.ts(1,30): error TS2305: Module '"@nestjs/common"' has no exported member 'ConfigService'.
+src/modules/pricing/services/pricing-api.service.ts(62,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/pricing/services/pricing-api.service.ts(82,5): error TS2349: This expression is not callable.
+  Type 'typeof import("/home/zhaslan/Downloads/testsite/node_modules/axios-retry/dist/cjs/index")' has no call signatures.
+src/modules/pricing/services/pricing-api.service.ts(159,9): error TS2345: Argument of type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>' is not assignable to parameter of type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>'.
+  Types of property 'source' are incompatible.
+    Type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<any>' is not assignable to type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<any>'.
+src/modules/pricing/services/pricing-api.service.ts(229,9): error TS2345: Argument of type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>' is not assignable to parameter of type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>'.
+src/modules/pricing/services/pricing-api.service.ts(265,46): error TS2552: Cannot find name 'url'. Did you mean 'URL'?
+src/modules/pricing/services/pricing-api.service.ts(300,9): error TS2345: Argument of type 'import("/home/zhaslan/Downloads/testsite/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>' is not assignable to parameter of type 'import("/home/zhaslan/Downloads/testsite/apps/backend/node_modules/rxjs/dist/types/internal/Observable").Observable<import("/home/zhaslan/Downloads/testsite/node_modules/axios/index").AxiosResponse<any, any, {}>>'.
+src/modules/pricing/services/pricing-api.service.ts(339,46): error TS2304: Cannot find name 'url'.
+src/modules/pricing/services/trend-analysis.service.ts(1,30): error TS2305: Module '"@nestjs/common"' has no exported member 'InjectRepository'.
+src/modules/pricing/services/trend-analysis.service.ts(5,27): error TS2307: Cannot find module './entities/item-price.entity' or its corresponding type declarations.
+src/modules/pricing/services/trend-analysis.service.ts(6,30): error TS2307: Cannot find module './services/price.service' or its corresponding type declarations.
+src/modules/pricing/services/trend-analysis.service.ts(80,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/trading/bot.controller.ts(18,3): error TS2724: '"@nestjs/common"' has no exported member named 'TooManyRequestsException'. Did you mean 'BadRequestException'?
+src/modules/trading/bot.controller.ts(21,30): error TS2307: Cannot find module '../../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(22,28): error TS2307: Cannot find module '../guards/admin.guard' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(23,29): error TS2307: Cannot find module '../../auth/decorators/current-user.decorator' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(24,35): error TS2307: Cannot find module '../services/bot-manager.service' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(25,35): error TS2307: Cannot find module '../services/steam-trade.service' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(26,30): error TS2307: Cannot find module '../services/trade.service' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(27,30): error TS2307: Cannot find module '../dto/create-bot.dto' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(28,30): error TS2307: Cannot find module '../dto/update-bot.dto' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(29,30): error TS2307: Cannot find module '../dto/get-trades.dto' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(30,32): error TS2307: Cannot find module '../dto/bot-response.dto' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(31,34): error TS2307: Cannot find module '../dto/trade-response.dto' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(34,22): error TS2307: Cannot find module '../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(35,27): error TS2307: Cannot find module '../entities/bot.entity' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(36,29): error TS2307: Cannot find module '../entities/trade.entity' or its corresponding type declarations.
+src/modules/trading/bot.controller.ts(119,47): error TS2339: Property 'isActive' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(120,47): error TS2339: Property 'isOnline' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(121,25): error TS2339: Property 'status' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(479,11): error TS2689: Cannot extend an interface 'PaginatedResponse'. Did you mean 'implements'?
+src/modules/trading/bot.controller.ts(493,40): error TS2339: Property 'status' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(494,38): error TS2339: Property 'type' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(495,42): error TS2339: Property 'dateFrom' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(496,40): error TS2339: Property 'dateTo' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(499,41): error TS2339: Property 'page' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(500,42): error TS2339: Property 'limit' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(503,62): error TS2339: Property 'hasEscrow' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(504,45): error TS2339: Property 'sortBy' does not exist on type '{}'.
+src/modules/trading/bot.controller.ts(505,48): error TS2339: Property 'sortOrder' does not exist on type '{}'.
+src/modules/trading/dto/create-bot.dto.ts(34,5): error TS2353: Object literal may only specify known properties, and 'length' does not exist in type 'ApiPropertyOptions'.
+src/modules/trading/dto/create-bot.dto.ts(44,5): error TS2353: Object literal may only specify known properties, and 'length' does not exist in type 'ApiPropertyOptions'.
+src/modules/trading/dto/create-bot.dto.ts(54,5): error TS2353: Object literal may only specify known properties, and 'length' does not exist in type 'ApiPropertyOptions'.
+src/modules/trading/dto/get-trades.dto.ts(4,31): error TS2307: Cannot find module '../../common/dto/pagination.dto' or its corresponding type declarations.
+src/modules/trading/dto/update-bot.dto.ts(14,4): error TS2304: Cannot find name 'MinLength'.
+src/modules/trading/dto/update-bot.dto.ts(21,5): error TS2353: Object literal may only specify known properties, and 'length' does not exist in type 'ApiPropertyOptions'.
+src/modules/trading/dto/update-bot.dto.ts(31,5): error TS2353: Object literal may only specify known properties, and 'length' does not exist in type 'ApiPropertyOptions'.
+src/modules/trading/dto/update-bot.dto.ts(41,5): error TS2353: Object literal may only specify known properties, and 'length' does not exist in type 'ApiPropertyOptions'.
+src/modules/trading/guards/admin.guard.ts(23,17): error TS2339: Property 'set' does not exist on type 'Reflector'.
+src/modules/trading/guards/admin.guard.ts(26,17): error TS2339: Property 'set' does not exist on type 'Reflector'.
+src/modules/trading/guards/admin.guard.ts(39,17): error TS2339: Property 'set' does not exist on type 'Reflector'.
+src/modules/trading/guards/admin.guard.ts(42,17): error TS2339: Property 'set' does not exist on type 'Reflector'.
+src/modules/trading/processors/trade-polling.processor.ts(387,60): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; metadata: { confirmationAttempted: boolean; }; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; metadata: { confirmationAttempted: boolean; }; }' but required in type 'TradeEventData'.
+src/modules/trading/processors/trade-polling.processor.ts(412,60): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; metadata: { confirmationFailed: boolean; error: any; }; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; metadata: { confirmationFailed: boolean; error: any; }; }' but required in type 'TradeEventData'.
+src/modules/trading/processors/trade-polling.processor.ts(445,13): error TS2353: Object literal may only specify known properties, and 'tradeOfferId' does not exist in type 'TradeEventData'.
+src/modules/trading/processors/trade-polling.processor.ts(475,56): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus.DECLINED | TradeStatus.CANCELLED | TradeStatus.FAILED | TradeStatus.EXPIRED; userId: string; reason: string; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus.DECLINED | TradeStatus.CANCELLED | TradeStatus.FAILED | TradeStatus.EXPIRED; userId: string; reason: string; }' but required in type 'TradeEventData'.
+src/modules/trading/schedulers/trade-polling.scheduler.ts(35,24): error TS2551: Property 'EVERY_2_MINUTES' does not exist on type 'typeof CronExpression'. Did you mean 'EVERY_5_MINUTES'?
+src/modules/trading/schedulers/trade-polling.scheduler.ts(331,15): error TS2322: Type '"error"' is not assignable to type '(() => string) | _QueryDeepPartialEntity<BotStatus>'.
+src/modules/trading/services/bot-manager.service.ts(75,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/trading/services/bot-manager.service.ts(249,22): error TS2339: Property 'accountName' does not exist on type 'UpdateBotDto'.
+src/modules/trading/services/bot-manager.service.ts(611,5): error TS2741: Property 'updateTimestamp' is missing in type '{ id: string; steamId: string; accountName: string; password: string; sharedSecret: string; identitySecret: string; steamGuardCode: string; apiKey: string; tradeUrl: string; isActive: boolean; ... 11 more ...; trades: Trade[]; }' but required in type 'Bot'.
+src/modules/trading/services/steam-trade.service.ts(84,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/trading/services/steam-trade.service.ts(128,27): error TS2351: This expression is not constructable.
+  Type 'typeof SteamUser' has no construct signatures.
+src/modules/trading/services/steam-trade.service.ts(259,28): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(event: "appOwnershipCached", listener: () => void): this', gave the following error.
+    Argument of type '"sentry"' is not assignable to parameter of type '"appOwnershipCached"'.
+  Overload 2 of 2, '(event: keyof Events, listener: (...args: [] | [err: Error & { eresult: EResult; }] | [sid: SteamID, user: Record<string, any>] | [refreshToken: string] | [hasWallet: boolean, currency: ECurrencyCode, balance: number] | ... 37 more ... | [...]) => void): this', gave the following error.
+    Argument of type '"sentry"' is not assignable to parameter of type 'keyof Events'.
+src/modules/trading/services/steam-trade.service.ts(753,40): error TS2345: Argument of type '"sentry"' is not assignable to parameter of type 'keyof Events'.
+src/modules/trading/services/trade-validation.service.ts(322,9): error TS2322: Type '"synced"' is not assignable to type 'SyncStatus | FindOperator<SyncStatus>'.
+src/modules/trading/services/trade-validation.service.ts(355,33): error TS2304: Cannot find name 'TradeStatus'.
+src/modules/trading/services/trade-validation.service.ts(355,56): error TS2304: Cannot find name 'TradeStatus'.
+src/modules/trading/services/trade-validation.service.ts(355,76): error TS2304: Cannot find name 'TradeStatus'.
+src/modules/trading/services/trade-webhook.service.ts(421,43): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<WebhookLog>[]): WebhookLog[]', gave the following error.
+    Object literal may only specify known properties, and 'webhookSubscriptionId' does not exist in type 'DeepPartial<WebhookLog>[]'.
+  Overload 2 of 3, '(entityLike: DeepPartial<WebhookLog>): WebhookLog', gave the following error.
+    Type '"failed" | "success"' is not assignable to type 'WebhookDeliveryStatus'.
+      Type '"failed"' is not assignable to type 'WebhookDeliveryStatus'.
+src/modules/trading/services/trade.service.ts(22,31): error TS2307: Cannot find module '../../common/dto/pagination.dto' or its corresponding type declarations.
+src/modules/trading/services/trade.service.ts(23,35): error TS2307: Cannot find module '../../common/interfaces/paginated-response.interface' or its corresponding type declarations.
+src/modules/trading/services/trade.service.ts(88,6): error TS1239: Unable to resolve signature of parameter decorator when called as an expression.
+  This expression is not callable.
+    Type 'String' has no call signatures.
+src/modules/trading/services/trade.service.ts(321,51): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; offerId: string; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; offerId: string; }' but required in type 'TradeEventData'.
+src/modules/trading/services/trade.service.ts(409,55): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; }' but required in type 'TradeEventData'.
+src/modules/trading/services/trade.service.ts(468,56): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; }' but required in type 'TradeEventData'.
+src/modules/trading/services/trade.service.ts(531,55): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; reason: string; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; reason: string; }' but required in type 'TradeEventData'.
+src/modules/trading/services/trade.service.ts(598,53): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; reason: string; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; reason: string; }' but required in type 'TradeEventData'.
+src/modules/trading/services/trade.service.ts(647,51): error TS2345: Argument of type '{ tradeId: string; status: TradeStatus; userId: string; errorMessage: string; }' is not assignable to parameter of type 'TradeEventData'.
+  Property 'timestamp' is missing in type '{ tradeId: string; status: TradeStatus; userId: string; errorMessage: string; }' but required in type 'TradeEventData'.
+src/modules/trading/trading.controller.ts(15,3): error TS2724: '"@nestjs/common"' has no exported member named 'TooManyRequestsException'. Did you mean 'BadRequestException'?
+src/modules/trading/trading.controller.ts(21,30): error TS2307: Cannot find module '../../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(22,28): error TS2307: Cannot find module '../guards/admin.guard' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(23,29): error TS2307: Cannot find module '../../auth/decorators/current-user.decorator' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(24,30): error TS2307: Cannot find module '../services/trade.service' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(25,40): error TS2307: Cannot find module '../services/trade-validation.service' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(26,40): error TS2307: Cannot find module '../entities/trade.entity' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(27,46): error TS2307: Cannot find module '../dto/create-trade.dto' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(28,30): error TS2307: Cannot find module '../dto/get-trades.dto' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(29,34): error TS2307: Cannot find module '../dto/trade-response.dto' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(42,8): error TS2307: Cannot find module '../exceptions/trade.exception' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(45,22): error TS2307: Cannot find module '../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(46,33): error TS2307: Cannot find module '../services/trade.service' or its corresponding type declarations.
+src/modules/trading/trading.controller.ts(118,11): error TS2689: Cannot extend an interface 'PaginatedResponse'. Did you mean 'implements'?
+src/modules/trading/trading.controller.ts(353,11): error TS2689: Cannot extend an interface 'PaginatedResponse'. Did you mean 'implements'?
+src/modules/user/controllers/user-profile.controller.ts(23,30): error TS2307: Cannot find module '../../../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+src/modules/user/controllers/user-profile.controller.ts(24,29): error TS2307: Cannot find module '../../../auth/decorators/current-user.decorator' or its corresponding type declarations.
+src/modules/user/controllers/user-profile.controller.ts(25,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/user/entities/user-notification-preferences.entity.ts(2,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/user/entities/user-profile.entity.ts(2,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/user/entities/user-settings.entity.ts(2,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/user/processors/user-notification.processor.ts(1,63): error TS2305: Module '"@nestjs/bull"' has no exported member 'Job'.
+src/modules/user/services/user-statistics.service.ts(6,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/user/services/user-statistics.service.ts(7,23): error TS2307: Cannot find module '../../../trading/entities/trade.entity' or its corresponding type declarations.
+src/modules/user/services/user-statistics.service.ts(8,48): error TS2307: Cannot find module '../../../wallet/entities/transaction.entity' or its corresponding type declarations.
+src/modules/user/services/user-statistics.service.ts(9,25): error TS2307: Cannot find module '../../../wallet/entities/balance.entity' or its corresponding type declarations.
+src/modules/user/services/user-statistics.service.ts(10,26): error TS2307: Cannot find module '../../../wallet/entities/referral.entity' or its corresponding type declarations.
+src/modules/user/services/user-statistics.service.ts(11,32): error TS2307: Cannot find module '../../../wallet/services/balance.service' or its corresponding type declarations.
+src/modules/user/user.module.ts(12,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/user/user.module.ts(13,23): error TS2307: Cannot find module '../../../trading/entities/trade.entity' or its corresponding type declarations.
+src/modules/user/user.module.ts(14,29): error TS2307: Cannot find module '../../wallet/entities/transaction.entity' or its corresponding type declarations.
+src/modules/user/user.module.ts(15,26): error TS2307: Cannot find module '../../wallet/entities/referral.entity' or its corresponding type declarations.
+src/modules/wallet/controllers/referral.controller.ts(22,30): error TS2307: Cannot find module '../../../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+src/modules/wallet/controllers/referral.controller.ts(23,28): error TS2307: Cannot find module '../../../auth/guards/admin.guard' or its corresponding type declarations.
+src/modules/wallet/controllers/referral.controller.ts(24,29): error TS2307: Cannot find module '../../../auth/decorators/current-user.decorator' or its corresponding type declarations.
+src/modules/wallet/controllers/referral.controller.ts(25,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/controllers/referral.controller.ts(66,62): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/referral.controller.ts(67,63): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/referral.controller.ts(79,57): error TS2322: Type 'string' is not assignable to type 'number'.
+src/modules/wallet/controllers/referral.controller.ts(79,63): error TS2322: Type 'string' is not assignable to type 'number'.
+src/modules/wallet/controllers/referral.controller.ts(97,62): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/referral.controller.ts(98,63): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/referral.controller.ts(116,74): error TS2322: Type 'string' is not assignable to type 'ReferralStatus'.
+src/modules/wallet/controllers/transaction.controller.ts(23,30): error TS2307: Cannot find module '../../../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+src/modules/wallet/controllers/transaction.controller.ts(24,28): error TS2307: Cannot find module '../../../auth/guards/admin.guard' or its corresponding type declarations.
+src/modules/wallet/controllers/transaction.controller.ts(25,29): error TS2307: Cannot find module '../../../auth/decorators/current-user.decorator' or its corresponding type declarations.
+src/modules/wallet/controllers/transaction.controller.ts(26,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/controllers/transaction.controller.ts(48,49): error TS2353: Object literal may only specify known properties, and 'format' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/transaction.controller.ts(49,47): error TS2353: Object literal may only specify known properties, and 'format' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/transaction.controller.ts(50,62): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/transaction.controller.ts(51,63): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/transaction.controller.ts(69,9): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/wallet/controllers/transaction.controller.ts(70,9): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/wallet/controllers/transaction.controller.ts(72,9): error TS2322: Type 'string' is not assignable to type '"DESC" | "ASC"'.
+src/modules/wallet/controllers/transaction.controller.ts(115,62): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/transaction.controller.ts(116,63): error TS2353: Object literal may only specify known properties, and 'default' does not exist in type 'ApiQueryOptions'.
+src/modules/wallet/controllers/wallet.controller.ts(22,30): error TS2307: Cannot find module '../../../auth/guards/jwt-auth.guard' or its corresponding type declarations.
+src/modules/wallet/controllers/wallet.controller.ts(23,24): error TS2307: Cannot find module '../../../auth/decorators/public.decorator' or its corresponding type declarations.
+src/modules/wallet/controllers/wallet.controller.ts(24,29): error TS2307: Cannot find module '../../../auth/decorators/current-user.decorator' or its corresponding type declarations.
+src/modules/wallet/controllers/wallet.controller.ts(26,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/dto/update-transaction-status.dto.ts(3,35): error TS2307: Cannot find module '../../entities/transaction.entity' or its corresponding type declarations.
+src/modules/wallet/entities/balance.entity.ts(2,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/entities/referral-code.entity.ts(2,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/entities/referral.entity.ts(2,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/entities/transaction.entity.ts(2,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/entities/transaction.entity.ts(3,23): error TS2307: Cannot find module '../../../trading/entities/trade.entity' or its corresponding type declarations.
+src/modules/wallet/entities/transaction.entity.ts(140,29): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<unknown>), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Type '"SET_NULL"' is not assignable to type 'OnDeleteType'. Did you mean '"SET NULL"'?
+  Overload 2 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<unknown>), inverseSide?: string | ((object: unknown) => any), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Object literal may only specify known properties, and 'onDelete' does not exist in type '(object: unknown) => any'.
+src/modules/wallet/entities/transaction.entity.ts(145,32): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<Referral>), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Type '"SET_NULL"' is not assignable to type 'OnDeleteType'. Did you mean '"SET NULL"'?
+  Overload 2 of 2, '(typeFunctionOrTarget: string | ((type?: any) => ObjectType<Referral>), inverseSide?: string | ((object: Referral) => any), options?: RelationOptions): PropertyDecorator', gave the following error.
+    Object literal may only specify known properties, and 'onDelete' does not exist in type '(object: Referral) => any'.
+src/modules/wallet/processors/payment.processor.ts(1,63): error TS2305: Module '"@nestjs/bull"' has no exported member 'Job'.
+src/modules/wallet/processors/payment.processor.ts(188,66): error TS2339: Property 'error' does not exist on type '{ success: boolean; status: string; amount: number; currency: string; metadata?: Record<string, any>; }'.
+src/modules/wallet/processors/payment.processor.ts(205,66): error TS2339: Property 'error' does not exist on type '{ success: boolean; status: string; amount: number; currency: string; metadata?: Record<string, any>; }'.
+src/modules/wallet/processors/withdrawal.processor.ts(1,63): error TS2305: Module '"@nestjs/bull"' has no exported member 'Job'.
+src/modules/wallet/processors/withdrawal.processor.ts(224,19): error TS2322: Type '"withdrawal"' is not assignable to type 'TransactionType'.
+src/modules/wallet/processors/withdrawal.processor.ts(225,22): error TS2322: Type '"completed"' is not assignable to type 'TransactionStatus'.
+src/modules/wallet/processors/withdrawal.processor.ts(225,35): error TS2322: Type '"failed"' is not assignable to type 'TransactionStatus'.
+src/modules/wallet/processors/withdrawal.processor.ts(279,7): error TS2345: Argument of type '"completed"' is not assignable to parameter of type 'TransactionStatus'.
+src/modules/wallet/processors/withdrawal.processor.ts(310,7): error TS2345: Argument of type '"failed"' is not assignable to parameter of type 'TransactionStatus'.
+src/modules/wallet/services/balance.service.ts(7,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/services/balance.service.ts(26,6): error TS2304: Cannot find name 'Inject'.
+src/modules/wallet/services/balance.service.ts(428,7): error TS2322: Type '"completed"' is not assignable to type 'TransactionStatus'.
+src/modules/wallet/services/balance.service.ts(432,7): error TS2322: Type '"completed"' is not assignable to type 'TransactionStatus'.
+src/modules/wallet/services/crypto-payment.service.ts(33,10): error TS2540: Cannot assign to 'logger' because it is a read-only property.
+src/modules/wallet/services/fiat-payment.service.ts(31,10): error TS2540: Cannot assign to 'logger' because it is a read-only property.
+src/modules/wallet/services/referral.service.ts(10,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/services/referral.service.ts(31,6): error TS2304: Cannot find name 'Inject'.
+src/modules/wallet/services/referral.service.ts(206,48): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(entityLikeArray: DeepPartial<Referral>[]): Referral[]', gave the following error.
+    Object literal may only specify known properties, and 'referrerId' does not exist in type 'DeepPartial<Referral>[]'.
+  Overload 2 of 3, '(entityLike: DeepPartial<Referral>): Referral', gave the following error.
+    Type '"pending"' is not assignable to type 'ReferralStatus'.
+src/modules/wallet/services/referral.service.ts(239,25): error TS2339: Property 'id' does not exist on type 'Referral[]'.
+src/modules/wallet/services/referral.service.ts(247,7): error TS2740: Type 'Referral[]' is missing the following properties from type 'Referral': id, referrerId, refereeId, referralCodeId, and 18 more.
+src/modules/wallet/services/referral.service.ts(440,7): error TS2740: Type '{}' is missing the following properties from type '{ totalReferrals: number; activeReferrals: number; completedReferrals: number; pendingReferrals: number; totalReferralEarnings: number; pendingEarnings: number; }': totalReferrals, activeReferrals, completedReferrals, pendingReferrals, and 2 more.
+src/modules/wallet/services/referral.service.ts(496,5): error TS2322: Type 'string' is not assignable to type 'ReferralStatus'.
+src/modules/wallet/services/referral.service.ts(520,48): error TS2304: Cannot find name 'MoreThanOrEqual'.
+src/modules/wallet/services/transaction.service.ts(9,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+src/modules/wallet/services/transaction.service.ts(30,6): error TS2304: Cannot find name 'Inject'.
+src/modules/wallet/services/transaction.service.ts(45,5): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+src/modules/wallet/services/transaction.service.ts(51,5): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+src/modules/wallet/wallet.module.ts(20,22): error TS2307: Cannot find module '../../../auth/entities/user.entity' or its corresponding type declarations.
+npm error Lifecycle script `type-check` failed with error:
+npm error code 1
+npm error path /home/zhaslan/Downloads/testsite/apps/backend
+npm error workspace steam-marketplace-backend@1.0.0
+npm error location /home/zhaslan/Downloads/testsite/apps/backend
+npm error command failed
+npm error command sh -c tsc --noEmit

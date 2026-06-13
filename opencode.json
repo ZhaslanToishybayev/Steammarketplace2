@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "viktor/viktor",
+  "provider": {
+    "viktor": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Viktor (через мост)",
+      "options": {
+        "baseURL": "http://127.0.0.1:8799/v1",
+        "apiKey": "viktor"
+      },
+      "models": {
+        "viktor": {
+          "name": "Viktor"
+        }
+      }
+    }
+  }
+}

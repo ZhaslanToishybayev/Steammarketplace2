@@ -1,0 +1,21 @@
+# Steam Marketplace - robots.txt
+# https://yourdomain.com/robots.txt
+
+User-agent: *
+Allow: /
+Allow: /marketplace
+Allow: /item/*
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /profile/
+Disallow: /sell
+Disallow: /cart
+
+# Sitemap
+Sitemap: https://yourdomain.com/sitemap.xml
+
+# Crawl delay (optional, for aggressive bots)
+Crawl-delay: 1

@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-11-24T09:11:24.277Z",
+  "baseUrl": "http://localhost:3001",
+  "frontendOrigin": "http://localhost:3000",
+  "summary": {
+    "total": 4,
+    "passed": 0,
+    "failed": 4,
+    "warnings": 0
+  },
+  "results": [
+    {
+      "name": "Health Endpoint CORS",
+      "passed": false,
+      "actualHeaders": {},
+      "missingHeaders": [
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-allow-credentials"
+      ],
+      "unexpectedHeaders": [],
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "Basic CORS test for health endpoint"
+    },
+    {
+      "name": "Auth Endpoint CORS",
+      "passed": false,
+      "actualHeaders": {},
+      "missingHeaders": [
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-allow-credentials"
+      ],
+      "unexpectedHeaders": [],
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "CORS test for Steam OAuth endpoint"
+    },
+    {
+      "name": "Inventory Endpoint CORS",
+      "passed": false,
+      "actualHeaders": {},
+      "missingHeaders": [
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-allow-credentials"
+      ],
+      "unexpectedHeaders": [],
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "CORS test for inventory endpoint"
+    },
+    {
+      "name": "Pricing Endpoint CORS",
+      "passed": false,
+      "actualHeaders": {},
+      "missingHeaders": [
+        "access-control-allow-origin",
+        "access-control-allow-methods",
+        "access-control-allow-headers",
+        "access-control-allow-credentials"
+      ],
+      "unexpectedHeaders": [],
+      "error": "connect ECONNREFUSED 127.0.0.1:3001",
+      "description": "CORS test for pricing endpoint"
+    }
+  ],
+  "corsConfig": {}
+}

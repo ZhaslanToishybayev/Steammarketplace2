@@ -1,0 +1,141 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: steam-marketplace-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: steam_marketplace
+      POSTGRES_USER: steam_user
+      POSTGRES_PASSWORD: dev-postgres-password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - steam-marketplace-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U steam_user -d steam_marketplace"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:6
+    container_name: steam-marketplace-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: dev-mongo-password
+      MONGO_INITDB_DATABASE: steam_marketplace
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - steam-marketplace-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: steam-marketplace-redis
+    restart: unless-stopped
+    command: >
+      sh -c "
+        redis-server --appendonly yes
+        --requirepass dev-redis-password
+        --maxmemory 512mb
+        --maxmemory-policy allkeys-lru
+        --tcp-keepalive 300
+        --timeout 0
+        --tcp-backlog 511
+        --databases 16
+        --save 900 1
+        --save 300 10
+        --save 60 10000
+      "
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - steam-marketplace-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: steam-marketplace-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - steam-marketplace-network
+    depends_on:
+      - backend
+    profiles:
+      - production
+
+  # Backend API
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: steam-marketplace-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      STEAM_API_KEY: ${STEAM_API_KEY}
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3001:3001"
+    networks:
+      - steam-marketplace-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_data:
+    driver: local
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  steam-marketplace-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
