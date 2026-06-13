@@ -112,6 +112,7 @@ steam-marketplace-debug.log
 
 # Sisyphus backups and deployment configs
 .sisyphus/
+docker-compose.local.yml
 docker-compose.sisyphus-backup.yml
 docker-compose.override.sisyphus-backup.yml
 
