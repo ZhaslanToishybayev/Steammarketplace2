@@ -1,122 +1,185 @@
-# 🔫 Steam Marketplace (CS2 & Dota 2)
+# SGOMarket Steam Marketplace
 
-![Project Status](https://img.shields.io/badge/Status-Production%20Ready-success)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
+P2P-маркетплейс для торговли Steam-скинами CS2 и Dota 2. Проект включает Next.js frontend, Node.js/Express backend, Steam-авторизацию, торговых ботов, escrow-логику, PostgreSQL, Redis, nginx, Prometheus и Grafana.
 
-Современная P2P-платформа для торговли скинами Steam с защитой сделок (Escrow), мгновенными выплатами и Telegram-уведомлениями.
+## Возможности
 
----
+- Steam Login через Passport Steam.
+- P2P-сделки между пользователями с escrow-процессом.
+- Поддержка торговых ботов Steam и очередей обработки трейдов.
+- Marketplace, корзина, профиль пользователя, баланс и история сделок.
+- Админ-панель для пользователей, лотов, ботов, трейдов, аналитики и настроек.
+- WebSocket-уведомления через Socket.IO.
+- Метрики Prometheus и dashboards Grafana.
+- Docker Compose конфигурации для локального и production запуска.
 
-## 🚀 Особенности
+## Технологии
 
-*   **⚡ Real-Time**: Мгновенные уведомления о сделках и обновление баланса (WebSockets через Nginx Proxy).
-*   **🛡️ Secure Escrow**: Система удерживает средства до подтверждения трейда в Steam.
-*   **🤖 Smart Bots**: Автоматические боты для трейдов с защитой от сбоев (Smart Rollback - авто-возврат денег при ошибке Steam).
-*   **🤝 P2P Trading**: Прямая торговля между пользователями (без передачи скина боту).
-*   **📱 Telegram Alerts**: Уведомления о продажах и статусе системы в Telegram.
-*   **🎨 Modern UI**: Стеклянный дизайн (Glassmorphism), анимации, адаптивность.
+- Frontend: Next.js 14, React 18, Tailwind CSS, Zustand, React Query, Socket.IO Client.
+- Backend: Node.js, Express, Passport.js, Socket.IO, PostgreSQL, Redis, Bull.
+- Steam: `steam-user`, `steamcommunity`, `steam-tradeoffer-manager`, Steam Web API.
+- Infrastructure: Docker Compose, nginx, Prometheus, Grafana.
+- Tests: Jest, Playwright.
 
----
-
-## 🛠️ Технологический стек
-
-*   **Frontend**: Next.js 14 (App Router), Tailwind CSS, Framer Motion, Socket.io Client.
-*   **Backend**: Node.js, Express, Passport.js (Steam Strategy), Socket.io (Redis Adapter).
-*   **Database**: PostgreSQL 15 (Data), Redis 7 (Sessions & Queues).
-*   **Infrastructure**: Docker Compose, Nginx (Gateway & SSL).
-*   **Monitoring**: Prometheus & Grafana (Metrics), Telegram Bot (Critical Alerts), Audit Logs.
-
----
-
-## 🏁 Быстрый старт (Localhost)
-
-### 1. Предварительные требования
-*   Docker & Docker Compose
-*   Node.js 18+ (для Playwright тестов)
-
-### 2. Настройка окружения
-Создайте файл `.env` в корне проекта (используйте `.env.example` как шаблон):
-```bash
-cp .env.example .env
-```
-*Обязательно укажите `STEAM_API_KEY`, `TELEGRAM_BOT_TOKEN` и данные бота.*
-
-### 3. Запуск
-```bash
-docker compose up -d
-```
-
-Сайт будет доступен по адресу: **http://localhost** (порт 80).
-
-*   **Админка:** `http://localhost/admin` (Логин: `admin` / `admin123`)
-*   **Графана:** `http://localhost/grafana` (Логин: `admin` / `admin`)
-*   **API:** `http://localhost/api`
-
----
-
-## 🧪 Тестирование (QA)
-
-Проект покрыт автоматическими E2E тестами (Playwright), гарантирующими стабильность.
-
-```bash
-# Запуск тестов фронтенда и админки
-cd apps/frontend
-npx playwright test
-```
-
-Включены сценарии:
-*   ✅ **Trade Flow:** Проверка покупки/продажи.
-*   ✅ **Admin Panel:** Проверка входа и отображения статистики.
-*   ✅ **Mobile UX:** Проверка адаптивности.
-
----
-
-## 📂 Структура проекта
+## Структура
 
 ```text
 .
 ├── apps/
-│   ├── frontend/       # Next.js приложение + E2E Tests
-│   └── backend/        # API и Воркеры
-├── docker/             # Конфигурации Docker
-├── monitoring/         # Prometheus & Grafana конфиги
-├── nginx/              # Конфигурация шлюза (Dev & Prod)
-├── scripts/            # Утилиты
-└── docker-compose.yml  # Основной файл запуска
+│   ├── backend/          # Express API, worker, Steam services, migrations
+│   └── frontend/         # Next.js app, admin panel, marketplace UI
+├── docker/               # Docker, nginx, grafana, prometheus configs
+├── docs/                 # Specs, checklists, runbooks, reports
+├── legacy-deploy-scripts/# Old deployment helpers
+├── monitoring/           # Prometheus and alerting configs
+├── nginx/                # Local and production nginx configs
+├── packages/types/       # Shared TypeScript types
+├── scripts/              # Verification and utility scripts
+├── docker-compose.yml
+└── docker-compose.local.yml
 ```
 
----
+## Быстрый запуск через Docker
 
-## 🔒 Безопасность и Аудит
+Требования:
 
-*   **Smart Rollback**: Если Steam выдает ошибку при отправке трейда, система автоматически возвращает деньги и восстанавливает лот.
-*   **Audit Logs**: Все финансовые операции и действия админов логируются.
-    *   *Скачать логи*: `Панель Администратора -> Audit -> Export CSV`.
-*   **Secure Admin**: Панель администратора защищена JWT токенами в httpOnly Cookies и имеет защиту от брутфорса.
+- Docker Desktop или Docker Engine с Docker Compose.
+- Node.js 18+ нужен только для запуска тестов и локальной разработки без Docker.
 
----
+Локальный Docker-режим использует `docker-compose.local.yml` и поднимает PostgreSQL, Redis, backend, worker, frontend, nginx, Prometheus и Grafana.
 
-## 🌍 Деплой на VPS (Production)
+```bash
+docker compose -f docker-compose.local.yml up --build
+```
 
-1.  Арендуйте сервер (Ubuntu 22.04+).
-2.  Скопируйте проект на сервер.
-3.  Настройте `.env`.
-4.  **SSL сертификаты (Первый запуск):**
-    ```bash
-    # Запустите в HTTP режиме для получения сертификатов
-    docker compose up -d
-    
-    # Получите сертификат через Certbot
-    docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot -d ваш-домен.com
-    ```
-5.  **Включите HTTPS:**
-    *   Раскомментируйте SSL блок в `nginx/production.conf`.
-    *   Перезапустите Nginx: `docker compose restart nginx`.
+После запуска:
 
-Подробный гайд по деплою смотрите в `OPS.md` (если создан).
+- Frontend: `http://localhost:8080`
+- API через nginx: `http://localhost:8080/api`
+- Grafana: `http://localhost:3300`
+- Admin panel: `http://localhost:8080/admin`
 
----
+По умолчанию trade offers и платежная система в local compose отключены:
 
-### Разработано с ❤️ и ☕
-OpenCode Agent (Senior Architect & Frontend Team)
+```env
+ENABLE_TRADE_OFFERS=false
+ENABLE_PAYMENT_SYSTEM=false
+```
+
+## Настройка окружения
+
+Примеры переменных лежат в:
+
+- [.env.example](./.env.example)
+- [apps/backend/.env.example](./apps/backend/.env.example)
+- [apps/frontend/.env.local.example](./apps/frontend/.env.local.example)
+
+Реальные `.env`-файлы не коммитятся. Перед production запуском заполните секреты и ключи:
+
+- `STEAM_API_KEY`
+- Steam bot credentials: username, password, shared secret, identity secret, Steam ID
+- `JWT_SECRET`
+- `JWT_REFRESH_SECRET`
+- `SESSION_SECRET`
+- PostgreSQL credentials
+- Redis settings
+- Stripe keys, если включаете платежи
+- Telegram token/chat id, если используете уведомления
+
+Не храните реальные секреты в README, issues или публичных репозиториях.
+
+## Локальная разработка без Docker
+
+Backend:
+
+```bash
+cd apps/backend
+npm install
+npm run dev
+```
+
+Worker:
+
+```bash
+cd apps/backend
+npm run worker:dev
+```
+
+Frontend:
+
+```bash
+cd apps/frontend
+npm install
+npm run dev
+```
+
+Для работы без Docker отдельно поднимите PostgreSQL и Redis и синхронизируйте переменные окружения с backend config.
+
+## Тестирование
+
+Backend unit tests:
+
+```bash
+cd apps/backend
+npm test
+```
+
+Frontend checks:
+
+```bash
+cd apps/frontend
+npm run lint
+npm run type-check
+npm run build
+```
+
+Playwright E2E:
+
+```bash
+cd apps/frontend
+npx playwright test
+```
+
+Дополнительные проверки и smoke-скрипты находятся в [scripts](./scripts) и [apps/backend/dev-scripts](./apps/backend/dev-scripts).
+
+## Production деплой
+
+Основной production compose:
+
+```bash
+docker compose up -d
+```
+
+Он ожидает production-ready images и `.env` в корне проекта. Nginx слушает порты `80` и `443`, Grafana доступна на `3300`.
+
+Перед деплоем проверьте:
+
+- заполнены все production переменные окружения;
+- домен указывает на сервер;
+- SSL-сертификаты доступны nginx или выпущены через certbot;
+- Steam API key и bot credentials валидны;
+- включение `ENABLE_TRADE_OFFERS=true` сделано только после проверки ботов;
+- database migrations применены;
+- backup PostgreSQL настроен.
+
+Для первого SSL-выпуска можно использовать certbot container из `docker-compose.yml`, затем перезапустить nginx.
+
+## Безопасность
+
+- Реальные `.env`, `.env.*`, `.next`, `.next_*`, build artifacts и backup-env файлы игнорируются через `.gitignore`.
+- В репозиторий должны попадать только `.env.example` и `.env.*.example`.
+- Для Steam bot credentials используйте отдельные аккаунты и минимально необходимые права.
+- Не включайте реальные trade offers и платежи в local/dev окружении.
+- Проверяйте admin credentials перед production запуском.
+
+## Полезные документы
+
+- [docs/TECHNICAL_SPEC_V1.md](./docs/TECHNICAL_SPEC_V1.md)
+- [docs/production/PRODUCTION_CHECKLIST.md](./docs/production/PRODUCTION_CHECKLIST.md)
+- [docs/testing/TESTING_STRATEGY.md](./docs/testing/TESTING_STRATEGY.md)
+- [docs/runbooks/BOT_TROUBLESHOOTING.md](./docs/runbooks/BOT_TROUBLESHOOTING.md)
+- [docs/monitoring/MONITORING_SETUP.md](./docs/monitoring/MONITORING_SETUP.md)
+
+## Репозиторий
+
+GitHub: [ZhaslanToishybayev/Steammarketplace2](https://github.com/ZhaslanToishybayev/Steammarketplace2)
