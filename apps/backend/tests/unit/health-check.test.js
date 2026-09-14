@@ -1,11 +1,38 @@
 const request = require('supertest');
-const { app, server, io } = require('../../src/server');
-const { closeRedisConnections } = require('../../src/config/redis');
-const { pool } = require('../../src/config/database');
-const steamService = require('../../src/config/steam');
 
 jest.mock('../../src/config/steam', () => ({
-  testConnection: jest.fn()
+  testConnection: jest.fn(),
+}));
+
+jest.mock('../../src/config/redis', () => {
+  const client = {
+    on: jest.fn(),
+    get: jest.fn(),
+    set: jest.fn(),
+    quit: jest.fn().mockResolvedValue(undefined),
+  };
+
+  return {
+    redisClient: client,
+    pubClient: client,
+    subClient: client,
+    testRedisConnection: jest.fn().mockResolvedValue(false),
+    closeRedisConnections: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
+jest.mock('../../src/config/database', () => ({
+  pool: {
+    query: jest.fn(),
+    end: jest.fn().mockResolvedValue(undefined),
+  },
+  query: jest.fn(),
+  testConnection: jest.fn().mockResolvedValue(false),
+  initializeTables: jest.fn(),
+}));
+
+jest.mock('@socket.io/redis-adapter', () => ({
+  createAdapter: () => class RedisAdapter {},
 }));
 
 jest.mock('../../src/services/trade-queue.service', () => ({
@@ -19,6 +46,9 @@ jest.mock('../../src/services/metrics.service', () => ({
   initializeMetrics: jest.fn(),
 }));
 
+const { app, server, io } = require('../../src/server');
+const steamService = require('../../src/config/steam');
+
 describe('Health Check API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -29,8 +59,6 @@ describe('Health Check API', () => {
     if (server.listening) {
       await new Promise(resolve => server.close(resolve));
     }
-    await closeRedisConnections();
-    await pool.end();
   });
 
   test('should return 200 and steam_configured true when key is valid', async () => {
