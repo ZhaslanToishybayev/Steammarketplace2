@@ -106,7 +106,7 @@ describe('BotManager', () => {
   });
 
   describe('Load Balancing', () => {
-    test('should select the best bot based on active trades and inventory', () => {
+    test('should select the best bot based on active trades and inventory', async () => {
       const bot1 = manager.addBot({ accountName: 'bot1' });
       const bot2 = manager.addBot({ accountName: 'bot2' });
 
@@ -120,7 +120,7 @@ describe('BotManager', () => {
       // @ts-ignore
       bot2.activeTrades = 2; bot2.inventoryCount = 500;
 
-      expect(manager.getAvailableBot()).toBe(bot2);
+      expect(await manager.getAvailableBot()).toBe(bot2);
     });
 
     test('should return null if no bots are ready', () => {
