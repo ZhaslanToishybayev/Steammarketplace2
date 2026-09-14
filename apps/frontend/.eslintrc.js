@@ -11,7 +11,6 @@ module.exports = {
   },
   plugins: [
     '@typescript-eslint',
-    'prettier',
   ],
   extends: [
     'eslint:recommended',
@@ -26,7 +25,6 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
     'no-console': 'warn',
-    'prettier/prettier': 'error',
   },
   env: {
     browser: true,
