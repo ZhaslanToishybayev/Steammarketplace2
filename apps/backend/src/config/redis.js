@@ -20,7 +20,7 @@ const redisOptions = {
     },
     maxRetriesPerRequest: 3,
     enableReadyCheck: true,
-    lazyConnect: false,
+    // Unit tests import the Express app without a Redis service. Keep clients idle there.\n    lazyConnect: process.env.NODE_ENV === 'test',
 };
 
 if (process.env.REDIS_PASSWORD) {
