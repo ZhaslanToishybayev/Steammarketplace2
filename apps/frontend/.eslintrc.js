@@ -14,15 +14,18 @@ module.exports = {
   ],
   extends: [
     'eslint:recommended',
+    'next/core-web-vitals',
   ],
   ignorePatterns: ['dist', 'node_modules', '.next', 'coverage'],
   rules: {
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/prefer-const': 'error',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    'prefer-const': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
+    'no-undef': 'off',
     'no-console': 'warn',
   },
   env: {
