@@ -450,7 +450,9 @@ async function startServer() {
   }
 }
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
 
 // ========== GRACEFUL SHUTDOWN ==========
 const gracefulShutdown = async (signal) => {
