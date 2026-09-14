@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
       - name: Run unit tests
-        run: npm run test:unit -- --runInBand
+        run: npm run test:unit -- --runInBand --detectOpenHandles --forceExit
 
   frontend:
     name: Frontend checks
