@@ -37,6 +37,19 @@ jest.mock('../../src/services/telegram-bot.service', () => ({
   sendMessage: jest.fn(),
 }));
 
+jest.mock('../../src/services/trade-queue.service', () => ({
+  tradeQueueService: {
+    addTradeJob: jest.fn(),
+  },
+}));
+
+jest.mock('../../src/services/metrics.service', () => ({
+  updateBotMetrics: jest.fn(),
+  recordRemediation: jest.fn(),
+  recordBotSelectionScore: jest.fn(),
+  recordBotSelection: jest.fn(),
+}));
+
 describe('BotManager', () => {
   let manager;
 
