@@ -8,6 +8,17 @@ jest.mock('../../src/config/steam', () => ({
   testConnection: jest.fn()
 }));
 
+jest.mock('../../src/services/trade-queue.service', () => ({
+  tradeQueueService: {},
+}));
+
+jest.mock('../../src/services/metrics.service', () => ({
+  register: { contentType: 'text/plain', metrics: jest.fn() },
+  metricsMiddleware: (req, res, next) => next(),
+  updateBotMetrics: jest.fn(),
+  initializeMetrics: jest.fn(),
+}));
+
 describe('Health Check API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
