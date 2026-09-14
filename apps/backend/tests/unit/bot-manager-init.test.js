@@ -72,16 +72,16 @@ describe('BotManager', () => {
       const bot1 = manager.addBot(config1);
       const bot2 = manager.addBot(config2);
 
-      // @ts-ignore
-      bot1.initialize.mockResolvedValue(true);
-      // @ts-ignore
-      bot2.initialize.mockRejectedValue(new Error('Login failed'));
+      manager._loginWithRetry = jest.fn()
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('Login failed'));
 
-      const resultsPromise = manager.startAll();
-      await jest.advanceTimersByTimeAsync(30_000);
-      const results = await resultsPromise;
+      const results = await manager.startAll();
 
-      expect(results).toHaveLength(2);
+      expect(results).toEqual([
+        { success: true, bot: 'bot1' },
+        { success: false, bot: 'bot2', error: 'Login failed' },
+      ]);
       expect(manager.isRunning).toBe(true);
     });
   });
