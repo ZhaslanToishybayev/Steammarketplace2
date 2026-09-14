@@ -7,7 +7,6 @@ module.exports = {
     ecmaFeatures: {
       jsx: true,
     },
-    project: './tsconfig.json',
   },
   plugins: [
     '@typescript-eslint',
@@ -26,6 +25,7 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-non-null-assertion': 'warn',
     'no-undef': 'off',
+    'react/no-unescaped-entities': 'warn',
     'no-console': 'warn',
   },
   env: {
