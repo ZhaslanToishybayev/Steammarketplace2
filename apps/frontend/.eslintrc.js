@@ -14,7 +14,6 @@ module.exports = {
   ],
   extends: [
     'eslint:recommended',
-    'prettier',
   ],
   ignorePatterns: ['dist', 'node_modules', '.next', 'coverage'],
   rules: {
