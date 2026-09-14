@@ -32,6 +32,11 @@ jest.mock('../../src/services/scam-protection.service', () => ({
   preTradeCheck: jest.fn()
 }));
 
+jest.mock('../../src/services/telegram-bot.service', () => ({
+  sendCriticalError: jest.fn(),
+  sendMessage: jest.fn(),
+}));
+
 describe('BotManager', () => {
   let manager;
 
@@ -72,7 +77,9 @@ describe('BotManager', () => {
       // @ts-ignore
       bot2.initialize.mockRejectedValue(new Error('Login failed'));
 
-      const results = await manager.startAll();
+      const resultsPromise = manager.startAll();
+      await jest.advanceTimersByTimeAsync(30_000);
+      const results = await resultsPromise;
 
       expect(results).toHaveLength(2);
       expect(manager.isRunning).toBe(true);
