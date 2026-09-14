@@ -50,6 +50,12 @@ jest.mock('../../src/services/metrics.service', () => ({
   recordBotSelection: jest.fn(),
 }));
 
+jest.mock('../../src/services/bot-session.service', () => ({
+  sessionService: {
+    getSessionAgeHours: jest.fn().mockResolvedValue(null),
+  },
+}));
+
 describe('BotManager', () => {
   let manager;
 
